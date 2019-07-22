@@ -1,0 +1,93 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29025.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "alnpp", "alnpp.vcxproj", "{79E5138E-D1CB-4143-9F07-4ECFF90001C2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2} = {AEB0F1E6-D227-433A-8BFC-17AAA35624C2}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libaln", "libaln.vcxproj", "{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libalndll", "libalndll\libalndll.vcxproj", "{6B573435-058A-4D34-A927-9AA2CD08E9CF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ALNfitDeep", "ALNfitDeep.vcxproj", "{81F30868-CE4B-4997-B65E-55F17B7A4A85}"
+	ProjectSection(ProjectDependencies) = postProject
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2} = {79E5138E-D1CB-4143-9F07-4ECFF90001C2}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "realestate", "..\samples\realestate\ConsoleApplication1\ConsoleApplication1.vcxproj", "{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug MT DLL|x64 = Debug MT DLL|x64
+		Debug MT|x64 = Debug MT|x64
+		Debug|x64 = Debug|x64
+		Release MT DLL|x64 = Release MT DLL|x64
+		Release MT|x64 = Release MT|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Debug MT DLL|x64.ActiveCfg = Debug MT DLL|x64
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Debug MT DLL|x64.Build.0 = Debug MT DLL|x64
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Debug MT|x64.ActiveCfg = Debug MT|x64
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Debug MT|x64.Build.0 = Debug MT|x64
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Debug|x64.ActiveCfg = Release MT DLL|x64
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Debug|x64.Build.0 = Release MT DLL|x64
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Release MT DLL|x64.ActiveCfg = Release MT DLL|x64
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Release MT DLL|x64.Build.0 = Release MT DLL|x64
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Release MT|x64.ActiveCfg = Release MT|x64
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Release MT|x64.Build.0 = Release MT|x64
+		{79E5138E-D1CB-4143-9F07-4ECFF90001C2}.Release|x64.ActiveCfg = Release MT DLL|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Debug MT DLL|x64.ActiveCfg = Debug MT DLL|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Debug MT DLL|x64.Build.0 = Debug MT DLL|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Debug MT|x64.ActiveCfg = Debug MT|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Debug MT|x64.Build.0 = Debug MT|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Debug|x64.ActiveCfg = Release MT DLL|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Debug|x64.Build.0 = Release MT DLL|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Release MT DLL|x64.ActiveCfg = Release MT DLL|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Release MT DLL|x64.Build.0 = Release MT DLL|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Release MT|x64.ActiveCfg = Release MT|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Release MT|x64.Build.0 = Release MT|x64
+		{AEB0F1E6-D227-433A-8BFC-17AAA35624C2}.Release|x64.ActiveCfg = Release MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Debug MT DLL|x64.ActiveCfg = Debug MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Debug MT|x64.ActiveCfg = Debug MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Debug MT|x64.Build.0 = Debug MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Debug|x64.ActiveCfg = Debug MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Debug|x64.Build.0 = Debug MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Release MT DLL|x64.ActiveCfg = Release MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Release MT DLL|x64.Build.0 = Release MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Release MT|x64.ActiveCfg = Debug MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Release MT|x64.Build.0 = Debug MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Release|x64.ActiveCfg = Release MT DLL|x64
+		{6B573435-058A-4D34-A927-9AA2CD08E9CF}.Release|x64.Build.0 = Release MT DLL|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Debug MT DLL|x64.ActiveCfg = Debug MT DLL|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Debug MT DLL|x64.Build.0 = Debug MT DLL|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Debug MT|x64.ActiveCfg = Debug MT|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Debug MT|x64.Build.0 = Debug MT|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Debug|x64.ActiveCfg = Release MT DLL|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Debug|x64.Build.0 = Release MT DLL|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Release MT DLL|x64.ActiveCfg = Release MT DLL|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Release MT DLL|x64.Build.0 = Release MT DLL|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Release MT|x64.ActiveCfg = Release MT|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Release MT|x64.Build.0 = Release MT|x64
+		{81F30868-CE4B-4997-B65E-55F17B7A4A85}.Release|x64.ActiveCfg = Release MT DLL|x64
+		{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}.Debug MT DLL|x64.ActiveCfg = Debug|x64
+		{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}.Debug MT DLL|x64.Build.0 = Debug|x64
+		{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}.Debug MT|x64.ActiveCfg = Release|x64
+		{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}.Debug MT|x64.Build.0 = Release|x64
+		{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}.Debug|x64.ActiveCfg = Debug|x64
+		{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}.Release MT DLL|x64.ActiveCfg = Release|x64
+		{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}.Release MT DLL|x64.Build.0 = Release|x64
+		{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}.Release MT|x64.ActiveCfg = Release|x64
+		{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}.Release MT|x64.Build.0 = Release|x64
+		{E8BA4E0E-251A-48C9-8C4D-A0ABBE197B41}.Release|x64.ActiveCfg = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4380D613-C0EA-4606-ABDF-6413A6D9234E}
+	EndGlobalSection
+EndGlobal
