@@ -126,10 +126,10 @@ static int ALNAPI DoTrainALN(ALN* pALN,
                              double dblLearnRate,
                              BOOL bJitter)
 {
-#ifdef _DEBUG
-  DebugValidateALNTrainInfo(pALN, pDataInfo, pCallbackInfo, nMaxEpochs, 
-                            dblMinRMSErr, dblLearnRate);
-#endif
+//#ifdef _DEBUG
+ // DebugValidateALNTrainInfo(pALN, pDataInfo, pCallbackInfo, nMaxEpochs, 
+ //                           dblMinRMSErr, dblLearnRate);
+//#endif
 
   int nReturn = ALN_NOERROR;		    // assume success
 	int nDim = pALN->nDim;
@@ -290,7 +290,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 			// calc true RMS if estimate below min, or if last epoch, or every 10 epochs when jittering
 			if (epochinfo.dblEstRMSErr <= dblMinRMSErr || nEpoch == (nMaxEpochs - 1))
 			{
-        epochinfo.dblEstRMSErr = DoCalcRMSError(pALN, pDataInfo, pCallbackInfo);
+				epochinfo.dblEstRMSErr = DoCalcRMSError(pALN, pDataInfo, pCallbackInfo);
 			}
 
       // notify end of epoch

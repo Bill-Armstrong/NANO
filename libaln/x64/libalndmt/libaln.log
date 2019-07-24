@@ -1,0 +1,119 @@
+﻿  adapteval.cpp
+  adaptevallfn.cpp
+  adaptlfn.cpp
+  adaptminmax.cpp
+  alloccolumnbase.cpp
+  alnabort.cpp
+  alnaddtreestring.cpp
+  alnasert.cpp
+  alncalcconfidence.cpp
+  alncalcrmserror.cpp
+  alnconfidenceplimit.cpp
+  alnconfidencetlimit.cpp
+  alnconvertdtree.cpp
+  alneval.cpp
+  alnex.cpp
+  alnfitdeepsetup.cpp
+  _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\alnaddtreestring.cpp(125,21): warning C4244:  '=': conversion from '__int64' to 'int', possible loss of data
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.21.27702\atlmfc\include\afx.h(352,1): warning C4005:  'VERIFY': macro redefinition
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\include\alnpriv.h(72): message :  see previous definition of 'VERIFY'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.21.27702\atlmfc\include\afx.h(358,1): warning C4005:  'TRACE': macro redefinition
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\include\alnpriv.h(64): message :  see previous definition of 'TRACE'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.21.27702\atlmfc\include\afx.h(366,1): warning C4005:  'ASSERT': macro redefinition
+  alninvert.cpp
+  alnio.cpp
+  alnlfnanalysis.cpp
+  alnmem.cpp
+  Generating Code...
+  Compiling...
+  alnquickeval.cpp
+  alnrand.cpp
+  alntestvalid.cpp
+  alntrace.cpp
+  alntrain.cpp
+  alnvarmono.cpp
+  adaptevalminmax.cpp
+  buildcutoffroute.cpp
+  builddtree.cpp
+  calcactivechild.cpp
+  calccovariance.cpp
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\include\alnpriv.h(68): message :  see previous definition of 'ASSERT'
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(54,16): warning C4244:  '=': conversion from 'Eigen::EigenBase<Derived>::Index' to 'unsigned int', possible loss of data
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(54,16): warning C4244:         with
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(54,16): warning C4244:         [
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(54,16): warning C4244:             Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(54,16): warning C4244:         ]
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(55,16): warning C4244:  '=': conversion from 'Eigen::EigenBase<Derived>::Index' to 'unsigned int', possible loss of data
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(55,16): warning C4244:         with
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(55,16): warning C4244:         [
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(55,16): warning C4244:             Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(55,16): warning C4244:         ]
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(69,16): warning C4244:  '=': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(69,16): warning C4244:         with
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(69,16): warning C4244:         [
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(69,16): warning C4244:             Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(69,16): warning C4244:         ]
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(70,16): warning C4244:  '=': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(70,16): warning C4244:         with
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(70,16): warning C4244:         [
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(70,16): warning C4244:             Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(70,16): warning C4244:         ]
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(84,16): warning C4244:  '=': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(84,16): warning C4244:         with
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(84,16): warning C4244:         [
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(84,16): warning C4244:             Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(84,16): warning C4244:         ]
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(85,16): warning C4244:  '=': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(85,16): warning C4244:         with
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(85,16): warning C4244:         [
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(85,16): warning C4244:             Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(85,16): warning C4244:         ]
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(99,16): warning C4244:  '=': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(99,16): warning C4244:         with
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(99,16): warning C4244:         [
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(99,16): warning C4244:             Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(99,16): warning C4244:         ]
+  calcdataendpoints.cpp
+  countlfns.cpp
+  cutoff.cpp
+  cutoffeval.cpp
+  cutoffevallfn.cpp
+  cutoffevalminmax.cpp
+  debugevalminmax.cpp
+  evaltree.cpp
+  fillinputvector.cpp
+  Generating Code...
+  Compiling...
+  freecolumnbase.cpp
+  getvarconstraint.cpp
+  initlfns.cpp
+  jitter.cpp
+  plimit.cpp
+  prepaln.cpp
+  shuffle.cpp
+  split_ops.cpp
+  _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+  train_ops.cpp
+  _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(100,16): warning C4244:  '=': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(100,16): warning C4244:         with
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(100,16): warning C4244:         [
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(100,16): warning C4244:             Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\calccovariance.cpp(100,16): warning C4244:         ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.21.27702\atlmfc\include\afx.h(352,1): warning C4005:  'VERIFY': macro redefinition
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\include\alnpriv.h(72): message :  see previous definition of 'VERIFY'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.21.27702\atlmfc\include\afx.h(358,1): warning C4005:  'TRACE': macro redefinition
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\include\alnpriv.h(64): message :  see previous definition of 'TRACE'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.21.27702\atlmfc\include\afx.h(366,1): warning C4005:  'ASSERT': macro redefinition
+  validatedatainfo.cpp
+  Generating Code...
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\include\alnpriv.h(68): message :  see previous definition of 'ASSERT'
+  dtree.c
+  dtr_bio.c
+  dtr_err.c
+  dtr_io.c
+  dtr_mem.c
+  Generating Code...
+C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\src\dtree\dtr_bio.c(308,49): warning C4267:  '=': conversion from 'size_t' to 'int', possible loss of data
+  libaln.vcxproj -> C:\Users\arms\Documents\GitHub_NANO_Dev\NANO\libaln\x64\.\lib\libalndmt.lib

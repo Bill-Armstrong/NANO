@@ -114,9 +114,12 @@ void zeroSplitValues(ALN* pALN, ALNNODE* pNode) // routine
 	else
 	{
 		ASSERT(NODE_ISLFN(pNode));
-		(pNode->DATA.LFN.pSplit)->nCount = 0;
-		(pNode->DATA.LFN.pSplit)->dblSqError = 0;
-		(pNode->DATA.LFN.pSplit)->DBLNOISEVARIANCE = 0;
+		if (LFN_CANSPLIT(pNode))
+		{
+			(pNode->DATA.LFN.pSplit)->nCount = 0;
+			(pNode->DATA.LFN.pSplit)->dblSqError = 0;
+			(pNode->DATA.LFN.pSplit)->DBLNOISEVARIANCE = 0;
+		}
 	}
 }
 
