@@ -1,0 +1,10 @@
+The Data file was successfully opened.
+Opening data file C:\Users\arms\Documents\ALNGitHub\master\Working\VeryNoisyGaussianSin2000.txt for analysis succeeded!
+The line read from the file is: 
+ X	NoNoise	Noisy 
+The line is assumed to be a header line. Analysis continues.
+There were 3 items read in the header line
+First data line to help checking for correctness:
+0	0	27.03394537
+Count of items in first data line = 3
+Data file analysis returned: header lines 1, rows 2000, columns 3 
