@@ -1,3 +1,10 @@
 # NANO
-NANO: Noise-Attenuating Neuron Online: real-time machine learning that cares about the noise in data.
-This is a private repository for the time being.  Later it will be public.
+
+NANO: Noise-Attenuating Neuron Online: real-time machine learning that cares about the noise in data. 
+
+The sofware here is not finished.  It embodies an new idea for attenuating the noise in data. Namely for each sample in the data file a closest other sample in the file is found. A noise variance tool stores the difference of values. If the samples were at the same place, the variance of that difference would be twice the noise variance near that place in the domain. The samples are not in the same place, and we don't know the slope of the ideal function between them.  So the idea is to store the differences of domain coordinates and the difference of domain values and wait until the ideal function is approximated ever better by linear pieces, as in an ALN, and to use the slope of the linear piece joining them to get a better estimate of noise variance.  If the training error of the linear piece is less than or equal to the noise variance, the piece is not split, giving us a superb way of avoiding over-training. What we get is a Noise-Attenuating-Neuron (NAN).
+
+This is what the software here already does. What remains to be done is based on the idea that if samples are entered one by one into a training buffer, online as it were (hence the name NANO), the search for closest neighbors can be done in linear time in the size of the training buffer.  Instead of having a single training set, we attach a training buffer as part of the ALN. With just one such ALN, we can do simple reinforcement learning (which we already succeeded in doing in 1998 with a different libaln). This is the first goal of project NANO.
+
+The next stage will be putting thousands of NANO's together into a larger interconnected system to see what happens. Will it ultimately be a general learning system of unimaginable power? So as not to create too much undeserved hype, and at the same time keep the military people from seeking to exploit it, for now we are going to call this final stage "The Electric Chicken".
+
