@@ -34,11 +34,11 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-
+/*
 ///////////////////////////////////////////////////////////////////////////////
 // faster rand()
 
-static int g_nFastRandSeed = 0x38549391;		// initial value
+//static int g_nFastRandSeed = 0x38549391;		// initial value
 
 inline unsigned long DoFastRand()
 {
@@ -64,23 +64,40 @@ ALNIMP unsigned long ALNAPI ALNRand()
 
 ALNIMP float ALNAPI ALNRandFloat() 
 {
-  // ... mask in an exponent that makes value lie between 1 and 2, 
-  //     then subtract 1
-  // ... assumes IEEE float representation
+  
+}
+*/
 
-  // this trick suggested in Numerical Recipes in C
+#include <random>
 
-#ifdef VAX
-  const unsigned long jflone = 0x00004080;
-  const unsigned long jflmask = 0xffff007f;
-#else
-  const unsigned long jflone = 0x3f800000;
-  const unsigned long jflmask = 0x007fffff;
-#endif
+unsigned long DoFastRand();
+ALNIMP unsigned long ALNAPI ALNRand();
+ALNIMP float ALNAPI ALNRandFloat();
+//ALNIMP void ALNAPI ALNSRand(unsigned int nSeed);
 
-  long l = jflone | (jflmask & DoFastRand());
-  return *((float*)&l) - 1.0f;
+std::default_random_engine generator;
+std::uniform_int_distribution<int> distribution1(0, 147483647U);
+std::uniform_real_distribution<float> distribution2(0.0,1.0);
+
+
+unsigned long DoFastRand()
+{
+    return distribution1(generator);
+}
+  
+ALNIMP unsigned long ALNAPI ALNRand()
+{
+	return DoFastRand(); // this does a random int
 }
 
+ALNIMP float ALNAPI ALNRandFloat() 
+{
+   return distribution2(generator);
+}
 
-
+/*
+ALNIMP void ALNAPI ALNSRand(unsigned int nSeed)
+{
+	
+}
+*/

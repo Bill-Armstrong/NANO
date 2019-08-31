@@ -239,7 +239,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 
 				// if we have our first data point, init LFNs on first pass
 				if (nEpoch == 0 && nPoint == nStart)
-					InitLFNs(pTree, pALN, adblX); // MYTEST leave this here if nTRcurrSamples <= 0 ????
+					InitLFNs(pTree, pALN, adblX);
 
 
 				// jitter the data point

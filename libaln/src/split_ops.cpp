@@ -197,9 +197,10 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblLimit) // routine
 				double dblPieceSquareTrainError = (pNode->DATA.LFN.pSplit)->dblSqError; // total square error on the piece
 				double dblPieceNoiseVariance = (double)Count; // Used when there is no F-test.
 				double dblSplitLimit = dblLimit; // if dblLimit is <= 0, otherwise they test training MSE < dblLimit
-				if (dblLimit <= 0) // if this is TRUE, we do the F test.
+				if (dblLimit < 0) // if this is TRUE, we do the F test.
 				{
-					dblPieceNoiseVariance = (pNode->DATA.LFN.pSplit)->DBLNOISEVARIANCE; // total noise variance samples
+					dblPieceNoiseVariance = (pNode->DATA.LFN.pSplit)->DBLNOISEVARIANCE; // total of noise variance samples
+					//the average of noise variance samples estimates the actual noise variance.
 					int dofIndex; // get the dblSplitLimit corresponding to the degrees of freedom of the F test
 					dofIndex = Count - 2;
 					if (Count > 10) dofIndex = 8;
@@ -207,7 +208,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblLimit) // routine
 					if (Count > 30) dofIndex = 10;
 					if (Count > 40) dofIndex = 11;
 					if (Count > 60) dofIndex = 12;
-					dblSplitLimit = adblFconstant50[dofIndex]; // One can reject the H0 of a good fit with various percentages
+					dblSplitLimit = adblFconstant35[dofIndex]; // One can reject the H0 of a good fit with various percentages
 					// 90, 75, 50, 35, 25. E.g. 90% says that if the training error is greater than the dblSplitLimit prescribes
 					// it is 90% sure that the fit is bad.  A higher percentage needs less training time.
 					// Note that when there are few hits on the piece, the dblSplitLimit is larger and 
@@ -227,9 +228,9 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblLimit) // routine
 				}
 				else
 				{
-				// The piece fits well enough and doesn't need to split or train
-				LFN_FLAGS(pNode) &= ~LF_SPLIT;  // this flag setting prevents further splitting 
-				// The problem here is adjoining pieces become responsible for the rest of the fit.
+					// The piece fits well enough and doesn't need to split or train
+					LFN_FLAGS(pNode) &= ~LF_SPLIT;  // this flag setting prevents further splitting 
+					// The problem here is adjoining pieces become responsible for the rest of the fit.
 				}
 			}
 			else
