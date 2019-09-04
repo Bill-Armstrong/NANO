@@ -1,5 +1,9 @@
 // NANO program
-// This program controls the libaln NANO library
+// This program controls the libaln NANO library.  The user has to input the name of the data file and
+// the columns to be used as inputs and the (single) output. The dblMSEorF value if negative, uses an F-test
+// to decide whether to break a linear piece (a multi-dimensional hyperplane in general) into two separate
+// hyperplanes connected by a max or min operator. Otherwise a positive level of Mean Square Training Error
+// below which the pieces will not break can be set.
 
 
 #ifdef __GNUC__
@@ -27,7 +31,7 @@ int main()
 {
 	CDataFile file;
 	// INSERT INPUT FILE PATH AND NAME
-	if (file.Read("VeryNoisy.txt")) // Important: this file can't have headers; it is all doubles
+	if (file.Read("VeryNoisyGaussianSin20000.txt")) // Important: this file can't have headers; it is all doubles
 	{
 		std::cout << "Succeeded!" << std::endl;
 	}
@@ -37,9 +41,11 @@ int main()
 		return 1;
 	}
 	int nTRmaxSamples = file.RowCount();
+	int nCols = file.ColumnCount();
 	// SPECIFY HOW MANY OF THE COLUMNS YOU WANT TO USE IN TRAINING (NUMBER OF INPUTS PLUS ONE OUTPUT)?
 	const int nDim = 2;
-	int nTRcols = 2 * nDim + 1; // The rows of data are extended by nDim + 1 for the noise-attenuation tool.
+	int nTRcols = 2 * nDim + 1; // The nDim rows of sample data in adblTRdata
+	 //are extended to 2 * nDim + 1 total rows for the noise-attenuation tool.
 
 	// create ALN 
 	std::cout << "Creating ALN";
@@ -57,7 +63,7 @@ int main()
 	ALNNODE* pTree = pALN->GetTree();
 	pALN->SetGrowable(pTree);
 	double dblMSEorF = -1.0; // a negative value indicates use of an F-test to stop splitting
-	// This sets up the training buffer of doubles adblTRbuffer
+	// This sets up the training buffer of doubles adblTRbuffer. The F-test is specified in split_ops.cpp
 	ALNDATAINFO* pdata = pALN->GetDataInfo();
 	pdata->nTRmaxSamples = nTRmaxSamples;
 	pdata->nTRcurrSamples = 0;
@@ -65,8 +71,8 @@ int main()
 	pdata->nTRinsert = 0;
 	pdata->dblMSEorF = dblMSEorF;
 	//SPECIFY FOR EACH ALN INPUT THE COLUMN OF THE DATA FILE USED (LAST IS THE DESIRED OUTPUT EXCEPT FOR NOISE)
-	int ColumnNumber[nDim]{0,2}; // {0, 1 } tests to see what happens with no noise.
-	//load the buffer
+	int ColumnNumber[nDim]{0,2}; // {0, 1 } tests to see what happens with no noise in the VeryNoisy.txt example.
+	//load the buffer; as the buffer gets each new sample, it is compared to existing samples to determine noise variance
 	double* adblX = (double*)malloc(nDim * sizeof(double));
 	for (int i = 0; i < nTRmaxSamples; i++)
 	{
@@ -84,7 +90,8 @@ int main()
 		<< "\nnTRinsert = " << pdata->nTRinsert << std::endl;
 	int nDimt2 = nDim *2;
 	int nDimt2p1 = nDimt2 + 1;
-	// Print the buffer contents
+	/*
+	// Print part of the buffer contents to check
 	for (int ii = 0; ii < 5; ii++) // Just a sampling of the file
 	{
 		for (int jj = 0; jj < nDimt2p1; jj++)
@@ -95,13 +102,14 @@ int main()
 		}
 		std::cout << std::endl << std::endl;
 	}
+	*/
 	BOOL bJitter = FALSE;
 	bStopTraining = FALSE;
 	double dblLearnRate = 0.1;  // small learning rate
-	double dblMinRMSE = 0.00001;
-	int nMaxEpochs = 20;
-	int nNotifyMask = AN_TRAIN | AN_EPOCH;
-	for (int ii = 0; ii < 100; ii++)
+	double dblMinRMSE = 0.00001;// This is set small and not very useful.  dblMSEorF is better.
+	int nMaxEpochs = 20; // 20 epochs give enough time for pieces to move into position for splitting in the last epoch.
+	int nNotifyMask = AN_TRAIN | AN_EPOCH; // required callbacks for information or insertion of data
+	for (int iteration = 0; iteration < 75; iteration++)
 	{
 
 		if (!pALN->Train(nMaxEpochs, dblMinRMSE, dblLearnRate, bJitter, nNotifyMask))
@@ -119,23 +127,25 @@ int main()
 			std::cout << "Training was stopped because there was no more splitting of linear pieces." << std::endl;
 			break;
 		}
+		if (iteration == 50) dblLearnRate = 0.1; // Causes less jiggling around of the pieces as training is closing in on the solution.
+		if (iteration == 60) dblLearnRate = 0.05;
 	}
 	CDataFile ExtendTR;
-	ExtendTR.Create(2000, 4);
+	ExtendTR.Create(file.RowCount(), 1 + nCols);
 	double entry;
 	ALNNODE** ppActiveLFN = NULL;
 	ALNDATAINFO* pdata2 = pALN->GetDataInfo();
-	for (int i = 0; i < 2000; i++)
+	for (int i = 0; i < nTRmaxSamples; i++)
 	{
-		for (int j = 0; j < 3; j++)
+		for (int j = 0; j < nCols; j++) // we include the correct function in the second column for checkin accuracy
 		{
 			entry = file.GetAt(i, j, 0);
 			ExtendTR.SetAt(i, j, entry, 0);
 		}
 		adblX[0] = file.GetAt(i, 0, 0);
 		adblX[1] = file.GetAt(i, 2, 0);
-		entry = pALN->QuickEval(adblX, ppActiveLFN);
-		ExtendTR.SetAt(i, 3, entry, 0);
+		entry = pALN->QuickEval(adblX, ppActiveLFN); // get the ALN-computed value.
+		ExtendTR.SetAt(i, nCols, entry, 0);
 	}
 	ExtendTR.Write("ExtendedTR.txt");
 }

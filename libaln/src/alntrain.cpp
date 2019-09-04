@@ -248,7 +248,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 				// do an adapt eval to get active LFN and distance, and to prepare
 				// tree for adaptation
 				ALNNODE* pActiveLFN = NULL;
-				CCutoffInfo& cutoffinfo = aCutoffInfo[nPoint - nStart];
+				CCutoffInfo& cutoffinfo = aCutoffInfo[nPoint];
 				double dbl = AdaptEval(pTree, pALN, adblX, &cutoffinfo, &pActiveLFN);
 
 				// track squared error before adapt, since adapt routines

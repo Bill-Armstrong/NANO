@@ -105,7 +105,7 @@ void ALNAPI DebugValidateALNDataInfo(const ALN* pALN,
           (pCallbackInfo->nNotifyMask & AN_VECTORINFO)));
   
   // valid varinfo
-  ASSERT(pDataInfo->aVarInfo != NULL || pDataInfo->nTRcols >= pALN->nDim);
+  ASSERT(pDataInfo->aVarInfo != NULL || pDataInfo->nTRcols >= (2 * pALN->nDim + 1));
   if (pDataInfo->aVarInfo != NULL)
   {
     for (int i = 0; i < pALN->nDim; i++)

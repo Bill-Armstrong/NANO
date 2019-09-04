@@ -75,10 +75,10 @@ double ALNAPI AdaptEval(ALNNODE* pNode, ALN* pALN, const double* adblX,
   ALNNODE* pLFNCheck = NULL;
   double dblCheck = DebugEval(pNode, pALN, adblX, &pLFNCheck);
 	ASSERT(dbl == dblCheck);
-	//ASSERT(pLFNCheck == pActiveLFN); // MYTEST will it still crash?
+	ASSERT(pLFNCheck == pActiveLFN);
 	// See what happens if we don't use the cutoffs
-	dbl = dblCheck; // MYTEST assumes debug version is correct (no cutoffs)
-	pActiveLFN = pLFNCheck; // MYTEST
+	//dbl = dblCheck; // MYTEST assumes debug version is correct (no cutoffs)
+	//pActiveLFN = pLFNCheck; // MYTEST
 #endif  // MYTEST 
   *ppActiveLFN = pActiveLFN;
 
