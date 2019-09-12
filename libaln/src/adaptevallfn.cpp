@@ -38,9 +38,11 @@ static char THIS_FILE[] = __FILE__;
 // LFN specific eval
 //  - returns distance of LFN from point and also sets the 
 //    node's dblDistance member for use by adaptive routines
+static int counttimes = 1; // MYTEST FOR DEBUGGING
 
 double ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const double* adblX,
-                           ALNNODE** ppActiveLFN)
+	ALNNODE** ppActiveLFN)
+
 {
   ASSERT(adblX != NULL);
   ASSERT(pALN != NULL);
@@ -58,6 +60,7 @@ double ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const double* adblX,
 
   // calc dist of point from line
   int nDim = pALN->nDim;
+  counttimes++;
   const double* adblW = LFN_W(pNode);
   double dblA = *adblW++;                 // skip past bias weight       
   for (int i = 0; i < nDim; i++)     

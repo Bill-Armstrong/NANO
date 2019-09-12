@@ -97,6 +97,7 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
       memset(apActiveLFNs, 0, pDataInfo->nTRcurrSamples * sizeof(ALNNODE*));
     }
 
+
   	// allocate input vector     
    	adblX = new double[nDim];   
     if (!adblX) ThrowALNMemoryException();

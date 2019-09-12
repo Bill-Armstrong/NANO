@@ -57,8 +57,11 @@ void ALNAPI ResetCounters(ALNNODE* pNode, ALN* pALN,BOOL bMarkAsUseful /*= FALSE
   {
 		NODE_RESPCOUNTLASTEPOCH(pNode) = nRespCount;
   }
-	the top line below is the version I understand
-	*/
+	the top line below is the version I understand WWA
+	There used to be a lot of useless nodes.  Not now, so this concept may not be very useful.
+	A leaf node can fail to be part of the solution this way:        ________
+	This minimum leaves the horizontal part above it with no hits.  	/\
+		*/
 	NODE_RESPCOUNT(pNode) = 0;
   if (NODE_ISMINMAX(pNode))
   {

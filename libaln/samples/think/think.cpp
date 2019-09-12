@@ -13,6 +13,7 @@
 #include "alnpp.h"
 #include "datafile.h"
 #include "cmyaln.h"
+#include "alnpriv.h"
 #include <iostream>
 #include <string>
 
@@ -31,7 +32,7 @@ int main()
 {
 	CDataFile file;
 	// INSERT INPUT FILE PATH AND NAME
-	if (file.Read("VeryNoisyGaussianSin20000.txt")) // Important: this file can't have headers; it is all doubles
+	if (file.Read("SineNoisy.txt")) // Important: this file can't have headers; it is all doubles
 	{
 		std::cout << "Succeeded!" << std::endl;
 	}
@@ -62,7 +63,11 @@ int main()
 	CMyAln* pALN = &aln;
 	ALNNODE* pTree = pALN->GetTree();
 	pALN->SetGrowable(pTree);
-	double dblMSEorF = -1.0; // a negative value indicates use of an F-test to stop splitting
+	ALNREGION* pRegion = pALN->GetRegion(0);
+	pRegion->dblSmoothEpsilon = 0;
+	SetSmoothingEpsilon(pRegion); // Should all smoothing be removed from the library?????? Maybe when more speed is needed.
+	// DO WE USE THE F-TEST??
+	double dblMSEorF = -1; // a negative value indicates use of an F-test to stop splitting
 	// This sets up the training buffer of doubles adblTRbuffer. The F-test is specified in split_ops.cpp
 	ALNDATAINFO* pdata = pALN->GetDataInfo();
 	pdata->nTRmaxSamples = nTRmaxSamples;
@@ -90,9 +95,10 @@ int main()
 		<< "\nnTRinsert = " << pdata->nTRinsert << std::endl;
 	int nDimt2 = nDim *2;
 	int nDimt2p1 = nDimt2 + 1;
-	/*
+	double averageNVsample = 0;
 	// Print part of the buffer contents to check
-	for (int ii = 0; ii < 5; ii++) // Just a sampling of the file
+	int nBegin = 0;
+	for (int ii = nBegin; ii < nBegin + 629; ii++) // Just a sampling of the file
 	{
 		for (int jj = 0; jj < nDimt2p1; jj++)
 		{
@@ -100,18 +106,19 @@ int main()
 			if (jj == nDimt2) std::cout << " square dist = ";
 			std::cout << pdata->adblTRdata[nDimt2p1 * ii + jj] << " ";
 		}
-		std::cout << std::endl << std::endl;
+		std::cout << std::endl;
+		averageNVsample += 0.5 * pow(pdata->adblTRdata[nDimt2p1 * ii + nDimt2 - 1], 2);
 	}
-	*/
+	averageNVsample /= 630;
+	std::cout << "\n\n Average noise difference = " << averageNVsample << endl;
 	BOOL bJitter = FALSE;
 	bStopTraining = FALSE;
-	double dblLearnRate = 0.1;  // small learning rate
+	double dblLearnRate = 0.2;  // small learning rate
 	double dblMinRMSE = 0.00001;// This is set small and not very useful.  dblMSEorF is better.
 	int nMaxEpochs = 20; // 20 epochs give enough time for pieces to move into position for splitting in the last epoch.
 	int nNotifyMask = AN_TRAIN | AN_EPOCH; // required callbacks for information or insertion of data
-	for (int iteration = 0; iteration < 75; iteration++)
+	for (int iteration = 0; iteration < 200; iteration++)
 	{
-
 		if (!pALN->Train(nMaxEpochs, dblMinRMSE, dblLearnRate, bJitter, nNotifyMask))
 		{
 			std::cout << "Training failed!" << std::endl;
@@ -127,8 +134,8 @@ int main()
 			std::cout << "Training was stopped because there was no more splitting of linear pieces." << std::endl;
 			break;
 		}
-		if (iteration == 50) dblLearnRate = 0.1; // Causes less jiggling around of the pieces as training is closing in on the solution.
-		if (iteration == 60) dblLearnRate = 0.05;
+		if (iteration == 160) dblLearnRate = 0.1; // Causes less jiggling around of the pieces as training is closing in on the solution.
+		if (iteration == 180) dblLearnRate = 0.05;
 	}
 	CDataFile ExtendTR;
 	ExtendTR.Create(file.RowCount(), 1 + nCols);

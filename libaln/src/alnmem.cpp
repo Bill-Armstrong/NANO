@@ -414,7 +414,7 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
 				//dblChange = (0.9343727 + i * 0.1334818) * dblSE; old values where did they come from?
 				// When a piece splits into two equal leaf nodes, there is a fillet inserted so both pieces have to move
 				// in the output direction to leave the function unchanged
-				dblChange = (1.0 + i * 0.0001) * dblSE;
+				dblChange = i * 0.0000000001 + dblSE; // only one child get the tiny increment so equality of LFNs is very rare for training points
         if (nParentMinMaxType == GF_MIN)
 				{
           *LFN_W(pChild) += dblChange;

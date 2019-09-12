@@ -77,7 +77,7 @@ double ALNAPI AdaptEvalMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX, CE
 	// eval first child
 	ALNNODE* pActiveLFN0;
 	double dbl0 = AdaptEval(pChild0, pALN, adblX, cutoff, &pActiveLFN0);
-	/*
+
 	// see if we can cutoff...
 	if (Cutoff(dbl0, pNode, cutoff, region.dbl4SE))
 	{
@@ -86,8 +86,8 @@ double ALNAPI AdaptEvalMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX, CE
 		NODE_DISTANCE(pNode) = dbl0;
 		MINMAX_RESPACTIVE(pNode) = 1.0;	 // we can't have < 1 without additional evaluation
 		return dbl0;  
-	}   Removed the cutoff to see what happens
-	*/
+	}  // Removed the cutoff to see what happens, now restored
+
 	// eval second child
 	ALNNODE* pActiveLFN1;
 	double dbl1 = AdaptEval(pChild1, pALN, adblX, cutoff, &pActiveLFN1);

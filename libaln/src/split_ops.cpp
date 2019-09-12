@@ -137,7 +137,7 @@ void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo) // routine
 	int nDimt2m1 = nDimt2 - 1;
 	int nDimt2p1 = nDimt2 + 1;
 	int nDimt2p1ti;
-	double* adblX = (double*)malloc((nDim) * sizeof(double));
+	double* adblX = (double*)malloc(nDim * sizeof(double));
 	ALNNODE* pActiveLFN;
 	double* adblTRdata = pDataInfo->adblTRdata;
 	int nrows = pDataInfo->nTRcurrSamples;
@@ -196,7 +196,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblMSEorF) // routine
 		if (LFN_CANSPLIT(pNode))
 		{
 			long Count = (pNode->DATA.LFN.pSplit)->nCount;
-			if (Count > nDimt2) // There are enough samples on the piece to consider splitting
+			if (Count >= 2* nDim) // There are enough samples on the piece to consider splitting
 			{
 				double dblPieceSquareTrainError = (pNode->DATA.LFN.pSplit)->dblSqError; // total square error on the piece
 				double dblPieceNoiseVariance = (double)Count; // Used when there is no F-test.
@@ -212,7 +212,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblMSEorF) // routine
 					if (Count > 30) dofIndex = 10;
 					if (Count > 40) dofIndex = 11;
 					if (Count > 60) dofIndex = 12; // MYTEST  encourage splitting worked, now it's too much
-					dblSplitLimit = adblFconstant50[dofIndex]; // One can reject the H0 of a good fit with various percentages
+					dblSplitLimit = adblFconstant75[dofIndex]; // One can reject the H0 of a good fit with various percentages
 					// 90, 75, 50, 35, 25. E.g. 90% says that if the training error is greater than the dblSplitLimit prescribes
 					// it is 90% sure that the fit is bad.  A higher percentage needs less training time.
 					// Note that when there are few hits on the piece, the dblSplitLimit is larger and 
@@ -223,7 +223,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblMSEorF) // routine
 					dblSplitLimit = dblMSEorF;
 				}
 
-				if (dblPieceSquareTrainError > dblPieceNoiseVariance * dblSplitLimit)  //MYTEST is 0.9 a good factor with f at 50 here?
+				if (dblPieceSquareTrainError > dblPieceNoiseVariance * dblSplitLimit)  //MYTEST is 0.2 a good factor with F-test at 75 here?
 				{
 					// The piece doesn't fit and needs to split; then training must continue.
 					SplitLFN(pALN, pNode); // We split *every* leaf node that reaches this point.
@@ -239,8 +239,8 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblMSEorF) // routine
 			}
 			else
 			{
-				// The piece has at most 2 * nDim - 1 samples on it, stop splitting it. 
-				//  LFN_FLAGS(pNode) &= ~LF_SPLIT;  // this flag setting prevents further splitting  MYTEST
+				// The piece has at most 2 * nDim -1 samples on it, stop splitting it. 
+				LFN_FLAGS(pNode) &= ~LF_SPLIT;  // this flag setting prevents further splitting
 				// It may still need to train
 				bStopTraining = FALSE; //  we set it to FALSE and continue to another epoch of training.
 			}
@@ -266,7 +266,7 @@ int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode)
 	}
 }
 
-ALNDATAINFO* GetDataInfo()
-{
-	return nullptr;
-}
+//ALNDATAINFO* GetDataInfo()  MYTEST WHAT IS THIS ROUTINE DOING HERE?????
+//{
+//	return nullptr;
+//}

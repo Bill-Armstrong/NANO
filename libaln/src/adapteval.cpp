@@ -75,7 +75,8 @@ double ALNAPI AdaptEval(ALNNODE* pNode, ALN* pALN, const double* adblX,
   ALNNODE* pLFNCheck = NULL;
   double dblCheck = DebugEval(pNode, pALN, adblX, &pLFNCheck);
 	ASSERT(dbl == dblCheck);
-	ASSERT(pLFNCheck == pActiveLFN);
+	ASSERT(pLFNCheck == pActiveLFN); // This could break because of equal LFNs after a split.  This was only corrected if smoothing > 0
+	// so now it is corrected in that case too. 
 	// See what happens if we don't use the cutoffs
 	//dbl = dblCheck; // MYTEST assumes debug version is correct (no cutoffs)
 	//pActiveLFN = pLFNCheck; // MYTEST
