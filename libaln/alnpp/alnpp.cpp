@@ -74,6 +74,7 @@ void ALNAPI CAln::addTRsample(CAln* pALN, double* adblX, const int nDim)
 	int nTRcols = thisDataInfo->nTRcols;
 	int nTRinsert = thisDataInfo->nTRinsert;
 	double dblMSEorF = thisDataInfo->dblMSEorF;
+	
 
 	if (nTRcurrSamples == 0) // for empty or one sample buffer only
 	{
@@ -81,7 +82,6 @@ void ALNAPI CAln::addTRsample(CAln* pALN, double* adblX, const int nDim)
 		adblTRdata = (double*)malloc(nTRmaxSamples * nTRcols * sizeof(double));
 		// Pass the pointer value back to the m_datainfo struct so it points to the allocated space
 		thisDataInfo->adblTRdata = adblTRdata;
-		// and the last component is the distance between them
 		// First we fill TRbuff with 0's
 		for (long i = 0; i < nTRmaxSamples; i++)
 		{
@@ -91,7 +91,7 @@ void ALNAPI CAln::addTRsample(CAln* pALN, double* adblX, const int nDim)
 			{
 				adblTRdata[nDimt2p1ti + j] = 0; // We manipulate the buffer using the local pointer
 			}
-			adblTRdata[nDimt2p1ti + nDimt2] = DBL_MAX; // the value of the distance to the clo is max for safety
+			adblTRdata[nDimt2p1ti + nDimt2] = DBL_MAX; // the value of the distance to the closest is max for safety
 		}
 		// insert the sample at nTRinsert 0 and store a fictitious closest far away to be replaced at the next insertion
 		for (int j = 0; j < nDim; j++) // domain components only

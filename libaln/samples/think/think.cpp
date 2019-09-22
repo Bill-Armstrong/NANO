@@ -26,6 +26,7 @@ static char szInfo[] = "NANO (Noise-Attenuating Neuron Online) program\n"
 double dblTrainErr;
 int nMaxEpochs;
 int nNumberLFNs;
+auto const MSEORF = 0.33333;
 
 
 int main()
@@ -67,7 +68,7 @@ int main()
 	pRegion->dblSmoothEpsilon = 0;
 	SetSmoothingEpsilon(pRegion); // Should all smoothing be removed from the library?????? Maybe when more speed is needed.
 	// DO WE USE THE F-TEST??
-	double dblMSEorF = -1; // a negative value indicates use of an F-test to stop splitting
+	double dblMSEorF = MSEORF; // a negative value indicates use of an F-test to stop splitting
 	// This sets up the training buffer of doubles adblTRbuffer. The F-test is specified in split_ops.cpp
 	ALNDATAINFO* pdata = pALN->GetDataInfo();
 	pdata->nTRmaxSamples = nTRmaxSamples;

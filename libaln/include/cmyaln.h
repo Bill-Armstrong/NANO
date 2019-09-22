@@ -41,7 +41,8 @@ class CMyAln : public CAln
 
   virtual BOOL OnVectorInfo(VECTORINFO* pVectorInfo, void* pvData) 
   {
-	// fillvector(	pVectorInfo->adblX, this);
+	// fillvector(	pVectorInfo->adblX, this); old
+	// getvector may be used for reinforcement learning
     if(_kbhit())
     {
       //cerr << endl << "Checking keyboard input (type 's' to stop training)" << endl;

@@ -5,7 +5,7 @@
       <Configuration>Debug MT DLL</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-      <ProjectConfiguration Include="Release MT DLL|x64">
+    <ProjectConfiguration Include="Release MT DLL|x64">
       <Configuration>Release MT DLL</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
@@ -242,8 +242,11 @@
     <ClInclude Include="..\..\include\alnpp.h" />
     <ClInclude Include="..\..\include\alnpriv.h" />
     <ClInclude Include="..\..\include\alnver.h" />
+    <ClInclude Include="..\..\include\cmyaln.h" />
+    <ClInclude Include="..\..\include\datafile.h" />
     <ClInclude Include="..\..\include\dtree.h" />
     <ClInclude Include="..\..\include\StdAfx.h" />
+    <ClInclude Include="..\..\include\targetver.h" />
     <ClInclude Include="..\..\src\dtree\DTR_PRIV.H" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

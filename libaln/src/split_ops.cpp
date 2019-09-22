@@ -212,7 +212,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblMSEorF) // routine
 					if (Count > 30) dofIndex = 10;
 					if (Count > 40) dofIndex = 11;
 					if (Count > 60) dofIndex = 12; // MYTEST  encourage splitting worked, now it's too much
-					dblSplitLimit = adblFconstant75[dofIndex]; // One can reject the H0 of a good fit with various percentages
+					dblSplitLimit = adblFconstant50[dofIndex]; // One can reject the H0 of a good fit with various percentages
 					// 90, 75, 50, 35, 25. E.g. 90% says that if the training error is greater than the dblSplitLimit prescribes
 					// it is 90% sure that the fit is bad.  A higher percentage needs less training time.
 					// Note that when there are few hits on the piece, the dblSplitLimit is larger and 
