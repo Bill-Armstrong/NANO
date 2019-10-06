@@ -1,0 +1,56 @@
+This protocol file opened
+NANO (Noise-Attenuating Neuron Online) program used for Q_learning
+Copyright (C)  2019 William W. Armstrong
+Licensed under LGPL
+
+Started program at Thu Oct  3 13:41:52 2019
+
+Time step delta t = 0.1
+Three values of torque for control: 0 or + or - 0.03
+Initial number of training iterations = 1000
+Each iteration does 1 epochs of training 
+Each epoch has 50 samples
+Creating ALN, four variables, output variable 3 (zero based)... succeeded!
+The mean square error below which splitting stops is 0.1
+Data about the ALN's data buffer after loading: 
+nTRmaxSamples = 50  
+nTRcurrSamples = 50  
+nTRcols  = 9  
+nTRinsert = 0 MSE or F 0.1
+-9.40512 1.27136 -0.03 0 closest is 2.21612 -2.03003 0 0  square dist = 9.03222 
+Estimate of average noise variance (neglecting slope) = 0.0253243
+Sequence of 5 iterations begins.
+MinRMSE = 1e-06 Learning rate = 0.2 Jitter =  0
+Iteration 1 of 5 begins.
+Iteration 2 of 5 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 3 of 5 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 4 of 5 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 5 of 5 begins.
+At the end of this iteration, no more splitting occurred
+Sequence of 1000 iterations begins.
+MinRMSE = 1e-06 Learning rate = 0.2 Jitter =  0
+Iteration 1 of 1000 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 2 of 1000 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 3 of 1000 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 4 of 1000 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 5 of 1000 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 6 of 1000 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 7 of 1000 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 8 of 1000 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 9 of 1000 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 10 of 1000 begins.
+At the end of this iteration, no more splitting occurred
+Iteration 11 of 1000 begins.
+At the end of this iteration, no more splitting occurred
