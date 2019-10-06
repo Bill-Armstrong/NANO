@@ -232,9 +232,6 @@
     <ClInclude Include="..\include\alnintern.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cmyaln.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\docs\libaln.doc">

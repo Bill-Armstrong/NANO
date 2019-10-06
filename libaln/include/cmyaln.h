@@ -3,7 +3,7 @@
 #ifndef _CMYALN_H
 #define _CMYALN_H
 
-#include <stdio.h>
+#include <iostream>
 
 extern "C" int _kbhit();
 extern "C" int _getch();
@@ -24,9 +24,8 @@ class CMyAln : public CAln
   
 	virtual BOOL OnTrainEnd(TRAININFO* pTrainInfo, void* pvData) 
   { 
-	//cerr << "Training finished.  RMSE: " << pTrainInfo->dblRMSErr << std::endl;
-		//dblTrainErr = pTrainInfo->dblRMSErr;
-		return TRUE;
+	std::cerr << " RMSE: " << pTrainInfo->dblRMSErr << " Leaf nodes " << pTrainInfo->nLFNs << std::endl;
+	return TRUE;
   }
 
   virtual BOOL OnEpochStart(EPOCHINFO* pEpochInfo, void* pvData) 
@@ -36,6 +35,8 @@ class CMyAln : public CAln
 
   virtual BOOL OnEpochEnd(EPOCHINFO* pEpochInfo, void* pvData) 
   {
+	  std::cerr << "Leaf nodes " << pEpochInfo->nLFNs << " Active leaf nodes " <<  pEpochInfo->nActiveLFNs << std::endl;
+
 	 return TRUE;
   }
 

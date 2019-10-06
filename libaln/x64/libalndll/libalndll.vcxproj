@@ -79,8 +79,8 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\include;..\..\dtree;C:\Boost\boost_1_68_0\;C:\Eigen\eigen-eigen-b3f3d4950030;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_AFXDLL;ALNDLL;x64;_WINDOWS;_DEBUG;ALN_NOFORCE_LIBS;_CRT_SECURE_NO_WARNINGS;-D_SCL_SECURE_NO_WARNINGS;LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\include\;..\..\dtree\;C:\Boost\boost_1_68_0\;C:\Eigen\eigen-eigen-b3f3d4950030;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_AFXDLL;ALNDLL;x64;_WINDOWS;_DEBUG;ALN_NOFORCE_LIBS;_CRT_SECURE_NO_WARNINGS;LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>.\libalndll\Debug/libalndll.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>
@@ -127,8 +127,8 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\..\include;..\..\dtree;C:\Boost\boost_1_68_0\;C:\Eigen\eigen-eigen-b3f3d4950030;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_AFXDLL;ALNDLL;NDEBUG;x64;_WINDOWS;ALN_NOFORCE_LIBS;LITTLE_ENDIAN;_CRT_SECURE_NO_WARNINGS;-D_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\include\;..\..\dtree\;C:\Boost\boost_1_68_0\;C:\Eigen\eigen-eigen-b3f3d4950030;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_AFXDLL;ALNDLL;NDEBUG;x64;_WINDOWS;ALN_NOFORCE_LIBS;LITTLE_ENDIAN;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -242,7 +242,6 @@
     <ClInclude Include="..\..\include\alnpp.h" />
     <ClInclude Include="..\..\include\alnpriv.h" />
     <ClInclude Include="..\..\include\alnver.h" />
-    <ClInclude Include="..\..\include\cmyaln.h" />
     <ClInclude Include="..\..\include\datafile.h" />
     <ClInclude Include="..\..\include\dtree.h" />
     <ClInclude Include="..\..\include\StdAfx.h" />

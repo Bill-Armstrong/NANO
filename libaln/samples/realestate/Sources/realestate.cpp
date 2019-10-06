@@ -142,7 +142,7 @@ int main()
 		{
 			adblX[j] = file.GetAt(i, j, 0);
 		}
-		pALN->addTRsample(pALN, adblX, nDim);
+		pALN->addTRsample(adblX, nDim);
 	}
 	free(adblX);
 	cout << "Data for ALNDATAINFO after loading: " << endl;

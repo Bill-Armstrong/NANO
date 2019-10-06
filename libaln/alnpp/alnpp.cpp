@@ -57,7 +57,7 @@ CAln::~CAln()
   ASSERT(m_pALN == NULL);
 }
 
-void ALNAPI CAln::addTRsample(CAln* pALN, double* adblX, const int nDim)
+void ALNAPI CAln::addTRsample(double* adblX, const int nDim)
 {
 	double value, sum;
 	int nDimt2 = 2 * nDim;
@@ -67,7 +67,7 @@ void ALNAPI CAln::addTRsample(CAln* pALN, double* adblX, const int nDim)
 	int add4outputdiff = add4diffstart + nDim - 1;
 	int add4squaredist = add4outputdiff + 1;
 
-	ALNDATAINFO* thisDataInfo = pALN->GetDataInfo();
+	ALNDATAINFO* thisDataInfo = this->GetDataInfo();
 	double * adblTRdata = nullptr;
 	int nTRmaxSamples = thisDataInfo->nTRmaxSamples;
 	int nTRcurrSamples = thisDataInfo->nTRcurrSamples;
@@ -153,6 +153,7 @@ void ALNAPI CAln::addTRsample(CAln* pALN, double* adblX, const int nDim)
 			// replace the closest to sample i with the new differences and update the square distance
 			for (int j = 0; j < nDim; j++)
 			{
+				
 				adblTRdata[nDimt2p1ti + nDim + j] = adblYdiff[j];
 			}
 			adblTRdata[nDimt2p1ti + nDimt2] = sum;
@@ -187,6 +188,32 @@ void ALNAPI CAln::addTRsample(CAln* pALN, double* adblX, const int nDim)
 	//free(adblYdiff); the buffer can always get new data, so these things don't need to be freed.
 	//free(adblYtemp);
 	return;
+}
+
+void ALNAPI CAln::reduceNoiseVariance()
+{
+	// This routine should only be used when there are many samples in adblTRdata since
+	// the closest other sample to a sample should have a close value of the ideal function
+	// In that case we replace all sample values by the average of two and get 1/2 the noise variance.
+	ALNDATAINFO* thisDataInfo = this->GetDataInfo();
+	double* adblTRdata = thisDataInfo->adblTRdata;
+	//int nTRmaxSamples = thisDataInfo->nTRmaxSamples;
+	int nTRcurrSamples = thisDataInfo->nTRcurrSamples;
+	int nTRcols = thisDataInfo->nTRcols;
+	int nTRinsert = thisDataInfo->nTRinsert;
+	//double dblMSEorF = thisDataInfo->dblMSEorF;
+	if (!adblTRdata) return; // this avoids a crash
+	if (thisDataInfo->dblMSEorF > 0) return; // we are not using noise variance
+	int nDim = (nTRcols - 1)/2;
+	int nDimm1 = nDim - 1;
+	int nDimt2m1 = nDim * 2 - 1;
+	double value;
+	for (int i = 0; i < nTRcurrSamples; i++)
+	{
+		value = adblTRdata[nTRcols * i + nDimm1 ];
+		value -= 0.5 * adblTRdata[nTRcols * i + nDimt2m1];
+		adblTRdata[nTRcols * i + nDimm1] = value;
+	}
 }
 
 ALNREGION* CAln::GetRegion(int nRegion)

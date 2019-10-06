@@ -369,8 +369,8 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
           pBlockLFN = aLFNSort[nBlockStart].pActiveLFN;
         }
       }   
-    }          
-	}
+    }  // end of loop start to end        
+  } // end of try block
 
   catch (CALNUserException* e)	  // user abort exception
 	{
@@ -400,7 +400,7 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
 	delete[] adblA;
 	delete[] adblC;
 	delete[] adblY;
-	delete[] adblX;
+	//delete[] adblX;
 	delete[] aLFNSort;
 	delete[] adblOutput;
 	delete[] adblInput;

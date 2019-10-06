@@ -45,13 +45,12 @@ static char THIS_FILE[] = __FILE__;
 #define DBLNOISEVARIANCE dblRespTotal
 
 extern BOOL bStopTraining; // This becomes TRUE and stops training when pieces are no longer splitting.
-
+void setSplitAlpha(ALNDATAINFO* pDataInfo);
 void splitControl(ALN* pALN, ALNDATAINFO* pDataInfo);
 void zeroSplitValues(ALN* pALN, ALNNODE* pNode);
 void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo);
 void doSplits(ALN* pALN, ALNNODE* pNode, double dblLimit);
 int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode);
-ALNDATAINFO* GetDataInfo();
 
 // We use the first three fields in ALNLFNSPLIT (declared in aln.h)
 // in two different ways: for training and between training intervals.
@@ -84,7 +83,25 @@ static const double adblFconstant50[13]{ 1,1,1,1,1,1,1,1,1,1,1,1,1 };
 // The following two have not had any beneficial effect. Who knows when they might be useful?
 static const double adblFconstant35[13]{ 0.58, 0.65, 0.70, 0.73, 0.75, 0.77, 0.78, 0.79, 0.80, 0.86, 0.88, 0.90, 0.92 };
 static const double adblFconstant25[13]{ 0.333, 0.424, 0.485, 0.529, 0.562, 0.588, 0.610, 0.629, 0.645, 0.735, 0.781, 0.806, 0.840 };
+static const double adblFconstant10[13]{ 0.111, 0.185, 0.243, 0.290, 0.327, 0.359, 0.386, 0.410, 0.431, 0.558, 0.621, 0.662, 0.714 };
+static double adblF_Alpha[13]{ 1,1,1,1,1,1,1,1,1,1,1,1,1 };
 
+void setSplitAlpha(ALNDATAINFO* pDataInfo)
+{
+	// If dblMSEorF < 0, this routine is called once before any training.
+	double dblLimit = pDataInfo->dblMSEorF;
+	if (dblLimit >= 0) return;
+	for (int i = 0; i < 13; i++) // We are doing an F-test
+	{
+		adblF_Alpha[i] = adblFconstant50[i]; // this is the default if 0 > dblLimit >= -25.01
+		if (dblLimit <  -9.99)adblF_Alpha[i] = adblFconstant10[i];
+		if (dblLimit < -24.99)adblF_Alpha[i] = adblFconstant25[i];
+		if (dblLimit < -34.99)adblF_Alpha[i] = adblFconstant35[i];
+		if (dblLimit < -49.99)adblF_Alpha[i] = adblFconstant50[i];
+		if (dblLimit < -74.99)adblF_Alpha[i] = adblFconstant75[i];
+		if (dblLimit < -89.00)adblF_Alpha[i] = adblFconstant90[i];
+	}
+}
 void splitControl(ALN* pALN, ALNDATAINFO* pDataInfo)  // routine
 {
 	double dblLimit = pDataInfo->dblMSEorF;
@@ -196,7 +213,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblMSEorF) // routine
 		if (LFN_CANSPLIT(pNode))
 		{
 			long Count = (pNode->DATA.LFN.pSplit)->nCount;
-			if (Count >= 2* nDim) // There are enough samples on the piece to consider splitting
+			if (Count > nDim && Count > 15) // There are enough samples on the piece to consider splitting
 			{
 				double dblPieceSquareTrainError = (pNode->DATA.LFN.pSplit)->dblSqError; // total square error on the piece
 				double dblPieceNoiseVariance = (double)Count; // Used when there is no F-test.
@@ -212,7 +229,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblMSEorF) // routine
 					if (Count > 30) dofIndex = 10;
 					if (Count > 40) dofIndex = 11;
 					if (Count > 60) dofIndex = 12; // MYTEST  encourage splitting worked, now it's too much
-					dblSplitLimit = adblFconstant50[dofIndex]; // One can reject the H0 of a good fit with various percentages
+					dblSplitLimit = adblF_Alpha[dofIndex]; // One can reject the H0 of a good fit with various percentages
 					// 90, 75, 50, 35, 25. E.g. 90% says that if the training error is greater than the dblSplitLimit prescribes
 					// it is 90% sure that the fit is bad.  A higher percentage needs less training time.
 					// Note that when there are few hits on the piece, the dblSplitLimit is larger and 
@@ -223,7 +240,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblMSEorF) // routine
 					dblSplitLimit = dblMSEorF;
 				}
 
-				if (dblPieceSquareTrainError > dblPieceNoiseVariance * dblSplitLimit)  //MYTEST is 0.2 a good factor with F-test at 75 here?
+				if (dblPieceSquareTrainError > dblPieceNoiseVariance * dblSplitLimit)
 				{
 					// The piece doesn't fit and needs to split; then training must continue.
 					SplitLFN(pALN, pNode); // We split *every* leaf node that reaches this point.
@@ -233,14 +250,14 @@ void doSplits(ALN* pALN, ALNNODE* pNode, double dblMSEorF) // routine
 				else
 				{
 					// The piece fits well enough and doesn't need to split or train
-					LFN_FLAGS(pNode) &= ~LF_SPLIT;  // this flag setting prevents further splitting   MYTEST
+					//LFN_FLAGS(pNode) &= ~LF_SPLIT;  // this flag setting prevents further splitting   MYTEST
 					// The problem here is adjoining pieces become responsible for the rest of the fit.
 				}
 			}
 			else
 			{
 				// The piece has at most 2 * nDim -1 samples on it, stop splitting it. 
-				LFN_FLAGS(pNode) &= ~LF_SPLIT;  // this flag setting prevents further splitting
+				//LFN_FLAGS(pNode) &= ~LF_SPLIT;  // this flag setting prevents further splitting
 				// It may still need to train
 				bStopTraining = FALSE; //  we set it to FALSE and continue to another epoch of training.
 			}

@@ -58,7 +58,6 @@ extern int nDTREEDepth; // level of partitioning of the input space to make a DT
 extern double dblEvalRMSError;
 extern int nEvalMisclassifications;
 extern double dblEvalMisclassificationPercent;
-extern void fillvector(double *, CMyAln*); // inputs a training data vector, which can be obtained by averaging several ALNs in bagging
 extern CDataFile AuxALNinputFile;
 extern CDataFile TSfile; // the test file with data that have not been used in training
 extern long nRowsTS;

@@ -249,7 +249,8 @@ public:
   operator ALN*() { return m_pALN; } 
 
   // TRdata buffer
-  void ALNAPI addTRsample(CAln* pALN, double* adblX, const int nDim);
+  void ALNAPI addTRsample(double* adblX, const int nDim);
+  void ALNAPI reduceNoiseVariance();
 
 protected:
   ALN* m_pALN;

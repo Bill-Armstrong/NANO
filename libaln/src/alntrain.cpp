@@ -127,26 +127,26 @@ static int ALNAPI DoTrainALN(ALN* pALN,
                              double dblLearnRate,
                              BOOL bJitter)
 {
-//#ifdef _DEBUG
- // DebugValidateALNTrainInfo(pALN, pDataInfo, pCallbackInfo, nMaxEpochs, 
- //                           dblMinRMSErr, dblLearnRate);
-//#endif
+	//#ifdef _DEBUG
+	// DebugValidateALNTrainInfo(pALN, pDataInfo, pCallbackInfo, nMaxEpochs, 
+	//                           dblMinRMSErr, dblLearnRate);
+	//#endif
 
-  int nReturn = ALN_NOERROR;		    // assume success
+	int nReturn = ALN_NOERROR;		    // assume success
 	int nDim = pALN->nDim;
-  int nTRcurrSamples = pDataInfo->nTRcurrSamples;
-  ALNNODE* pTree = pALN->pTree;	    
-  double* adblX;                    // input vector
+	int nTRcurrSamples = pDataInfo->nTRcurrSamples;
+	ALNNODE* pTree = pALN->pTree;	    
+	double* adblX;                    // input vector
 	int* anShuffle = NULL;				    // point index shuffle array
-  CCutoffInfo* aCutoffInfo = NULL;  // eval cutoff speedup
+	CCutoffInfo* aCutoffInfo = NULL;  // eval cutoff speedup
 
-  TRAININFO traininfo;					    // training info
+	TRAININFO traininfo;					    // training info
 	EPOCHINFO epochinfo;					    // epoch info
-  TRAINDATA traindata;              // training data
+	TRAINDATA traindata;              // training data
 
-  int nNotifyMask = (pCallbackInfo == NULL) ? AN_NONE : pCallbackInfo->nNotifyMask;
-  void* pvData = (pCallbackInfo == NULL) ? NULL : pCallbackInfo->pvData;
-  ALNNOTIFYPROC pfnNotifyProc = (pCallbackInfo == NULL) ? NULL : pCallbackInfo->pfnNotifyProc;
+	int nNotifyMask = (pCallbackInfo == NULL) ? AN_NONE : pCallbackInfo->nNotifyMask;
+	void* pvData = (pCallbackInfo == NULL) ? NULL : pCallbackInfo->pvData;
+	ALNNOTIFYPROC pfnNotifyProc = (pCallbackInfo == NULL) ? NULL : pCallbackInfo->pfnNotifyProc;
 
 	// init traindata
 	traindata.dblLearnRate = dblLearnRate; // an epoch is 1 pass through the training data
@@ -154,18 +154,18 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 	traindata.pvData = pvData;
 	traindata.pfnNotifyProc = pfnNotifyProc;
 
-  // calc start and end points of training
-  long nStart, nEnd;
-  //CalcDataEndPoints(nStart, nEnd, pALN, pDataInfo); This is very simple since there are no lags as in time series.
-  nStart = 0;
-  nEnd = pDataInfo->nTRcurrSamples - 1;
+	// calc start and end points of training
+	long nStart, nEnd;
+	//CalcDataEndPoints(nStart, nEnd, pALN, pDataInfo); This is very simple since there are no lags as in time series.
+	nStart = 0;
+	nEnd = pDataInfo->nTRcurrSamples - 1;
 
 	try	// main processing block
 	{
-    // allocate input vector
-		adblX = new double[nDim];
-    if (!adblX) ThrowALNMemoryException();
-    memset(adblX, 0, sizeof(double) * nDim); // this has space for all the inputs and the output value
+		// allocate input vector
+			adblX = new double[nDim];
+		if (!adblX) ThrowALNMemoryException();
+		memset(adblX, 0, sizeof(double) * nDim); // this has space for all the inputs and the output value
 
 		// allocate and init shuffle array
 		anShuffle = new int[nEnd - nStart + 1];
@@ -182,8 +182,8 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 			aCutoffInfo[i - nStart].pLFN = NULL;
 		// count total number of LFNs in ALN
 		int nLFNs = 0;
-    int nAdaptedLFNs = 0;
-    CountLFNs(pALN->pTree, nLFNs, nAdaptedLFNs);
+		int nAdaptedLFNs = 0;
+		CountLFNs(pALN->pTree, nLFNs, nAdaptedLFNs);
 
 		// init callback info 
 		traininfo.nEpochs = nMaxEpochs;
@@ -199,8 +199,8 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 		// notify beginning of training
 		if (CanCallback(AN_TRAINSTART, pfnNotifyProc, nNotifyMask))
 		{
-      TRAININFO ti(traininfo);  // make copy to send!
-      Callback(pALN, AN_TRAINSTART, &ti, pfnNotifyProc, pvData);
+			TRAININFO ti(traininfo);  // make copy to send!
+			Callback(pALN, AN_TRAINSTART, &ti, pfnNotifyProc, pvData);
 		}
 
 		///// begin epoch loop
@@ -289,21 +289,21 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 				epochinfo.dblEstRMSErr = DoCalcRMSError(pALN, pDataInfo, pCallbackInfo);
 			}
 
-      // notify end of epoch
-      nLFNs = nAdaptedLFNs = 0;
-      CountLFNs(pALN->pTree, nLFNs, nAdaptedLFNs);
+			// notify end of epoch
+			nLFNs = nAdaptedLFNs = 0;
+			CountLFNs(pALN->pTree, nLFNs, nAdaptedLFNs);
 			epochinfo.nLFNs = nLFNs;
-      epochinfo.nActiveLFNs = nAdaptedLFNs;
+			epochinfo.nActiveLFNs = nAdaptedLFNs;
 
-      // update train info, too
-      traininfo.nEpochs = nEpoch;
-		  traininfo.nLFNs = epochinfo.nLFNs;
-      traininfo.nActiveLFNs = epochinfo.nActiveLFNs;
-      traininfo.dblRMSErr = epochinfo.dblEstRMSErr;	// used to terminate epoch loop
+			// update train info, too
+			traininfo.nEpochs = nEpoch;
+			traininfo.nLFNs = epochinfo.nLFNs;
+			traininfo.nActiveLFNs = epochinfo.nActiveLFNs;
+			traininfo.dblRMSErr = epochinfo.dblEstRMSErr;	// used to terminate epoch loop
 			
-      if (CanCallback(AN_EPOCHEND, pfnNotifyProc, nNotifyMask))
+			if (CanCallback(AN_EPOCHEND, pfnNotifyProc, nNotifyMask))
 			{
-        EPOCHINFO ei(epochinfo);  // make copy to send!
+				EPOCHINFO ei(epochinfo);  // make copy to send!
 				Callback(pALN, AN_EPOCHEND, &ei, pfnNotifyProc, pvData);
 			}
 
@@ -319,8 +319,8 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 		
 		if (CanCallback(AN_TRAINEND, pfnNotifyProc, nNotifyMask))
 		{
-      // don't bother copying traininfo, since this is the last message sent
-      // we don't care if user changes it!
+			// don't bother copying traininfo, since this is the last message sent
+			// we don't care if user changes it!
 			Callback(pALN, AN_TRAINEND, &traininfo, pfnNotifyProc, pvData);
 		}
 	}
@@ -345,10 +345,10 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 	}
 
 	// deallocate mem
-  delete[] adblX;
+	delete[] adblX;
 	delete[] anShuffle;
-  delete[] aCutoffInfo;
-  return nReturn;
+	delete[] aCutoffInfo;
+	return nReturn;
 }
 
 // validate ALNTRAININFO struct
