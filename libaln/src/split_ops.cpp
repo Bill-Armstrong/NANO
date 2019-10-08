@@ -34,8 +34,6 @@ static char THIS_FILE[] = __FILE__;
 // include files
 #include <stdafx.h>
 #include <alnpp.h>
-#include <datafile.h>
-
 
 // include classes
 #include ".\cmyaln.h"

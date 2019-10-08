@@ -237,12 +237,8 @@
     <ClInclude Include="..\..\include\aln.h" />
     <ClInclude Include="..\..\include\alncfg.h" />
     <ClInclude Include="..\..\include\alndbg.h" />
-    <ClInclude Include="..\..\include\alnextern.h" />
-    <ClInclude Include="..\..\include\alnintern.h" />
-    <ClInclude Include="..\..\include\alnpp.h" />
     <ClInclude Include="..\..\include\alnpriv.h" />
     <ClInclude Include="..\..\include\alnver.h" />
-    <ClInclude Include="..\..\include\datafile.h" />
     <ClInclude Include="..\..\include\dtree.h" />
     <ClInclude Include="..\..\include\StdAfx.h" />
     <ClInclude Include="..\..\include\targetver.h" />

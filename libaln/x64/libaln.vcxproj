@@ -272,16 +272,8 @@
     <ClInclude Include="..\include\aln.h" />
     <ClInclude Include="..\include\alncfg.h" />
     <ClInclude Include="..\include\alndbg.h" />
-    <ClInclude Include="..\include\alnextern.h" />
-    <ClInclude Include="..\include\alnintern.h" />
-    <ClInclude Include="..\include\alnpp.h" />
     <ClInclude Include="..\include\alnpriv.h" />
     <ClInclude Include="..\include\alnver.h" />
-    <ClInclude Include="..\include\boost\config.hpp" />
-    <ClInclude Include="..\include\boost\config\select_compiler_config.hpp" />
-    <ClInclude Include="..\include\boost\config\user.hpp" />
-    <ClInclude Include="..\include\boost\version.hpp" />
-    <ClInclude Include="..\include\datafile.h" />
     <ClInclude Include="..\include\dtree.h" />
     <ClInclude Include="..\include\targetver.h" />
     <ClInclude Include="..\src\dtree\DTR_PRIV.H" />

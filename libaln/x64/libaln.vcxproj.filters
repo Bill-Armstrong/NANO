@@ -21,12 +21,6 @@
       <UniqueIdentifier>{26346dc5-a66e-4919-a95e-b6eb95297b21}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
-    <Filter Include="Header Files\boost">
-      <UniqueIdentifier>{46395483-4463-4996-a673-65ecdbc44562}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\boost\config">
-      <UniqueIdentifier>{094ae7af-c80a-412b-afe8-21b7a98e4d22}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\adapteval.cpp">
@@ -206,30 +200,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\boost\config.hpp">
-      <Filter>Header Files\boost</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\boost\version.hpp">
-      <Filter>Header Files\boost</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\boost\config\select_compiler_config.hpp">
-      <Filter>Header Files\boost\config</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\boost\config\user.hpp">
-      <Filter>Header Files\boost\config</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\alnpp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\datafile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\alnextern.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\alnintern.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
