@@ -21,7 +21,7 @@
 // 3624 - 108 Street NW
 // Edmonton, Alberta, Canada  T6J 1B4
 
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <fstream>
 #include <aln.h>
 #include <alnpp.h> 
@@ -31,7 +31,7 @@ class CMyAln;
 void dynamics( double *, double *);
 extern ofstream pro;
 extern double deltat;
-extern double deltatsq;
+//extern double deltatsq;
 extern double ulimit;
 // The torque of the pendulum when held sideways is 0.166 Newton-metres
 // and the torque ulimit is slightly greater
@@ -59,7 +59,7 @@ int swing()
 	}
 	ALNNODE* pActiveLFN;
 	// check the dynamic behavior of the pendulum
-	double adblX[4] = {-1.58,0,0,0};	// start the pendulum off (angle, ang. vel.,torque u,Q_value)
+	double adblX[4] = {-1.3,0,0,0};	// start the pendulum off (angle, ang. vel.,torque u,Q_value)
 	double dblRes1, dblRes2, dblRes3, dblMax,u;
 	double adblY[2]; // the Y's are the values of adblX[0] and adblX[1] after one time-step
 	for(int ii=0; ii<4000; ii++)
@@ -92,8 +92,9 @@ int swing()
 			dblMax = dblRes3;
 			u = ulimit;
 		}
+		double dblTime = ii * deltat;
 		// choose the best torque and write a line to qmotion.txt
-		of << adblX[0] << "\t" << adblX[1] <<"\t" << u << "\t" << dblMax << std::endl;
+		of << dblTime << "\t" << adblX[0] << "\t" << adblX[1] <<"\t" << u << "\t" << dblMax << std::endl;
 		adblX[2] = u;
 		dynamics(adblX, adblY);
 		adblX[0] = adblY[0];

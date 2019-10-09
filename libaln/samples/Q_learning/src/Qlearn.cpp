@@ -33,12 +33,12 @@
 #include "cmyaln.h"
 
 constexpr auto MSEORF = 0.001;
-constexpr auto ULIMIT = 0.16;
+constexpr auto ULIMIT = 0.02;
 constexpr auto BUFFERSIZE = 1000;
 constexpr auto NMAXEPOCHS = 2;
 constexpr auto DBLLEARNRATE = 0.8;
-constexpr auto DELTAT = 0.01;
-double dblAlpha = 0.01; // This and the following are used in computing the reinforcement as in Sutton - Barto
+constexpr auto DELTAT = 0.05;
+double dblAlpha = 0.02; // This and the following are used in computing the reinforcement as in Sutton - Barto
 double dblGamma = 0.5; // dblAlpha is the fraction of updating of Q and dblGamma is the amount of maximal future Q mixed in.
 
 extern BOOL bStopTraining;
@@ -204,7 +204,7 @@ int Qlearn()
 			}
 			averageNVsample /= pdata->nTRcurrSamples;
 			std::cout << "Average noise variance " << averageNVsample;
-			dblMSEorF = averageNVsample * 0.7;
+			dblMSEorF = averageNVsample * 0.5;
 
 			pro << "Iteration " << iteration+1 << " of " << iterations << " begins." << std::endl;
 			if (bStopTraining)
@@ -229,7 +229,7 @@ int Qlearn()
 			}
 
 			}
-		if (bStopTraining) break;
+		//if (bStopTraining) break;
 		std::cout << "Would you like to continue training? -- Give number of iterations (0,1,2,...) " << std::endl;
 		std::cin >> iterations;
 	} while (iterations > 0);
@@ -283,18 +283,18 @@ void genvector(CMyAln* pALN)
 	adblX[1] = -20.0 + 40.0 * (double)rand() / (RAND_MAX + 1.0); // what is a good range of angular velocities?
 	// pick a random control (three possibilities)
 	adblX[2] = ulimit * (-1.0 + floor(3.0 * ((double)rand() / (RAND_MAX + 1.0))));
-		
+
 	// call dynamics
 	dynamics(adblX, adblY);
 	// (Y[0] , Y[1]) is the state at the next time step, which is assigned a reward (or penalty).
 	// Define what the reward is in terms of the angular difference from straight up and the angular velocity both to a power
-	double A = 6.09 - pow(adblY[0] - 1.5708, 4); // if it is more than one quadrant away from straight up at 1.57-8 radians this is negative
-	double B = 6.09 - pow(adblY[0] + 4.7124, 4); // same for -4.7124
-	double V = 6.09 - pow(adblY[1], 4); // if it moves faster than one quadrant every second, it gets negative reinforcement.
+	double A = (fabs(adblY[0] - 1.5708) < 0.1 ? 10:0); // if it is more than one quadrant away from straight up at 1.57-8 radians this is negative
+	double B = (fabs(adblY[0] - 4.7124) < 0.1 ? 10:0); // same for -4.7124
+	double V = (fabs(adblY[1]) < 0.01 ? 10:0); // if it moves faster than one quadrant every second, it gets negative reinforcement.
 	// We bound the reinforcements from below by 0
-	double dblAngleR =   ((A > 0? A:0) + (B > 0? B:0));// this is maximum at adblY[0] = 1.5708 radians, i.e. straight up, or at
+	double dblAngleR =   A + B;// this is maximum at adblY[0] = 1.5708 radians, i.e. straight up, or at
 	//  -4.7124 radians, also straight up, representing the shortest angular distances to a goal from the start in (-PI,0).
-	double dblVelocityR = (V > 0 ? V:0); // this is maximum at 0 rotational speed and 0 at 1.5708 radians (90 degrees) per second
+	double dblVelocityR = V; //(V > 0 ? V:0); // this is maximum at 0 rotational speed and 0 at 1.5708 radians (90 degrees) per second
 										 
 	// We find the max Q over three possible actions at the *successor* state Y.
 	// dblMaxQatY tracks the greatest of the values of q(Y[0],Y[1],u) for the three possible control values of adblY[2]

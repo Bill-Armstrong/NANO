@@ -1,8 +1,20 @@
-# NANO NOT WORKING YET!!!
+# Running the programs
 
-NANO: Noise-Attenuating Neuron Online: real-time machine learning that cares about the noise in data. 
+First of all you have to build all the projects.  I use the community version of Visual Studio 2019.
 
-The software here is not finished.  It embodies a new idea for measuring and attenuating the noise in data.  In the noise-attenuating neuron, a function is approximated by affine function pieces ("linear pieces") joined continuously using maximum and minimum functions. If the training error of the linear piece is less than or equal to the average noise variance over the piece, the piece is not split. This is a superb way of avoiding over-training. When pieces have stopped splitting, training is finished. This is a new form of stopping rule for neural networks far better than the usual one with a validation set.
+After seeing how these programs work, you can try your own data files, and make your own program, e.g. in Python, to run the NANO library using the NANO DLL(in the X64/lib directory). I'll try to get some documentation to help with that asap.
 
-In NANO, instead of having a single training set, we have a training buffer as part of the ALN. The next stage will be putting thousands of NANO's together into a huge interconnected reinforcement learning system to see what happens. Will it ultimately do nothing useful or be a  general learning system of unimaginable power? So as not to create too much undeserved hype, and at the same time keep the wrong people from seeking to exploit it, for now we are going to call this final stage "The Electric Chicken". Can you imagine any  military AI researcher courageous enough to go to a boss and ask permission to study electric chickens?  
+## To try think.exe
 
+Look at the properties of the think project in VS, particularly Debugging.  That is where the data file is named and the rest of the command line is defined.  The program takes input data from the directory called Working in directory NANO and produces output there.  For the sine-cosine problem, a function which has two inputs, you insert a scatterplot (using, say, MS Excel) from the right-hand two columns that shows how close the noisy data is fitted. The file ExtendedTR.txt has an additional column with the learned ouput.
+
+One example input is VeryNoisy.txt which has a huge level of noise applied as the signal gets smaller. The goal of the program is to try to deal with a variable level of noise in data. The output is in the file ExtendedTR.txt which you can examine in a spreadsheet.  In MS Excel, for the VeryNoisy.txt input data, you open the file, highlight the rightmost two columns and insert a line chart which show the noisy data input and the NANO output ( which extends the input data by one column).
+
+Project properties: Here is a typical command line for think.exe which contains some arguments for the program which can be placed in the Debugging > Command Arguments property:
+"NoisySinCos20000_2.txt" "3" "20" "-90" "-1"  These are, in order,  "Data_file_name nDim nMaxEpochs dblMSEorF SKIPCOL"   The last argument causes the program not to learn using the data in the given column of the input data file.  Skipping column -1 does nothing, but you should omit column 1 in the VeryNoisy.txt example, or else you will get a fantastically good result because you have given away the answer. In addition you may need to change the working directory for project think to: ..\\..\\..\\Working\\.
+
+## To try Q_learning.exe
+
+This shows NANO performing Q learning for the inverted pendulum problem. Just run the program (say inside Visual Studio "without debugging" ). It does a few iterations of Q learning then asks you for an integer number of iterations you want to do.  You can give it 100, 1000, 20000 or more. At the start 1000 iterations takes on the order of a minute or two.  As the program learns the Q function, the ALN tree grows and may end up with hundreds or thousands of leaf nodes. Then each iteration takes longer.  Each leaf node computes a flat surface defining a small part of the function surface. After the specified number of iterations, the program asks again how many more you want.  If you input 0, then that finishes the program and you can open the file qmotion.txt in the directory "Working" using a spreadsheet like Excel.  Then you highlight the leftmost column and insert a line chart which shows the angle of the pendulum over time.  The second column shows the angular velocity. Then comes the control given.  There are just three possible torque values which can be used: maximal clockwise torque (negative), maximal counter-clockwise torque and zero torque. 
+
+Project properties: change the working directory for this project to the same as above for think.
