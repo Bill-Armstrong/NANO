@@ -56,15 +56,16 @@ int dataoutput()
 	pro << "Evaluating the ALN to create a raster image... " << endl;
 	// build data vectors	for a raster scan
 	double adblX[4] = {0,0,0,0};
-	const double m_dblMin1 = -10.0;
-	const double m_dblMax1 = 10.0;
-	const double m_dblMin2 = -10.0;
-	const double m_dblMax2 = 10.0;
-	const double m_nQuant1 = 80;
+	const double m_dblMin1 = -6.0;
+	const double m_dblMax1 = 6.0;
+	const double m_dblMin2 = -20.0;
+	const double m_dblMax2 = 20.0;
+	const double m_nQuant1 = 120;
 	const double m_nQuant2 = 80;
 	const double dblStep1 = (m_nQuant1 == 1) ? 0.0 : ((m_dblMax1 - m_dblMin1) / (double)(m_nQuant1 - 1));
 	const double dblStep2 = (m_nQuant2 == 1) ? 0.0 : ((m_dblMax2 - m_dblMin2) / (double)(m_nQuant2 - 1));
-	adblX[0] = m_dblMin2;            
+	adblX[0] = m_dblMin2;
+	double dblMaxQatY = 0;
 	for(int ii = 0; ii < m_nQuant2; ii++, adblX[0] += dblStep2)
 	{
 		for (int jj = 0; jj < m_nQuant1; jj++)
@@ -81,19 +82,19 @@ int dataoutput()
  			adblX[2] = ulimit;
 			double dblRes3 = aln.QuickEval( adblX, &pActiveLFN);
 			// pick the best control value
-			double dblMaxVatY = dblRes1;
+			dblMaxQatY = dblRes1;
 			double u = -ulimit;
-			if(dblRes2 > dblMaxVatY)
+			if(dblRes2 > dblMaxQatY)
 			{
-				dblMaxVatY = dblRes2;
+				dblMaxQatY = dblRes2;
 				u = 0;   
 			}
-			if(dblRes3 > dblMaxVatY)
+			if(dblRes3 > dblMaxQatY)
 			{
-				dblMaxVatY = dblRes3;
+				dblMaxQatY = dblRes3;
 					u = ulimit;
 			}
-			raster << adblX[0] << " " << adblX[1] <<" " << dblMaxVatY << " " << u << std::endl;
+			raster << adblX[0] << "\t " << adblX[1] << "\t " << dblMaxQatY << std::endl;  //         "\t " << u << std::endl;
 		}
 	}
 	aln.Destroy();

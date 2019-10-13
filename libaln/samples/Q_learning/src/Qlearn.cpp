@@ -32,13 +32,13 @@
 #include <iostream>
 #include "cmyaln.h"
 
-constexpr auto MSEORF = 0.001;
-constexpr auto ULIMIT = 0.02;
-constexpr auto BUFFERSIZE = 1000;
+constexpr auto MSEORF = 75;
+constexpr auto ULIMIT = 0.03;
+constexpr auto BUFFERSIZE = 10000;
 constexpr auto NMAXEPOCHS = 2;
-constexpr auto DBLLEARNRATE = 0.8;
+constexpr auto DBLLEARNRATE = 0.2;
 constexpr auto DELTAT = 0.05;
-double dblAlpha = 0.02; // This and the following are used in computing the reinforcement as in Sutton - Barto
+double dblAlpha = 0.05; // This and the following are used in computing the reinforcement as in Sutton - Barto
 double dblGamma = 0.5; // dblAlpha is the fraction of updating of Q and dblGamma is the amount of maximal future Q mixed in.
 
 extern BOOL bStopTraining;
@@ -126,22 +126,29 @@ int Qlearn()
 	aln.SetEpsilon(0.001, 0);
 	aln.SetMin(-10, 0);
 	aln.SetMax(10, 0);
-	aln.SetWeightMin(-1000, 0);
-	aln.SetWeightMax(1000, 0);
+
 	aln.SetEpsilon(0.001, 1);
 	aln.SetMin(-10, 1);
 	aln.SetMax(10, 1);
-	aln.SetWeightMin(-1000, 1);
-	aln.SetWeightMax(1000, 1);
+
 	aln.SetEpsilon(0.001, 2);
 	aln.SetMin(-0.2, 2);
 	aln.SetMax(0.2, 2);
-	aln.SetWeightMin(-1000, 2);
-	aln.SetWeightMax(1000, 2);
 	aln.SetEpsilon(0.05, 3);
 	aln.SetMin(-1000, 3);
 	aln.SetMax(1000, 3);
 	*/
+	/*
+	double dblWtBnd = 120.0;
+	aln.SetWeightMin(-dblWtBnd, 0);
+	aln.SetWeightMax(dblWtBnd, 0);
+	aln.SetWeightMin(-dblWtBnd, 1);
+	aln.SetWeightMax(dblWtBnd, 1);
+	aln.SetWeightMin(-dblWtBnd, 2);
+	aln.SetWeightMax(dblWtBnd, 2);*/
+
+
+
 
 	// train ALN
 	double dblLearnRate = DBLLEARNRATE;  // slow learning rate
@@ -194,18 +201,6 @@ int Qlearn()
 		{
 			std::cerr << "Iteration " << iteration << " ";
 
-			// Compute the average of all noise variance samples in the buffer. This neglects slope
-			// however on average, the slope should not contribute much unless the overall function
-			// has a large slope.  In that case, we should preprocess the data to get rid of it.
-			averageNVsample = 0;
-			for (int ii = 0; ii < pdata->nTRcurrSamples; ii++) // Just a sampling of the file
-			{
-				averageNVsample += 0.5 * pow(pdata->adblTRdata[nDimt2p1 * ii + nDimt2 - 1], 2);
-			}
-			averageNVsample /= pdata->nTRcurrSamples;
-			std::cout << "Average noise variance " << averageNVsample;
-			dblMSEorF = averageNVsample * 0.5;
-
 			pro << "Iteration " << iteration+1 << " of " << iterations << " begins." << std::endl;
 			if (bStopTraining)
 			{
@@ -222,7 +217,7 @@ int Qlearn()
 
 			// Phase 2 is switching to a "flywheel" for updating Q, i.e. dblAlpha > 0
 			// inject more data into the buffer in phase 3, now with an updated Q function.
-			for (int i = 0; i < nTRmaxSamples; i++) // replace the samples at each iteration
+			for (int i = 0; i < nTRmaxSamples/5; i++) // replace some samples at each iteration
 			{
 				genvector( pALN);
 				// this calls pALN->addTRsample(pALN, adblX, nDim) to generate a training sample in the buffer
@@ -257,7 +252,7 @@ void dynamics(double * adblX, double * adblY)
 #define c1    6.92    // deltat /(mass * length^2)
 #define c2    1.153		// deltat * gravity / length
 {
-   adblY[1] = adblX[1] + c1 * adblX[2]- c2 * cos(adblX[0]); // angular velocity -- a small amount of damping can be included 
+   adblY[1] = 0.995 * adblX[1] + c1 * adblX[2]- c2 * cos(adblX[0]); // angular velocity -- a small amount of damping is included 
    adblY[0] = adblX[0] + 0.5 *(adblX[1] + adblY[1])* deltat;// angle
 }
 
@@ -288,13 +283,17 @@ void genvector(CMyAln* pALN)
 	dynamics(adblX, adblY);
 	// (Y[0] , Y[1]) is the state at the next time step, which is assigned a reward (or penalty).
 	// Define what the reward is in terms of the angular difference from straight up and the angular velocity both to a power
-	double A = (fabs(adblY[0] - 1.5708) < 0.1 ? 10:0); // if it is more than one quadrant away from straight up at 1.57-8 radians this is negative
-	double B = (fabs(adblY[0] - 4.7124) < 0.1 ? 10:0); // same for -4.7124
-	double V = (fabs(adblY[1]) < 0.01 ? 10:0); // if it moves faster than one quadrant every second, it gets negative reinforcement.
+
+	double A =  1.5708 - 30.0 * fabs(adblY[0] - 1.5708); //this measures the proximity to straight up at 1.5708 radians
+	(A > 0 ? A : 0); //reinforcement vanishes 1/30 quadrant ( 3 degrees) away from the goal
+	double B =  1.5708 - 15.0 * fabs(adblY[0] - 4.7124); // half the reinforcement for -4.7124
+	(B > 0 ? B : 0);
+	double V = 5.0 * (6.28 - fabs(adblY[1])); // how much below one revolution per second is it moving? The slower it goes the greater V is
+	
 	// We bound the reinforcements from below by 0
 	double dblAngleR =   A + B;// this is maximum at adblY[0] = 1.5708 radians, i.e. straight up, or at
 	//  -4.7124 radians, also straight up, representing the shortest angular distances to a goal from the start in (-PI,0).
-	double dblVelocityR = V; //(V > 0 ? V:0); // this is maximum at 0 rotational speed and 0 at 1.5708 radians (90 degrees) per second
+	double dblVelocityR = V;  // this is maximum at 0 rotational speed and 0 at one radian (90 degrees) per second
 										 
 	// We find the max Q over three possible actions at the *successor* state Y.
 	// dblMaxQatY tracks the greatest of the values of q(Y[0],Y[1],u) for the three possible control values of adblY[2]
@@ -328,7 +327,7 @@ void genvector(CMyAln* pALN)
 	//if (dblQ < 0) dblQ = 0;
 
 	// Now we compute the desired value of the Q function for the state action pair adblX
-	adblX[3] = dblQ + dblAlpha * ( dblAngleR * dblVelocityR + dblGamma * dblMaxQatY - dblQ); // reward for being near the goal angle with slow rotation
+	adblX[3] = dblQ + dblAlpha * ( dblAngleR +  dblVelocityR + dblGamma * dblMaxQatY - dblQ); // reward for being near the goal angle with slow rotation
 	//if (adblX[3] < 0) adblX[3] = 0;// Q must be non-negative by the math.  This help was necessary in some cases for stability.
 
 	// Now add this sample to the training buffer

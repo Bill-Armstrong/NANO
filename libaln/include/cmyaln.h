@@ -24,7 +24,7 @@ class CMyAln : public CAln
   
 	virtual BOOL OnTrainEnd(TRAININFO* pTrainInfo, void* pvData) 
   { 
-	std::cerr << " RMSE: " << pTrainInfo->dblRMSErr << " Leaf nodes " << pTrainInfo->nLFNs << std::endl;
+	std::cerr << " MSE: " << pow(pTrainInfo->dblRMSErr,2) << " Leaf nodes " << pTrainInfo->nLFNs << std::endl;
 	return TRUE;
   }
 
