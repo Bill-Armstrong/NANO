@@ -30,8 +30,8 @@ extern int swing();       // Reads the ALN from Qlearn.aln and outputs qmotion.t
 
 int main()
 {
-  //Qlearn();
-  //dataoutput();
+  Qlearn();
+  dataoutput();
   swing();
   return 0;
 }

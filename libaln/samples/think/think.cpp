@@ -35,13 +35,17 @@ void setSplitAlpha(ALNDATAINFO* pdata);
 
 int main(int argc, char* argv[])
 {
-	// example input: think(VeryNoisy_2.txt, 2)
+	// The first four arguments are the data file name, nDim (number of ALNinputs plus one for the output),
+	// nMaxEpochs value (training epochs before splitting), the dblMSEorF value for stopping splitting,
+	// then nDim column numbers (starting at 0 on the left) which are the ALN inputs followed by the one output column.
+	// example input: think(VeryNoisySine.txt, 2, 20, -1, 0, 2) or think(NoisySinCos20000.txt, 3, 20, -90, 0, 1, 2)
 	std::cout << argv[1] << "  " << argv[2] << "  " << argv[3] << "  " << argv[4] << " " << argv[5] << endl;
-	if (argc != 6) std::cout << endl;
 
-	if (argc != 6) // We expect 5 arguments as listed here (argc is not counted among them
+	int nDim = atoi(argv[2]);
+
+	if (argc != 5 + nDim) // We expect 5 arguments as listed here (argc is not counted among them
 	{
-		std::cout << "Bad argument list!\n" << "Usage: " << "Data_file_name nDim nMaxEpochs dblMSEorF SKIPCOL" << std::endl;
+		std::cout << "Bad argument list!\n" << "Usage: " << "Data_file_name nDim nMaxEpochs dblMSEorF inputColumn 0,...inputColumn nDim - 2, outputColumn " << std::endl;
 		return 1;
 	}
 	CDataFile file;
@@ -57,10 +61,14 @@ int main(int argc, char* argv[])
 	}
 	int nTRmaxSamples = file.RowCount();
 	int nCols = file.ColumnCount();
-	// SPECIFY HOW MANY OF THE COLUMNS YOU WANT TO USE IN TRAINING (NUMBER OF INPUTS PLUS ONE OUTPUT)?
-	int nDim = atoi(argv[2]);
 	nMaxEpochs = atoi(argv[3]);
-	int SKIPCOL = atoi(argv[5]);
+	double dblMSEorF = atof(argv[4]); // a negative value indicates use of an F-test to stop splitting
+	//SPECIFY FOR EACH ALN INPUT THE COLUMN OF THE DATA FILE USED (LAST IS THE COLUMN WITH THE DESIRED OUTPUT)
+	int* ColumnNumber = (int*)malloc(nDim * sizeof(int));
+	for (int ALNinput = 0; ALNinput < nDim; ALNinput++)
+	{
+		ColumnNumber[ALNinput] = atoi(argv[5+ALNinput])-1; // For the user, the columns are numbered starting at 1.
+	}
 	int nTRcols = 2 * nDim + 1; // The nDim columns of sample data in adblTRdata
 	 //are extended to 2 * nDim + 1 total columns for the noise-attenuation tool.
 
@@ -82,8 +90,7 @@ int main(int argc, char* argv[])
 	ALNREGION* pRegion = pALN->GetRegion(0);
 	pRegion->dblSmoothEpsilon = 0;
 	SetSmoothingEpsilon(pRegion); // Should all smoothing be removed from the library?????? Maybe when more speed is needed.
-	// DO WE USE THE F-TEST??
-	double dblMSEorF = atof(argv[4]); // a negative value indicates use of an F-test to stop splitting
+	
 	// This sets up the training buffer of doubles adblTRbuffer. The F-test is specified in split_ops.cpp
 	ALNDATAINFO* pdata = pALN->GetDataInfo();
 	pdata->nTRmaxSamples = nTRmaxSamples;
@@ -91,27 +98,22 @@ int main(int argc, char* argv[])
 	pdata->nTRcols = nTRcols;
 	pdata->nTRinsert = 0;
 	pdata->dblMSEorF = dblMSEorF;
+	// The following sets the alpha for the F-test
 	if (dblMSEorF < 0) setSplitAlpha(pdata);
-	//SPECIFY FOR EACH ALN INPUT THE COLUMN OF THE DATA FILE USED (LAST IS THE DESIRED OUTPUT (corrupted by noise)
-	int* ColumnNumber = (int*)malloc(nDim * sizeof(int));
-	int col = 0; // file columns are numbered from the left starting at 0 (no lags allowed)
-	for (int ALNinput = 0; ALNinput < nDim; ALNinput++)
-	{
-		if (col == SKIPCOL) col++; // skip col and go to the next file column; additional lines like this for other skipped columns
-		ColumnNumber[ALNinput] = col; // N.B. if columns are skipped, this has to be corrected above
-		col++;
-	}	
+
 	//load the buffer; as the buffer gets each new sample, it is compared to existing samples to determine noise variance
 	double* adblX = (double*)malloc(nDim * sizeof(double));
+	int colno;
 	for (int i = 0; i < nTRmaxSamples; i++)
 	{
 		for (int j = 0; j < nDim; j++)
 		{
-			adblX[j] = file.GetAt(i, ColumnNumber[j], 0);
+			colno = ColumnNumber[j];
+			adblX[j] = file.GetAt(i, colno, 0);
 		}
 		pALN->addTRsample(adblX, nDim);
 	}
-	// reduce the noise variance, ideally by half 
+	// reduce the noise variance, ideally by half.  This works only if the pairs of points that are closest can be each set to the same average value. 
 	//pALN->reduceNoiseVariance();
 	std::cout << "Data for ALNDATAINFO after loading: " << std::endl;
 	std::cout << "\nnTRmaxSamples = " << pdata->nTRmaxSamples << "  "
@@ -121,6 +123,7 @@ int main(int argc, char* argv[])
 	int nDimt2 = nDim *2;
 	int nDimt2p1 = nDimt2 + 1;
 	double averageNVsample = 0;
+	/*
 	// Print part of the buffer contents to check
 	int nBegin = 0;
 	int nLinesPrinted = 5;
@@ -135,15 +138,17 @@ int main(int argc, char* argv[])
 		std::cout << std::endl;
 		averageNVsample += 0.5 * pow(pdata->adblTRdata[nDimt2p1 * ii + nDimt2 - 1], 2);
 	}
-	averageNVsample /= 630;
+	averageNVsample /= nLinesPrinted;
 	std::cout << "\n\n Average noise difference = " << averageNVsample << endl;
+	*/
 	BOOL bJitter = FALSE;
 	bStopTraining = FALSE;
 	double dblLearnRate = 0.2;  // small learning rate
-	double dblMinRMSE = 0.00001;// This is set small and not very useful.  dblMSEorF is better.
+	double dblMinRMSE = 0.00001;// This is set small and not very useful.  dblMSEorF is used to stop training now.
 	int nNotifyMask = AN_TRAIN | AN_EPOCH; // required callbacks for information or insertion of data
-	for (int iteration = 0; iteration < 50; iteration++)
+	for (int iteration = 0; iteration < 200; iteration++)
 	{
+		// VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV  Training!
 		if (!pALN->Train(nMaxEpochs, dblMinRMSE, dblLearnRate, bJitter, nNotifyMask))
 		{
 			std::cout << "Training failed!" << std::endl;
@@ -169,15 +174,18 @@ int main(int argc, char* argv[])
 	ALNDATAINFO* pdata2 = pALN->GetDataInfo();
 	for (int i = 0; i < nTRmaxSamples; i++)
 	{
+		// Copy the row of the input data file
 		for (int j = 0; j < nCols; j++) // we include the correct function in the second column for checkin accuracy
 		{
 			entry = file.GetAt(i, j, 0);
 			ExtendTR.SetAt(i, j, entry, 0);
 		}
+		// Evaluate the ALN on this row
 		for (int k = 0; k < nDim - 1; k++) // Get the domain coordinates
 		{
 			adblX[k] = file.GetAt(i, ColumnNumber[k], 0);
 		}
+		adblX[nDim - 1] = 0; // this is not used, but we set it anyway
 		entry = pALN->QuickEval(adblX, ppActiveLFN); // get the ALN-computed value at that place
 		ExtendTR.SetAt(i, nCols, entry, 0);
 	}
