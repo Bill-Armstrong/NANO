@@ -27,7 +27,7 @@ double dblTrainErr;
 int nMaxEpochs;
 int nNumberLFNs;
 // the following can be a positive square error limit on training or a negative number
-// special cases are -25 -35 -50 -75 -90. -50 is the same as -1 or any number <0 and > -24.99
+// special cases are -25 -50 -75 where the value comes from tables, the other values are approximate, calculated by a simple formula
 // -75 and -90 likely stop training before a perfect fit and -35 and -25 may tend to overfit.
 auto const MSEORF = -75.0;
 void setSplitAlpha(ALNDATAINFO* pdata);
@@ -39,13 +39,13 @@ int main(int argc, char* argv[])
 	// nMaxEpochs value (training epochs before splitting), the dblMSEorF value for stopping splitting,
 	// then nDim column numbers (starting at 0 on the left) which are the ALN inputs followed by the one output column.
 	// example input: think(VeryNoisySine.txt, 2, 20, -1, 0, 2) or think(NoisySinCos20000.txt, 3, 20, -90, 0, 1, 2)
-	std::cout << argv[1] << "  " << argv[2] << "  " << argv[3] << "  " << argv[4] << " " << argv[5] << endl;
-
+	std::cout << argc << " " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << " " << argv[6] << "  ... " <<  endl;
+	int argCount = argc;
 	int nDim = atoi(argv[2]);
 
-	if (argc != 5 + nDim) // We expect 5 arguments as listed here (argc is not counted among them
+	if (argc != 5  + nDim) // We expect 4 + nDim arguments as listed here (argc is not counted among them)
 	{
-		std::cout << "Bad argument list!\n" << "Usage: " << "Data_file_name nDim nMaxEpochs dblMSEorF inputColumn 0,...inputColumn nDim - 2, outputColumn " << std::endl;
+		std::cout << "Bad argument list!\n" << "Usage: " << "Data_file_name nDim nMaxEpochs dblMSEorF inputColumn 1,...inputColumn nDim - 1, outputColumn " << std::endl;
 		return 1;
 	}
 	CDataFile file;
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 	double dblLearnRate = 0.2;  // small learning rate
 	double dblMinRMSE = 0.00001;// This is set small and not very useful.  dblMSEorF is used to stop training now.
 	int nNotifyMask = AN_TRAIN | AN_EPOCH; // required callbacks for information or insertion of data
-	for (int iteration = 0; iteration < 200; iteration++)
+	for (int iteration = 0; iteration < 100; iteration++)
 	{
 		// VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV  Training!
 		if (!pALN->Train(nMaxEpochs, dblMinRMSE, dblLearnRate, bJitter, nNotifyMask))

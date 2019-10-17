@@ -79,7 +79,7 @@ static const double adblFconstant90[13]{ 9.00, 5.39, 4.11, 3.45, 3.05, 2.78, 2.5
 static const double adblFconstant75[13]{ 3.00, 2.36, 2.06, 1.89, 1.78, 1.70, 1.64, 1.59, 1.55, 1.36, 1.28, 1.24, 1.19 };
 static const double adblFconstant50[13]{ 1,1,1,1,1,1,1,1,1,1,1,1,1 };
 // The following two have not had any beneficial effect. Who knows when they might be useful?
-static const double adblFconstant35[13]{ 0.58, 0.65, 0.70, 0.73, 0.75, 0.77, 0.78, 0.79, 0.80, 0.86, 0.88, 0.90, 0.92 };
+// static const double adblFconstant35[13]{ 0.58, 0.65, 0.70, 0.73, 0.75, 0.77, 0.78, 0.79, 0.80, 0.86, 0.88, 0.90, 0.92 };
 static const double adblFconstant25[13]{ 0.333, 0.424, 0.485, 0.529, 0.562, 0.588, 0.610, 0.629, 0.645, 0.735, 0.781, 0.806, 0.840 };
 static const double adblFconstant10[13]{ 0.111, 0.185, 0.243, 0.290, 0.327, 0.359, 0.386, 0.410, 0.431, 0.558, 0.621, 0.662, 0.714 };
 static double adblF_Alpha[13]{ 1,1,1,1,1,1,1,1,1,1,1,1,1 };
@@ -89,17 +89,22 @@ void setSplitAlpha(ALNDATAINFO* pDataInfo)
 	// If dblMSEorF < 0, this routine is called once before any training.
 	double dblLimit = pDataInfo->dblMSEorF;
 	if (dblLimit >= 0) return;
-	for (int i = 0; i < 13; i++) // We are doing an F-test
+	if(-dblLimit == 50)
 	{
-		adblF_Alpha[i] = adblFconstant50[i]; // this is the default if 0 > dblLimit >= -25.01
-		if (dblLimit <  -9.99)adblF_Alpha[i] = adblFconstant10[i];
-		if (dblLimit < -24.99)adblF_Alpha[i] = adblFconstant25[i];
-		if (dblLimit < -34.99)adblF_Alpha[i] = adblFconstant35[i];
-		if (dblLimit < -49.99)adblF_Alpha[i] = adblFconstant50[i];
-		if (dblLimit < -74.99)adblF_Alpha[i] = adblFconstant75[i];
-		if (dblLimit < -89.00)adblF_Alpha[i] = adblFconstant90[i];
+		for (int i = 0; i < 13; i++) // We are doing an F-test
+		{
+			adblF_Alpha[i] = adblFconstant50[i];
+		}
+	}
+	else  // this is according to tables for 25, 50, 75 and rest is approximate
+	{
+		for (int i = 0; i < 13; i++) // We are doing an F-test
+		{
+			adblF_Alpha[i] = pow(adblFconstant75[i], (-dblLimit -50)/25.0);
+		}
 	}
 }
+
 void splitControl(ALN* pALN, ALNDATAINFO* pDataInfo)  // routine
 {
 	double dblLimit = pDataInfo->dblMSEorF;
