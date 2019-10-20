@@ -146,27 +146,34 @@ int main(int argc, char* argv[])
 	double dblLearnRate = 0.2;  // small learning rate
 	double dblMinRMSE = 0.00001;// This is set small and not very useful.  dblMSEorF is used to stop training now.
 	int nNotifyMask = AN_TRAIN | AN_EPOCH; // required callbacks for information or insertion of data
-	for (int iteration = 0; iteration < 100; iteration++)
+	int iterations = 5;
+	do
 	{
-		// VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV  Training!
-		if (!pALN->Train(nMaxEpochs, dblMinRMSE, dblLearnRate, bJitter, nNotifyMask))
+		for (int iteration = 0; iteration < iterations; iteration++)
 		{
-			std::cout << "Training failed!" << std::endl;
-			return 1;
+			// VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV  Training!
+			if (!pALN->Train(nMaxEpochs, dblMinRMSE, dblLearnRate, bJitter, nNotifyMask))
+			{
+				std::cout << "Training failed!" << std::endl;
+				return 1;
+			}
+			else
+			{
+				std::cout << "Training succeeded!" << std::endl;
+			}
+			// bStop Training is used because there is splitting
+			if (bStopTraining)
+			{
+				std::cout << "Training was stopped because there was no more splitting of linear pieces." << std::endl;
+				break;
+			}
+			if (iteration == 80) dblLearnRate = 0.1; // Causes less jiggling around of the pieces as training is closing in on the solution.
+			if (iteration == 90) dblLearnRate = 0.05;
 		}
-		else
-		{
-			std::cout << "Training succeeded!" << std::endl;
-		}
-		// bStop Training is used because there is splitting
-		if (bStopTraining)
-		{
-			std::cout << "Training was stopped because there was no more splitting of linear pieces." << std::endl;
-			break;
-		}
-		if (iteration == 160) dblLearnRate = 0.1; // Causes less jiggling around of the pieces as training is closing in on the solution.
-		if (iteration == 180) dblLearnRate = 0.05;
-	}
+		iterations = 0;
+		std::cout << "Continue training?? Enter number of iterations, 0 to quit." << std::endl;
+		std::cin >> iterations;
+	} while (iterations > 0);
 	CDataFile ExtendTR;
 	ExtendTR.Create(file.RowCount(), 1 + nCols);
 	double entry;
