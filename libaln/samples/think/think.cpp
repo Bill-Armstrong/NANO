@@ -29,7 +29,7 @@ int nNumberLFNs;
 // the following can be a positive square error limit on training or a negative number
 // special cases are -25 -50 -75 where the value comes from tables, the other values are approximate, calculated by a simple formula
 // -75 and -90 likely stop training before a perfect fit and -35 and -25 may tend to overfit.
-auto const MSEORF = -75.0;
+auto const MSEORF = 10.0;
 void setSplitAlpha(ALNDATAINFO* pdata);
 
 

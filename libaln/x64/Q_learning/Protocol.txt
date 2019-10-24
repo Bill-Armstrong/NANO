@@ -3,54 +3,43 @@ NANO (Noise-Attenuating Neuron Online) program used for Q_learning
 Copyright (C)  2019 William W. Armstrong
 Licensed under LGPL
 
-Started program at Thu Oct  3 13:41:52 2019
+Started program at Mon Oct 21 07:42:23 2019
 
-Time step delta t = 0.1
+Time step delta t = 0.01
 Three values of torque for control: 0 or + or - 0.03
-Initial number of training iterations = 1000
-Each iteration does 1 epochs of training 
-Each epoch has 50 samples
+Initial number of training iterations = 5
+Each iteration does 4 epochs of training 
+Each epoch has 10000 samples
 Creating ALN, four variables, output variable 3 (zero based)... succeeded!
-The mean square error below which splitting stops is 0.1
+An F-test based on estimated noise variance is used for stopping splitting.
 Data about the ALN's data buffer after loading: 
-nTRmaxSamples = 50  
-nTRcurrSamples = 50  
+nTRmaxSamples = 10000  
+nTRcurrSamples = 10000  
 nTRcols  = 9  
-nTRinsert = 0 MSE or F 0.1
--9.40512 1.27136 -0.03 0 closest is 2.21612 -2.03003 0 0  square dist = 9.03222 
-Estimate of average noise variance (neglecting slope) = 0.0253243
+nTRinsert = 0 MSE or F -50
 Sequence of 5 iterations begins.
 MinRMSE = 1e-06 Learning rate = 0.2 Jitter =  0
 Iteration 1 of 5 begins.
 Iteration 2 of 5 begins.
 At the end of this iteration, no more splitting occurred
 Iteration 3 of 5 begins.
-At the end of this iteration, no more splitting occurred
 Iteration 4 of 5 begins.
-At the end of this iteration, no more splitting occurred
 Iteration 5 of 5 begins.
-At the end of this iteration, no more splitting occurred
-Sequence of 1000 iterations begins.
+Sequence of 10 iterations begins.
 MinRMSE = 1e-06 Learning rate = 0.2 Jitter =  0
-Iteration 1 of 1000 begins.
-At the end of this iteration, no more splitting occurred
-Iteration 2 of 1000 begins.
-At the end of this iteration, no more splitting occurred
-Iteration 3 of 1000 begins.
-At the end of this iteration, no more splitting occurred
-Iteration 4 of 1000 begins.
-At the end of this iteration, no more splitting occurred
-Iteration 5 of 1000 begins.
-At the end of this iteration, no more splitting occurred
-Iteration 6 of 1000 begins.
-At the end of this iteration, no more splitting occurred
-Iteration 7 of 1000 begins.
-At the end of this iteration, no more splitting occurred
-Iteration 8 of 1000 begins.
-At the end of this iteration, no more splitting occurred
-Iteration 9 of 1000 begins.
-At the end of this iteration, no more splitting occurred
-Iteration 10 of 1000 begins.
-At the end of this iteration, no more splitting occurred
-Iteration 11 of 1000 begins.
-At the end of this iteration, no more splitting occurred
+Iteration 1 of 10 begins.
+Iteration 2 of 10 begins.
+Iteration 3 of 10 begins.
+Iteration 4 of 10 begins.
+Iteration 5 of 10 begins.
+Iteration 6 of 10 begins.
+Iteration 7 of 10 begins.
+Iteration 8 of 10 begins.
+Iteration 9 of 10 begins.
+Iteration 10 of 10 begins.
+Finished training at Mon Oct 21 07:42:35 2019
+elapsed time: 11.7786s
+Opening raster image file succeeded
+Evaluating the ALN to create a raster image... 
+Opening output file qmotion.txt... 
+opening qmotion.txt file for output succeeded!

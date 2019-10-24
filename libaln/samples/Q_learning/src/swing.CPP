@@ -64,20 +64,12 @@ int swing()
 	double adblY[2]; // the Y's are the values of adblX[0] and adblX[1] after one time-step
 	for(int ii=0; ii<4000; ii++)
 	{
-		//try negative torque
 		adblX[2] = -ulimit;
-		dynamics (adblX, adblY);
-		dblRes1 = aln.QuickEval(adblY, &pActiveLFN);
-
-		//try 0 torque
+		dblRes1 = aln.QuickEval(adblX, &pActiveLFN);
 		adblX[2] = 0;
-		dynamics(adblX, adblY);
-		dblRes2 = aln.QuickEval(adblY, &pActiveLFN);
-
-		//try positive torque
+		dblRes2 = aln.QuickEval(adblX, &pActiveLFN);
 		adblX[2] = ulimit;
-		dynamics(adblX, adblY);
-		dblRes3 = aln.QuickEval(adblY, &pActiveLFN);
+		dblRes3 = aln.QuickEval(adblX, &pActiveLFN);
 
 		// pick the best control value
 		dblMax = dblRes1;
@@ -95,11 +87,12 @@ int swing()
 		double dblTime = ii * deltat;
 		// choose the best torque and write a line to qmotion.txt
 		of << dblTime << "\t" << adblX[0] << "\t" << adblX[1] <<"\t" << u << "\t" << dblMax << std::endl;
-		adblX[2] = u;
+		adblX[2] = u; // Q_learning result
+		//adblX[2] = 0; // MYTEST see how the pendulum works with zero torque applied;
+
 		dynamics(adblX, adblY);
 		adblX[0] = adblY[0];
 		adblX[1] = adblY[1];
-
 	}
 	aln.Destroy();
 	return 0;
