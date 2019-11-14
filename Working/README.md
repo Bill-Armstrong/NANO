@@ -1,4 +1,4 @@
-# Running the programs
+# Running the programs under MS Windows
 
 First of all you have to build all the projects.  I use the community version of Visual Studio 2019 and do a batch build of everything.
 The first thing you need to change is the working directory for both project think and for project Q_Learning to: ..\\..\\..\\Working\\.  I'll tell you below what you need to change in addition before running the program think.exe.
