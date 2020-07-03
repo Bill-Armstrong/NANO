@@ -70,7 +70,7 @@ typedef struct tagTOKEN
   union
   {
     long l;
-    double dbl;
+    float dbl;
     char sz[MAXTOKLEN];
   } value;
 } TOKEN;        
@@ -129,7 +129,7 @@ int GetLinearForm(FILE* pFile, int nDim, int nOutput,
 void SkipWS(FILE* pFile);                     /* skips white space and comments */
 int GetToken(FILE* pFile, TOKEN* pTok);       /* gets next token */
 int GetIntegerToken(FILE* pFile, TOKEN* pTok);/* gets an integer token */
-int GetDoubleToken(FILE* pFile, TOKEN* pTok); /* gets double token, will convert an integer to double */
+int GetDoubleToken(FILE* pFile, TOKEN* pTok); /* gets float token, will convert an integer to float */
 void PushbackToken(FILE* pFile, TOKEN* pTok); /* pushes token back onto stream */
 int GetSymbol(FILE* pFile, TOKEN* pTok);      /* gets symbol token */
 int GetNumber(FILE* pFile, TOKEN* pTok);      /* gets number token */
@@ -579,8 +579,8 @@ int GetLinearForm(FILE* pFile, int nDim, int nOutput, LINEARFORM* pLF,
   nType = GetToken(pFile, &tok);
   while(nType != ';')
   {
-    double dblW;
-    double dblC;
+    float dblW;
+    float dblC;
     int nVarIndex;
     int nCSign;
                 
@@ -936,7 +936,7 @@ int GetDoubleToken(FILE* pFile, TOKEN* pTok)
   int nType = GetToken(pFile, pTok);
   if (nType == L_INT)
   {
-    pTok->value.dbl = pTok->value.l;  /* convert int to double */
+    pTok->value.dbl = pTok->value.l;  /* convert int to float */
     nType = L_DBL;
   }
   return nType;
@@ -1199,7 +1199,7 @@ int ExportDtreeFile(FILE* pFile, const char* pszFileName, DTREE* pDtree)
     for (j = 0; j < pDtree->nDim; j++)
     {                  
       int nWSign, nCSign; 
-      double dblW, dblC;
+      float dblW, dblC;
     
       if (pLF->adblW[j] == 0)
         continue;               

@@ -38,7 +38,7 @@ static char THIS_FILE[] = __FILE__;
 static int ALNAPI ValidateALNEvalInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
-                                      double* adblResult,
+                                      float* adblResult,
                                       int* pnStart, int* pnEnd);
 
 // evaluation of ALN on data
@@ -46,7 +46,7 @@ static int ALNAPI ValidateALNEvalInfo(const ALN* pALN,
 ALNIMP int ALNAPI ALNEval(const ALN* pALN,
                           ALNDATAINFO* pDataInfo,
                           const ALNCALLBACKINFO* pCallbackInfo,
-                          double* adblResult,
+                          float* adblResult,
                           int* pnStart, int* pnEnd)
 {
 	int nReturn = ValidateALNEvalInfo(pALN, pDataInfo, pCallbackInfo,
@@ -65,7 +65,7 @@ ALNIMP int ALNAPI ALNEval(const ALN* pALN,
 static int ALNAPI ValidateALNEvalInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
-                                      double* adblResult,
+                                      float* adblResult,
                                       int* pnStart, int* pnEnd)
 {
   int nReturn = ValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);

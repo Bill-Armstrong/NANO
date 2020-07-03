@@ -277,7 +277,7 @@ DTRIMP void DTREEAPI DestroyMinMaxNode(MINMAXNODE* pMinMaxNode)
 DTRIMP LINEARFORM* DTREEAPI CreateLinearFormArray(int nForms, int nDim)
 {                                              
   int i;
-  size_t sizeVec = sizeof(double) * (size_t)nDim;  
+  size_t sizeVec = sizeof(float) * (size_t)nDim;  
   
   LINEARFORM* aForms = NULL;
   if ((aForms = (LINEARFORM*)malloc(nForms * sizeof(LINEARFORM))) == NULL)
@@ -289,7 +289,7 @@ DTRIMP LINEARFORM* DTREEAPI CreateLinearFormArray(int nForms, int nDim)
   for (i = 0; i < nForms; i++)
   {                                  
     /* weights */
-    if ((aForms[i].adblW = (double*)malloc(sizeVec)) == NULL)
+    if ((aForms[i].adblW = (float*)malloc(sizeVec)) == NULL)
     {
       DestroyLinearFormArray(aForms, nForms);
       return NULL;
@@ -297,7 +297,7 @@ DTRIMP LINEARFORM* DTREEAPI CreateLinearFormArray(int nForms, int nDim)
     memset(aForms[i].adblW, 0, sizeVec);
     
     /* centroid */
-    if ((aForms[i].adblC = (double*)malloc(sizeVec)) == NULL)
+    if ((aForms[i].adblC = (float*)malloc(sizeVec)) == NULL)
     {
       DestroyLinearFormArray(aForms, nForms);
       return NULL;

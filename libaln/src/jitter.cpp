@@ -35,14 +35,14 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 inline
-double ALNAPI Noise()
+float ALNAPI Noise()
 {
 //   This generates a random value with a triangular distribution from -1 to 1
 //   This by subtracting two random uniformly distributed values in (0, 1).
 	return ALNRandFloat() - ALNRandFloat();
 }
 
-void ALNAPI Jitter(ALN* pALN, double* adblX)
+void ALNAPI Jitter(ALN* pALN, float* adblX)
 {
   ASSERT(pALN);
   ASSERT(adblX);
@@ -51,18 +51,18 @@ void ALNAPI Jitter(ALN* pALN, double* adblX)
   int nOutput = pALN->nOutput;
   
   // save output value
-  double dblOutput = adblX[nOutput];
+  float dblOutput = adblX[nOutput];
 
   for (int i = 0; i < nDim; i++)
   {
 #ifdef _DEBUG
-    double dbl = adblX[i];
+    float dbl = adblX[i];
 #endif
 		
     adblX[i] += Noise() * pALN->aRegions[0].aConstr[i].dblEpsilon;
 
 #ifdef _DEBUG
-    double dblEps = pALN->aRegions[0].aConstr[i].dblEpsilon;
+    float dblEps = pALN->aRegions[0].aConstr[i].dblEpsilon;
     ASSERT(adblX[i] >= dbl - dblEps && 
            adblX[i] <= dbl + dblEps);
 #endif

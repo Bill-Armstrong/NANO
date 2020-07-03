@@ -23,8 +23,8 @@ class CMyAln : public CAln
   }
   
 	virtual BOOL OnTrainEnd(TRAININFO* pTrainInfo, void* pvData) 
-  { 
-	std::cerr << " MSE: " << pow(pTrainInfo->dblRMSErr,2) << " Leaf nodes " << pTrainInfo->nLFNs << std::endl;
+  {	
+	std::cerr << "    RMSE " << pTrainInfo->dblRMSErr << " LFNs " << pTrainInfo->nLFNs ;
 	return TRUE;
   }
 
@@ -35,14 +35,12 @@ class CMyAln : public CAln
 
   virtual BOOL OnEpochEnd(EPOCHINFO* pEpochInfo, void* pvData) 
   {
-	  std::cerr << "Leaf nodes " << pEpochInfo->nLFNs << " Active leaf nodes " <<  pEpochInfo->nActiveLFNs << std::endl;
-
+	 //std::cerr << " Leaf nodes " << pEpochInfo->nLFNs << " Active leaf nodes " << pEpochInfo->nActiveLFNs;
 	 return TRUE;
   }
 
   virtual BOOL OnVectorInfo(VECTORINFO* pVectorInfo, void* pvData) 
   {
-	// fillvector(	pVectorInfo->adblX, this); old
 	// getvector may be used for reinforcement learning
     if(_kbhit())
     {

@@ -33,13 +33,14 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+extern long CountLeafevals;
 
 ///////////////////////////////////////////////////////////////////////////////
 // LFN specific eval - returns distance to surface
 //  - returns distance of LFN from point
 
-double ALNAPI CutoffEvalLFN(const ALNNODE* pNode, const ALN* pALN, 
-                            const double* adblX, ALNNODE** ppActiveLFN)
+float ALNAPI CutoffEvalLFN(const ALNNODE* pNode, const ALN* pALN, 
+                            const float* adblX, ALNNODE** ppActiveLFN)
 {
   ASSERT(adblX != NULL);
   ASSERT(pALN != NULL);
@@ -54,12 +55,13 @@ double ALNAPI CutoffEvalLFN(const ALNNODE* pNode, const ALN* pALN,
 
   // calc dist of point from line
   int nDim = pALN->nDim;
-  const double* adblW = LFN_W(pNode);
-  double dblA = *adblW++;                 // skip past bias weight       
+  const float* adblW = LFN_W(pNode);
+  float dblA = *adblW++;                 // skip past bias weight       
   for (int i = 0; i < nDim; i++)     
   {
     dblA += adblW[i] * adblX[i];
   }
-  
+  CountLeafevals++;
+  // NODE_DISTANCE(pNode) = dblA; optional?
   return dblA;
 }

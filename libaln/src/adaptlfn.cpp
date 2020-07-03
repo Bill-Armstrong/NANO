@@ -34,39 +34,39 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-extern BOOL bTrainNV_ALN;
 
 ///////////////////////////////////////////////////////////////////////////////
 // LFN specific adapt
 
-void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const double* adblX, 
-                     double dblResponse, BOOL bUsefulAdapt, const TRAINDATA* ptdata)
+void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const float* adblX, 
+                     float dblResponse, BOOL bUsefulAdapt, const TRAINDATA* ptdata)
 {
   ASSERT(NODE_ISLFN(pNode));
-	ASSERT(LFN_ISINIT(pNode));
+  ASSERT(LFN_ISINIT(pNode));
   ASSERT(LFN_VARMAP(pNode) == NULL);      // var map not yet supported
   ASSERT(LFN_VDIM(pNode) == pALN->nDim);  // no different sized vectors yet
   ASSERT(NODE_ISEVAL(pNode));
-	// constraining region
-	ASSERT(NODE_REGION(pNode) >= 0 && NODE_REGION(pNode) < pALN->nRegions);
-	ALNREGION& region = pALN->aRegions[NODE_REGION(pNode)];
+  // constraining region
+  ASSERT(NODE_REGION(pNode) >= 0 && NODE_REGION(pNode) < pALN->nRegions);
+  ALNREGION& region = pALN->aRegions[NODE_REGION(pNode)];
   // get output var constraint
-  int nOutput = pALN->nOutput;
+  int nDim = pALN->nDim;
   // count useful adapts
   if (bUsefulAdapt)
   {
     NODE_RESPCOUNT(pNode)++; 
   }
-  if (!LFN_CANSPLIT(pNode) || NODE_ISCONSTANT(pNode))
+  if (NODE_ISCONSTANT(pNode))  // IMPORTANT CHANGE: we allow LFN which can't split to still adapt
   {
     return;                     // no adaptation of this constant subtree
   }
-	// This procedure adapts the nDim centroid values and the nDim - 1 weight values so that the changes
-	// are likely to be individually small but together correct about fraction dblLearnrate of the error
-	// of the surface w. r. t. the training point. The error is the distance in the output axis 
-  // from the current datapoint to the ALN surface (negative for points above surface)
-	// We have to think of the error as that of the *surface*, not the data point!
-	double dblError = ptdata->dblGlobalError;
+  // This procedure adapts the nDim centroid values and the nDim - 1 weight values so that the changes
+  // are likely to be individually small but together correct about fraction dblLearnrate of the error
+  // of the surface w. r. t. the training point. The error (dblError) is the distance in the output axis 
+  // from the smoothed ALN function surface to the sample function value
+  // (dbl Error is positive when the ALN function surface is greater than the sample value).
+  // We have to think of the error as that of the *surface*, not the data point!
+	float dblError = ptdata->dblGlobalError; //This is the error just for this training point
 	// notify begining of LFN adapt
 	if (CanCallback(AN_LFNADAPTSTART, ptdata->pfnNotifyProc, ptdata->nNotifyMask))
 	{
@@ -77,98 +77,83 @@ void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const double* adblX,
 		lai.dblResponse = dblResponse;
 		Callback(pALN, AN_LFNADAPTSTART, &lai, ptdata->pfnNotifyProc, ptdata->pvData);
 	}
-  // track split stats
-  // below included LFN_CANSPLIT(pNode) &&
 	if (bUsefulAdapt)
 	{
 		ASSERT(LFN_SPLIT(pNode) != NULL);
 		LFN_SPLIT_COUNT(pNode)++;
 		LFN_SPLIT_SQERR(pNode) += dblError * dblError * dblResponse;
 		LFN_SPLIT_RESPTOTAL(pNode) += dblResponse;
-		// there was a left brace here, moved to the end.
 
 	// copy LFN vector pointers onto the stack for faster access
 		int nDim = LFN_VDIM(pNode);
 		ASSERT(nDim == pALN->nDim);
-		double* adblW = LFN_W(pNode);	    // weight vector
-		double* adblC = LFN_C(pNode);			// centroid vector
-		double* adblD = LFN_D(pNode);			// average square dist from centroid vector
-		// calculate adblA = how far the linear piece is above adblX[nOutput].
-		// Note:  the sum below added to the bias weight would add up to zero for a point *on* the linear piece
-		// If adblX[nOutput] is greater than the value of output on the piece, dblA is *negative*
-		// dblA is also used later for computing convexity, which must be done w.r.t. the linear piece
-		double dblA = *adblW++; // get weight adblW[0] into dblA then point to next weight
-		//IMPORTANT: We talk about not losing numerical accuracy because we use centroids of linear pieces.
-		// Here, we may lower accuracy by not using adblX[kk] - adblC[kk].  Another version should test this idea!
-		for (int kk = 0; kk < nDim; kk++)
-		{
-			dblA += adblX[kk] * adblW[kk];
-		}
-		// We need to measure the error taking into account fillets.  The thickness of fillets is
-		// dblError - dblA, positive when it is a MAX fillet.
-		// If response is < 1, then the adjustment of the centroid and weights is lessened.
-		// We need two learning rates.  The first is for the centroids and weights which divides by 2*nDim -1, thus
-		// putting them on an equal footing with respect to correcting a share of the error.
-		double dblLrnRate = ptdata->dblLearnRate;
-		double dblLearnRespParam = dblLrnRate * dblResponse * region.dblLearnFactor / (2.0*nDim - 1.0);
+		float* adblW = LFN_W(pNode);	    // weight vector( must be shifted to use the same index as adblC, adblX 
+		adblW++; // shift
+		float* adblC = LFN_C(pNode);			// centroid vector
+		float* adblD = LFN_D(pNode);			// average square dist from centroid vector
 
+		// If response is < 1, then the adjustment of the centroid and weights is lessened.
+		// We need two learning rates.  The first is for the centroids and weights, which divides by 2*nDim -1, thus
+		// putting them on an equal footing with respect to correcting a share of the error.
+		float dblLearnRate = ptdata->dblLearnRate;
+		//float dblLearnRespParam = dblLearnRate * dblResponse * region.dblLearnFactor /(double)(2 * nDim - 1); 
+		float dblLearnRespParam = dblLearnRate * region.dblLearnFactor / (double)(2 * nDim - 1); // we should remove all smoothing!!!!
 		// ADAPT CENTROID FOR OUTPUT
-		// Summing up:
-		// L is the value of the linear piece at the input components of X
-		// S is the level of the ALN function at the surface, including fillets
-		// A = L - X
-		// error = S - X
-		// the thickness of the fillet (positive above the linear piece is S - L = error - A
-		// the target level for the centroid C[output] is X - fillet thickness = X - error + A
-		// We use a flywheel that averages that target level
-		adblC[nOutput] += (adblX[nOutput] - dblError + dblA - adblC[nOutput]) * dblLearnRespParam;
-		// Because the fillets may change, we aren't sure how much the dblError has changed.  We press ahead with
-		// the old value of dblError while changing weights.  Similarly, we won't update the
-		// dblError value as we change the weights.
-		// Some helping variables
-		double dblXmC = 0; // adblX[i] - adblC[i] "X minus C" for the current axis i
-		double dblWeightFactor = 0;
+		// L is the value of the affine function of the linear piece at the input components of X
+		// V is the value of the sample X[nDim - 1]
+		// dblError = L - V,   N.B. if L is greater than the sample the error is positive
+		// We neglect the fillet if any and make the average V the target for adblC[nDim - 1]
+		adblC[nDim -1] += (adblX[nDim -1] - adblC[nDim - 1]) * dblLearnRespParam;
 		// ADAPT CENTROID AND WEIGHT FOR EACH INPUT VARIABLE  
-		for (int i = 0; i < nDim; i++)
+		float dblXmC = 0;
+		float dblBend = 0;
+		for (int i = 0; i < nDim -1; i++) //Skip the output centroid at nDim - 1.
 		{
 			// get pointer to variable constraints
 			ALNCONSTRAINT* pConstr = GetVarConstraint(NODE_REGION(pNode), pALN, i);
 			// skip any variables of constant monotonicity; W is constant and X is irrelevant
 			if (pConstr->dblWMax == pConstr->dblWMin) continue;
-			// The following was changed on March 24, 2015, to allow for real-time
-			// inputs where X[i] and the previous value might be correlated.
 			// Compute the distance of X from the old centroid in axis i
 			dblXmC = adblX[i] - adblC[i];
 			// UPDATE VARIANCE BY EXPONENTIAL SMOOTHING
 			// We adapt this first so the adaptation of the centroid to this input will not affect it
 			ASSERT(adblD[i] >= 0);
-			adblD[i] += (dblXmC * dblXmC - adblD[i]) * dblLrnRate; // Is this the right rate???
+			// Use exponential smoothing
+			adblD[i] += (dblXmC * dblXmC - adblD[i]) * dblLearnRate; // This learning rate is not involved in correcting dblError
 			// The exponentially smoothed estimate of variance
 			// adblD[i] is not allowed to go below dblSqEpsilon of the current input variable to
 			// slow rotations along some axes and prevent division by 0.
-			if (adblD[i] < pConstr->dblSqEpsilon)adblD[i] = pConstr->dblSqEpsilon;
+			//if (adblD[i] < pConstr->dblSqEpsilon)adblD[i] = pConstr->dblSqEpsilon; This should not be a problem
 			// UPDATE THE CENTROID BY EXPONENTIAL SMOOTHING
-			adblC[i] += dblXmC * dblLearnRespParam; // changed March 26 to correct mistake which led to terrible learning
+			adblC[i] += dblXmC * dblLearnRespParam;
 			// Update the distance of X[i] from the centroid (the compiler will optimize these steps)
 			dblXmC = adblX[i] - adblC[i];
 			// ADAPT WEIGHTS
-			dblWeightFactor = dblXmC / adblD[i];
-			adblW[i] -= dblError * dblWeightFactor * dblLearnRespParam;
+			adblW[i] -= dblError * dblLearnRespParam * dblXmC / adblD[i];
 			// Bound the weight
 			adblW[i] = max(min(pConstr->dblWMax, adblW[i]), pConstr->dblWMin);
+
 			// COLLECT DATA FOR LATER SPLITTING THIS PIECE:
-			// We exponentially smooth the error for points on the piece which are
-			// further from the centroid than the variance stdev of the points on the piece along the current axis.
-			// If the error is positive away from the centre, then we need a split of the LFN into a MIN node.
-			if (LFN_CANSPLIT(pNode) && bUsefulAdapt && (dblXmC*dblXmC >= adblD[i]))
-				LFN_SPLIT_T(pNode) += (dblError - LFN_SPLIT_T(pNode))* dblLrnRate;  //Is this the right rate???
-		} // end loop over all nDim dimensions
+			// We analyze the errors of sample value minus ALN value V - L = -dblError (N.B. minus) on the piece which are
+			// further from the centroid than  a constant times the stdev of the points on the piece along the current axis.
+			// Since adblD[i], averaged over the samples is the variance of the samples in axis i, assuming a uniform distribution
+			// the half-width is when dblXmC * dblXmC >= dblConst4Half * D[i] where dblConst4Half = pow(1.5,1.0/3.0) = 1.144712695.
+			// If the V - L  is positive (negative) away from the centre compared to the error at the centre, then we need a split of the LFN into a MAX (MIN) node.
+			// Even if the fit is extremely bad, we need to know the convexity to split the piece in the right direction, MIN or MAX.
+			// To capture the information for all the samples on the piece and all the nDim -1 domain directions, we use exponential smoothing.
+			if (LFN_CANSPLIT(pNode) && bUsefulAdapt)
+			{
+				dblBend = (dblXmC * dblXmC > 1.144712695F * adblD[i]) ? -dblError : dblError;
+				LFN_SPLIT_T(pNode) += (dblBend - LFN_SPLIT_T(pNode)) * dblLearnRate;
+			}
+		} // end loop over all nDim-1 domain dimensions
+
 		// compress the weighted centroid info into W[0]       
-		double *pdblW0 = LFN_W(pNode);
-		*pdblW0 = adblC[nDim - 1]; // there is no stored weight -1 for the output
+		float * const pdblW0 = LFN_W(pNode);
+		*pdblW0 = adblC[nDim - 1];
 		for (int i = 0; i < nDim - 1; i++)
 		{
-			*pdblW0 -= adblW[i] * adblC[i]; // here the W pointer is shifted up by one double
+			*pdblW0 -= adblW[i] * adblC[i]; // here the adblW pointer is still shifted up by one float
 		}
 		// notify end of LFN adapt
 		if (CanCallback(AN_LFNADAPTEND, ptdata->pfnNotifyProc, ptdata->nNotifyMask))

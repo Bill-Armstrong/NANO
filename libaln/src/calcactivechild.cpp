@@ -35,9 +35,8 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 
-int ALNAPI CalcActiveChild(double& dblRespActive, double& dblDistance, 
-                           double dbl0, double dbl1, const ALNNODE* pNode, 
-                           double dblSE, double dbl4SE, double dblOV16SE)
+int ALNAPI CalcActiveChild(float& dblRespActive, float& dblDistance, 
+                           float dbl0, float dbl1, const ALNNODE* pNode)                          
 
 {
   int nActive = -1;
@@ -45,68 +44,32 @@ int ALNAPI CalcActiveChild(double& dblRespActive, double& dblDistance,
   // MAX node handling
 	if (MINMAX_ISMAX(pNode)) 
 	{
-		if(dbl1 > dbl0 + dbl4SE)	//  this puts child 1 100% active
+		if(dbl1 > dbl0)	//  this puts child 1 100% active
 		{
-      nActive = 1;
-      dblRespActive = 1.0;
-      dblDistance = dbl1;
-		}
-		else if	(dbl1 > dbl0 - dbl4SE)	// there is a fillet
-		{
-			if(dbl1 > dbl0)	 // child 1 is more active
-			{
-        nActive = 1;
-			}
-			else	// child 0 is more active
-			{
-				nActive = 0;
-			}
-
-      double dblDiff = dbl1 - dbl0;
-      dblDistance = 0.5 * (dbl1 + dbl0) + 
-                    dblOV16SE * dblDiff * dblDiff + 
-                    dblSE;
-			
-      dblRespActive = 0.5 * (1.0 + fabs(dblDiff) / dbl4SE);
+		  nActive = 1;
+		  dblRespActive = 1.0;
+		  dblDistance = dbl1;
 		}
 		else	// child 0 is 100% active
 		{
 			nActive = 0;
-      dblRespActive = 1.0;
-      dblDistance = dbl0;
+		  dblRespActive = 1.0;
+		  dblDistance = dbl0;
 		}	
 	}
 	else // this is a MIN node
 	{    
-  	if(dbl1 < dbl0 - dbl4SE) //  this puts child 1 100% active
+  		if(dbl1 < dbl0) //  this puts child 1 100% active
 		{
 			nActive = 1;
-      dblRespActive = 1.0;
-      dblDistance = dbl1;
-  	}
-		else if (dbl1 < dbl0 + dbl4SE)	 // there is a fillet
-		{
-			if(dbl1 < dbl0)
-			{
-			  nActive = 1;
-			}
-			else
-			{
-				nActive = 0;
-			}
-
-      double dblDiff = dbl1 - dbl0;
-      dblDistance = 0.5 * (dbl1 + dbl0) - 
-                    dblOV16SE * (dblDiff) * (dblDiff) - 
-                    dblSE;
-			
-      dblRespActive = 0.5 * (1.0 + fabs(dblDiff) / dbl4SE);
-		}
+			dblRespActive = 1.0;
+			dblDistance = dbl1;
+  		}
 		else	 // child 0 is 100% active
 		{
 			nActive = 0;
-      dblRespActive = 1.0;
-      dblDistance = dbl0;
+			dblRespActive = 1.0;
+			dblDistance = dbl0;
 		}
 	}
 

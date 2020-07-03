@@ -40,7 +40,7 @@ static char THIS_FILE[] = __FILE__;
 //  - sets the distance, active and goal surfaces, and eval flag
 // NOTE: cutoff always passed on stack!
 
-double ALNAPI AdaptEvalMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX, CEvalCutoff cutoff, ALNNODE** ppActiveLFN)
+float ALNAPI AdaptEvalMinMax(ALNNODE* pNode, ALN* pALN, const float* adblX, CEvalCutoff cutoff, ALNNODE** ppActiveLFN)
 {
 	ASSERT(NODE_ISMINMAX(pNode));
 
@@ -64,22 +64,13 @@ double ALNAPI AdaptEvalMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX, CE
 
 	// get reference to region for this node
 	ALNREGION& region = pALN->aRegions[NODE_REGION(pNode)];
-	/*
-	if (region.dbl4SE > 0.0) // if smoothing is used
-	{
-		// loosen cutoff constraint for children
-		if (MINMAX_ISMAX(pNode) && cutoff.bMax)
-			cutoff.dblMax -= region.dbl4SE;
-		else if (MINMAX_ISMIN(pNode) && cutoff.bMin)
-			cutoff.dblMin += region.dbl4SE;
-	} REMOVED THIS TO SEE WHAT HAPPENs
-	*/
+	
 	// eval first child
 	ALNNODE* pActiveLFN0;
-	double dbl0 = AdaptEval(pChild0, pALN, adblX, cutoff, &pActiveLFN0);
+	float dbl0 = AdaptEval(pChild0, pALN, adblX, cutoff, &pActiveLFN0);
 
 	// see if we can cutoff...
-	if (Cutoff(dbl0, pNode, cutoff, region.dbl4SE))
+	if (Cutoff(dbl0, pNode, cutoff))
 	{
 		*ppActiveLFN = pActiveLFN0;
 		MINMAX_ACTIVE(pNode) = pChild0;
@@ -90,47 +81,22 @@ double ALNAPI AdaptEvalMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX, CE
 
 	// eval second child
 	ALNNODE* pActiveLFN1;
-	double dbl1 = AdaptEval(pChild1, pALN, adblX, cutoff, &pActiveLFN1);
-
-	if (region.dblSmoothEpsilon > 0.0) // if this is true, we are using smoothing
+	float dbl1 = AdaptEval(pChild1, pALN, adblX, cutoff, &pActiveLFN1);
+		
+	// Recall that dbl0 == dbl1 is not a rare event!  It always happens after a split,
+	// however it happens then only once as the first adapt will likely destroy equality.
+	MINMAX_RESPACTIVE(pNode) = 1.0;
+	if ((MINMAX_ISMAX(pNode) > 0) == (dbl1 > dbl0)) // int MINMAX_ISMAX is used as a bit-vector!
 	{
-		// calc active child, active child response, and distance
-		int nActive = CalcActiveChild(MINMAX_RESPACTIVE(pNode),
-			NODE_DISTANCE(pNode),
-			dbl0, dbl1, pNode,
-			region.dblSmoothEpsilon,
-			region.dbl4SE, region.dblOV16SE);
-
-		if (nActive == 0)
-		{
-			*ppActiveLFN = pActiveLFN0;
-			MINMAX_ACTIVE(pNode) = pChild0;
-			// distance and respactive already set in call to CalcActiveChild
-		}
-		else
-		{
-			*ppActiveLFN = pActiveLFN1;
-			MINMAX_ACTIVE(pNode) = pChild1;
-			// distance and respactive already set in call to CalcActiveChild
-		}
+		NODE_DISTANCE(pNode) = dbl1;
+		*ppActiveLFN = pActiveLFN1;
+		MINMAX_ACTIVE(pNode) = pChild1;
 	}
-	else  // there is no smoothing and we can simplify without calling CalcActiveChild()
+	else
 	{
-		// Recall that dbl0 == dbl1 is not a rare event!  It always happens after a split,
-		// however it happens then only once as the first adapt will likely destroy equality.
-		MINMAX_RESPACTIVE(pNode) = 1.0;
-		if ((MINMAX_ISMAX(pNode) > 0) == (dbl1 > dbl0)) // int MINMAX_ISMAX is used as a bit-vector!
-		{
-			NODE_DISTANCE(pNode) = dbl1;
-			*ppActiveLFN = pActiveLFN1;
-			MINMAX_ACTIVE(pNode) = pChild1;
-		}
-		else
-		{
-			NODE_DISTANCE(pNode) = dbl0;
-			*ppActiveLFN = pActiveLFN0;
-			MINMAX_ACTIVE(pNode) = pChild0;
-		}
+		NODE_DISTANCE(pNode) = dbl0;
+		*ppActiveLFN = pActiveLFN0;
+		MINMAX_ACTIVE(pNode) = pChild0;
 	}
 	return NODE_DISTANCE(pNode);
 }

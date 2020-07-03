@@ -38,11 +38,11 @@ static char THIS_FILE[] = __FILE__;
 ///////////////////////////////////////////////////////////////////////////////
 // minmax specific adapt
 
-static const double dblRespThresh = 1.0;//.9999999999; 
-static const double dblRespMin = 0.0;
+static const float dblRespThresh = 1.0;//.9999999999; 
+static const float dblRespMin = 0.0;
 
-void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX, 
-                      double dblResponse, BOOL bUsefulAdapt,
+void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const float* adblX, 
+                      float dblResponse, BOOL bUsefulAdapt,
                       const TRAINDATA* ptdata)
 {
   ASSERT(NODE_ISMINMAX(pNode));
@@ -68,15 +68,15 @@ void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX,
   int nResp1 = NODE_RESPCOUNT(pChild1) + NODE_RESPCOUNTLASTEPOCH(pChild1);
 
   // calculate the responsibilities of the children
-  double dblResp0, dblResp1;
-	double dblRespActive = MINMAX_RESPACTIVE(pNode);
+  float dblResp0, dblResp1;
+	float dblRespActive = MINMAX_RESPACTIVE(pNode);
 
   ASSERT(MINMAX_ACTIVE(pNode) != NULL);
   if (MINMAX_ACTIVE(pNode) == pChild0) // child 0 active
   {
     bUsefulAdapt0 = bUsefulAdapt;
 
-    double dblR;
+    float dblR;
 
     if((fabs(ptdata->dblGlobalError) > pConstrOutput->dblEpsilon) && 
        (dblRespActive > dblRespThresh) && (nResp1 < nResp0))
@@ -99,7 +99,7 @@ void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX,
 
     // divide each quantity by 1 - 2r(1-r)
 
-    double dblFactor = 1.0 / (1 - 2 * dblR * (1 - dblR));
+    float dblFactor = 1.0 / (1 - 2 * dblR * (1 - dblR));
 
     dblResp0 = dblR * dblFactor;
 		dblResp1 = (1.0 - dblR) * dblFactor;
@@ -108,7 +108,7 @@ void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX,
 	{
     bUsefulAdapt1 = bUsefulAdapt;
 
-    double dblR;
+    float dblR;
 
     if((fabs(ptdata->dblGlobalError) > pConstrOutput->dblEpsilon) && 
        (dblRespActive > dblRespThresh) && (nResp0 < nResp1))
@@ -131,7 +131,7 @@ void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX,
 		    
     // divide each quantity by 1 - 2r(1-r)
 
-    double dblFactor = 1.0 / (1 - 2 * dblR * (1 - dblR));
+    float dblFactor = 1.0 / (1 - 2 * dblR * (1 - dblR));
 
     dblResp1 = dblR * dblFactor;
 		dblResp0 = (1.0 - dblR) * dblFactor;

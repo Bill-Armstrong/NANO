@@ -35,8 +35,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-BOOL ALNAPI Cutoff(double dbl, const ALNNODE* pNode, CEvalCutoff& cutoff, 
-                   double dbl4SE)
+BOOL ALNAPI Cutoff(float dbl, const ALNNODE* pNode, CEvalCutoff& cutoff)
 {
   if(MINMAX_ISMAX(pNode))  // if pNode is a MAX
 	{   

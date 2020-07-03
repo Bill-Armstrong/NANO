@@ -38,9 +38,8 @@ static char THIS_FILE[] = __FILE__;
 // LFN specific eval
 //  - returns distance of LFN from point and also sets the 
 //    node's dblDistance member for use by adaptive routines
-static int counttimes = 1; // MYTEST FOR DEBUGGING
 
-double ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const double* adblX,
+float ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const float* adblX,
 	ALNNODE** ppActiveLFN)
 
 {
@@ -49,7 +48,6 @@ double ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const double* adblX,
   ASSERT(pNode != NULL);
   ASSERT(ppActiveLFN != NULL);
   ASSERT(NODE_ISLFN(pNode));
-
   ASSERT(LFN_VARMAP(pNode) == NULL);      // var map not yet supported
   ASSERT(LFN_VDIM(pNode) == pALN->nDim);  // no different sized vectors yet
 
@@ -58,11 +56,10 @@ double ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const double* adblX,
   // set node eval flag
   NODE_FLAGS(pNode) |= NF_EVAL;
 
-  // calc dist of point from line
+  // calc difference: sample value minus LFN value  X - L
   int nDim = pALN->nDim;
-  counttimes++;
-  const double* adblW = LFN_W(pNode);
-  double dblA = *adblW++;                 // skip past bias weight       
+  const float* adblW = LFN_W(pNode);
+  float dblA = *adblW++;                 // skip past bias weight       
   for (int i = 0; i < nDim; i++)     
   {
     dblA += adblW[i] * adblX[i];

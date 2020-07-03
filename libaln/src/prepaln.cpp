@@ -67,7 +67,7 @@ BOOL ALNAPI DoPrepRegions(ALN* pALN)
     // iterate over var constraints
     for (int j = 0; j < pRegion->nConstr; j++)
     {
-      double dblEpsilon = pRegion->aConstr[j].dblEpsilon;
+      float dblEpsilon = pRegion->aConstr[j].dblEpsilon;
 
       if (j == pALN->nOutput)
       {
@@ -80,8 +80,7 @@ BOOL ALNAPI DoPrepRegions(ALN* pALN)
       pRegion->aConstr[j].dblSqEpsilon = dblEpsilon * dblEpsilon; // this may be useless now
     }
 
-    // calc smoothing epsilon quantities
-    SetSmoothingEpsilon(pRegion);
+
   }
 
   return TRUE;

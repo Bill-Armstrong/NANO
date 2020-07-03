@@ -91,9 +91,9 @@ DTRIMP int DTREEAPI GetDtreeVersion();
 
 typedef struct tagLINEARFORM      /* describes a linear form                */
 {                    
-  double dblBias;                 /* bias: computed from centroid,weights   */
-  double* adblW;                  /* weight vector has nDim elements        */
-  double* adblC;                  /* centroid vector has nDim elements      */
+  float dblBias;                 /* bias: computed from centroid,weights   */
+  float* adblW;                  /* weight vector has nDim elements        */
+  float* adblC;                  /* centroid vector has nDim elements      */
 } LINEARFORM;                     /* 16 bytes                               */
 
 typedef struct tagMINMAXNODE      /* describes a min/max tree node          */
@@ -120,7 +120,7 @@ typedef struct tagDTREENODE       /* describes a decision tree node         */
     int nBlockIndex;              /* index of block if this is a leaf       */
     struct
     {                             /* if this is an internal DTREE node...         */
-      double dblT;                /* threshold on a variable has split a block */
+      float dblT;                /* threshold on a variable has split a block */
       int nVarIndex;              /* variable index                         */
       int nLeftIndex;             /* index of left child                    */
       int nRightIndex;            /* index of right child                   */
@@ -142,8 +142,8 @@ typedef struct tagBLOCK           /* describes a block structure            */
   
 typedef struct tagVARBOUND        /* variable bound structure               */
 {
-  double dblMin;                  /* variable minimum                       */
-  double dblMax;                  /* variable maximum                       */
+  float dblMin;                  /* variable minimum                       */
+  float dblMax;                  /* variable maximum                       */
 } VARBOUND;                       /* 16 bytes                               */
 
 typedef struct tagVARDEF          /* variable definition                    */
@@ -235,22 +235,22 @@ DTRIMP int DTREEAPI BinWriteDtree(const char* pszFileName, DTREE* pDtree);
    places a result in *pdblResult
    returns index of linear form that calculated the result in
    plLinearIndex (if not NULL) */
-DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, double* adblInput, 
-                              double* pdblResult, int* pnLinearIndex);
+DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, float* adblInput, 
+                              float* pdblResult, int* pnLinearIndex);
 
 /* min/max tree evaluation         
    returns DTR_NOERROR on success         
    places result in pdblResult, 
    places responsible linear index in plLinearIndex (if not NULL) */
 DTRIMP int DTREEAPI EvalMinMaxTree(MINMAXNODE* pMMN, LINEARFORM* aLF, int nDim, 
-                                   int nOutput, double* adblInput, 
-                                   double* pdblResult, int* pnLinearIndex);
+                                   int nOutput, float* adblInput, 
+                                   float* pdblResult, int* pnLinearIndex);
                             
 /* linear form evaluation         
    returns DTR_NOERROROR on success         
    places result in pdblResult */
 DTRIMP int DTREEAPI EvalLinearForm(LINEARFORM* pLF, int nDim, int nOutput, 
-                                   double* adblInput, double* pdblResult);
+                                   float* adblInput, float* pdblResult);
 
                                  
 /*                                 

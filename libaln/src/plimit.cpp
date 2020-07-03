@@ -47,10 +47,10 @@ static char THIS_FILE[] = __FILE__;
 // method: advance p until cumulative binomial dist 0 to m events in n 
 //         trials drops to x
 
-double ALNAPI PLimit(int n, int m, double dblX)
+float ALNAPI PLimit(int n, int m, float dblX)
 {
-  static const double dblInc = 0.1;     // coarse increment
-  static const double dblAcc = 1.0e-7;  // maximum accuracy
+  static const float dblInc = 0.1;     // coarse increment
+  static const float dblAcc = 1.0e-7;  // maximum accuracy
 
   if (dblX < 0.0 || dblX > 1.0 || n < 0)
   {
@@ -70,14 +70,14 @@ double ALNAPI PLimit(int n, int m, double dblX)
   // therfore, Y goes to 0 as P approaches desired value
 
   // lower bound
-  double dblP1 = 0.0;
-  double dblY1 = dblX - 1.0;
+  float dblP1 = 0.0;
+  float dblY1 = dblX - 1.0;
   ASSERT(dblY1 <= 0.0);
 
   // begin coarse approximation of P
   
   // scan upward until Y3 is +ve
-  double dblP3, dblY3;
+  float dblP3, dblY3;
   for (dblP3 = dblInc; dblP3 < 1.0; dblP3 += dblInc)
   {
     dblY3 = dblX - (1.0 - ibeta(m + 1, n - m, dblP3));  //ibet??
@@ -103,20 +103,20 @@ double ALNAPI PLimit(int n, int m, double dblX)
   for (int i = 0; i < nMaxIt; i++)
   {
     // get mid-values
-    double dblP2 = 0.5 * (dblP1 + dblP3);
+    float dblP2 = 0.5 * (dblP1 + dblP3);
     if ((dblP3 - dblP1) < dblAcc)   // convergence test
       return dblP2;
     
-    double dblY2 = dblX - (1.0 - ibeta(m + 1, n - m, dblP2)); //ibeta??
+    float dblY2 = dblX - (1.0 - ibeta(m + 1, n - m, dblP2)); //ibeta??
 
     // convergence test
     if (fabs(dblY2) < dblAcc)
       return dblP2;
 
-    double dblDenom = sqrt(dblY2 * dblY2 - dblY1 * dblY3);  // y1, y3 opposite sign
-    double dblTrial = dblP2 + (dblP1 - dblP2) * dblY2 / dblDenom;
+    float dblDenom = sqrt(dblY2 * dblY2 - dblY1 * dblY3);  // y1, y3 opposite sign
+    float dblTrial = dblP2 + (dblP1 - dblP2) * dblY2 / dblDenom;
 
-    double dblY = dblX - (1.0 - ibeta(m + 1, n - m, dblTrial));  //ibeta
+    float dblY = dblX - (1.0 - ibeta(m + 1, n - m, dblTrial));  //ibeta
 
     // convergence test
     if (fabs(dblY) < dblAcc)

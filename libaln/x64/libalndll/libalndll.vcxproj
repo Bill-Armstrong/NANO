@@ -180,6 +180,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\alnpp\alnpp.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release MT DLL|x64'">..\include\;$(VcpkgRoot)include%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug MT DLL|x64'">..\include\;$(VcpkgRoot)include%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Include="..\..\alnpp\datafile.cpp" />
     <ClCompile Include="..\..\src\adapteval.cpp" />
     <ClCompile Include="..\..\src\adaptevallfn.cpp" />
     <ClCompile Include="..\..\src\adaptevalminmax.cpp" />
@@ -237,8 +242,10 @@
     <ClInclude Include="..\..\include\aln.h" />
     <ClInclude Include="..\..\include\alncfg.h" />
     <ClInclude Include="..\..\include\alndbg.h" />
+    <ClInclude Include="..\..\include\alnpp.h" />
     <ClInclude Include="..\..\include\alnpriv.h" />
     <ClInclude Include="..\..\include\alnver.h" />
+    <ClInclude Include="..\..\include\datafile.h" />
     <ClInclude Include="..\..\include\dtree.h" />
     <ClInclude Include="..\..\include\StdAfx.h" />
     <ClInclude Include="..\..\include\targetver.h" />

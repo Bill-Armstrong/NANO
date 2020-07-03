@@ -40,11 +40,11 @@ static char THIS_FILE[] = __FILE__;
 static void DebugValidateEvalTreeInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
-                                      double* adblResult,
+                                      float* adblResult,
                                       int* pnStart, int* pnEnd,
                                       ALNNODE** apActiveLFNs,
-                                      double* adblInput,
-                                      double* adblOutput);
+                                      float* adblInput,
+                                      float* adblOutput);
 #endif
 
 // evaluation of ALN on data
@@ -53,12 +53,12 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
                     const ALN* pALN,
                     ALNDATAINFO* pDataInfo,
                     const ALNCALLBACKINFO* pCallbackInfo,
-                    double* adblResult,
+                    float* adblResult,
                     int* pnStart, int* pnEnd,
                     BOOL bErrorResults /*= FALSE*/,
                     ALNNODE** apActiveLFNs /*= NULL*/,
-                    double* adblInput /*= NULL*/,
-                    double* adblOutput /*= NULL*/)
+                    float* adblInput /*= NULL*/,
+                    float* adblOutput /*= NULL*/)
 {
   ASSERT(pNode);
 #ifdef _DEBUG
@@ -70,7 +70,7 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
   int nDim = pALN->nDim;
   int nDimt2p1 = 2 * nDim + 1;
   int nDimt2p1ti;
-  int nTRcurrSamples = pDataInfo->nTRcurrSamples;
+  long nTRcurrSamples = pDataInfo->nTRcurrSamples;
 
   // calc start and end points
   long nStart, nEnd; 
@@ -85,7 +85,7 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
 
   // evaluation loop
   int nReturn = ALN_NOERROR;        // assume OK
-  double* adblX = NULL;             // eval vector
+  float* adblX = NULL;             // eval vector
   ALNNODE* pTree = pALN->pTree;		  // on stack for quicker access
   CCutoffInfo* aCutoffInfo = NULL;  
  
@@ -99,9 +99,9 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
 
 
   	// allocate input vector     
-   	adblX = new double[nDim];   
+   	adblX = new float[nDim];   
     if (!adblX) ThrowALNMemoryException();
-    memset(adblX, 0, sizeof(double) * nDim);
+    memset(adblX, 0, sizeof(float) * nDim);
 
     // main loop
     ALNNODE* pActiveLFN = NULL;
@@ -115,10 +115,10 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
       if (adblInput)
       {
         // get the input row
-        double* adblRow = adblInput + nDimt2p1ti; // Changed this to give the correct buffer width.
+        float* adblRow = adblInput + nDimt2p1ti; // Changed this to give the correct buffer width.
 
         // copy values
-        memcpy(adblRow, adblX, pALN->nDim * sizeof(double));
+        memcpy(adblRow, adblX, pALN->nDim * sizeof(float));
         
         // set the bias value in the output var spot
         adblRow[pALN->nOutput] = 1.0; // should we change to - 1.0 from 1.0 ?
@@ -183,11 +183,11 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
 static void DebugValidateEvalTreeInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
-                                      double* adblResult,
+                                      float* adblResult,
                                       int* pnStart, int* pnEnd,
                                       ALNNODE** apActiveLFNs,
-                                      double* adblInput,
-                                      double* adblOutput)
+                                      float* adblInput,
+                                      float* adblOutput)
 {
   DebugValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
   

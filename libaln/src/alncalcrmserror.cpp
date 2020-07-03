@@ -42,7 +42,7 @@ static char THIS_FILE[] = __FILE__;
 ALNIMP int ALNAPI ALNCalcRMSError(const ALN* pALN,
                                   ALNDATAINFO* pDataInfo,
                                   const ALNCALLBACKINFO* pCallbackInfo,
-                                  double* pdblRMSErr)
+                                  float* pdblRMSErr)
 {
   int nReturn = ValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
 
@@ -77,7 +77,7 @@ ALNIMP int ALNAPI ALNCalcRMSError(const ALN* pALN,
   return nReturn;
 }
 
-double ALNAPI DoCalcRMSError(const ALN* pALN,
+float ALNAPI DoCalcRMSError(const ALN* pALN,
                              ALNDATAINFO* pDataInfo,
                              const ALNCALLBACKINFO* pCallbackInfo)
 {
@@ -90,19 +90,19 @@ double ALNAPI DoCalcRMSError(const ALN* pALN,
   nStart = 0;
   nEnd = pDataInfo->nTRcurrSamples - 1;
   
-  double dblRMSError = -1.0;
+  float dblRMSError = -1.0;
 	ALNNODE* pTree = pALN->pTree;
   int nDim = pALN->nDim;
-  double* adblX = NULL;
-  const double** apdblBase = NULL;
+  float* adblX = NULL;
+  const float** apdblBase = NULL;
   CCutoffInfo* aCutoffInfo = NULL;  
   
   try
   {
     // allocate eval vector
-    adblX = new double[nDim];
+    adblX = new float[nDim];
     if (!adblX) ThrowALNMemoryException();
-    memset(adblX, 0, sizeof(double) * nDim);
+    memset(adblX, 0, sizeof(float) * nDim);
 
     // allocate and init cutoff info array
     aCutoffInfo = new CCutoffInfo[nEnd - nStart + 1];
@@ -112,16 +112,16 @@ double ALNAPI DoCalcRMSError(const ALN* pALN,
 			aCutoffInfo[i - nStart].pLFN = NULL;
 
     // calc rms error
-    double dblSqErrorSum = 0;
-    for (int nPoint = nStart; nPoint <= nEnd; nPoint++)
+    float dblSqErrorSum = 0;
+    for (int nSample = nStart; nSample <= nEnd; nSample++)
 	  {
       // get vector (cvt to zero based point index)
-      FillInputVector(pALN, adblX, nPoint - nStart, nStart, pDataInfo, pCallbackInfo);
+      FillInputVector(pALN, adblX, nSample - nStart, nStart, pDataInfo, pCallbackInfo);
 		
       // do an eval to get active LFN and distance
       ALNNODE* pActiveLFN = NULL;
-      CCutoffInfo& cutoffinfo = aCutoffInfo[nPoint - nStart];
-      double dbl = CutoffEval(pTree, pALN, adblX, &cutoffinfo, &pActiveLFN);
+      CCutoffInfo& cutoffinfo = aCutoffInfo[nSample - nStart];
+      float dbl = CutoffEval(pTree, pALN, adblX, &cutoffinfo, &pActiveLFN);
       
 		  // now add square of distance from surface to error
 		  dblSqErrorSum += dbl * dbl;

@@ -174,7 +174,7 @@ static int ALNAPI DoALNRead(FILE* pFile, ALN** ppALN)
   if (pALN->nVersion == 0x00030007)
   {
     // P, lower bound, upper bound, Tail05, Interval4P
-    double dbl;
+    float dbl;
     if (_READ(pFile, dbl) != 1) return ALN_ERRFILE;
     if (_READ(pFile, dbl) != 1) return ALN_ERRFILE;
     if (_READ(pFile, dbl) != 1) return ALN_ERRFILE;
@@ -353,13 +353,13 @@ static int ALNAPI WriteTree(FILE* pFile, const ALN* pALN, const ALNNODE* pNode)
     }
 
     // vectors
-    if ((int)fwrite(LFN_W(pNode), sizeof(double), LFN_VDIM(pNode) + 1, pFile)
+    if ((int)fwrite(LFN_W(pNode), sizeof(float), LFN_VDIM(pNode) + 1, pFile)
           != (LFN_VDIM(pNode) + 1)) return ALN_ERRFILE;
 
-    if ((int)fwrite(LFN_C(pNode), sizeof(double), LFN_VDIM(pNode), pFile)
+    if ((int)fwrite(LFN_C(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
           != LFN_VDIM(pNode)) return ALN_ERRFILE;
 
-    if ((int)fwrite(LFN_D(pNode), sizeof(double), LFN_VDIM(pNode), pFile)
+    if ((int)fwrite(LFN_D(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
           != LFN_VDIM(pNode)) return ALN_ERRFILE;
 
 	}
@@ -437,25 +437,25 @@ static int ALNAPI ReadTree(FILE* pFile, ALN* pALN, ALNNODE* pNode)
     }
 
     // alloc and read vectors
-    LFN_W(pNode) = (double*)malloc((LFN_VDIM(pNode) + 1) * sizeof(double));
+    LFN_W(pNode) = (float*)malloc((LFN_VDIM(pNode) + 1) * sizeof(float));
     if (LFN_W(pNode) == NULL)
       return ALN_OUTOFMEM;
 
-    if ((int)fread(LFN_W(pNode), sizeof(double), LFN_VDIM(pNode) + 1, pFile)
+    if ((int)fread(LFN_W(pNode), sizeof(float), LFN_VDIM(pNode) + 1, pFile)
           != (LFN_VDIM(pNode) + 1)) return ALN_ERRFILE;
 
-    LFN_C(pNode) = (double*)malloc(LFN_VDIM(pNode) * sizeof(double));
+    LFN_C(pNode) = (float*)malloc(LFN_VDIM(pNode) * sizeof(float));
     if (LFN_C(pNode) == NULL)
       return ALN_OUTOFMEM;
 
-    if ((int)fread(LFN_C(pNode), sizeof(double), LFN_VDIM(pNode), pFile)
+    if ((int)fread(LFN_C(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
           != LFN_VDIM(pNode)) return ALN_ERRFILE;
 
-    LFN_D(pNode) = (double*)malloc(LFN_VDIM(pNode) * sizeof(double));
+    LFN_D(pNode) = (float*)malloc(LFN_VDIM(pNode) * sizeof(float));
     if (LFN_D(pNode) == NULL)
       return ALN_OUTOFMEM;
 
-    if ((int)fread(LFN_D(pNode), sizeof(double), LFN_VDIM(pNode), pFile)
+    if ((int)fread(LFN_D(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
           != LFN_VDIM(pNode)) return ALN_ERRFILE;
   }
   else

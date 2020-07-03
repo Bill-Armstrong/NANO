@@ -35,21 +35,21 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 static int ALNAPI ValidateALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-                                              double dblSignificance,
-                                              double* pdblPLimit);
+                                              float dblSignificance,
+                                              float* pdblPLimit);
 
 #ifdef _DEBUG
 static void DebugValidateALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-                                             double dblSignificance,
-                                             double* pdblPLimit);
+                                             float dblSignificance,
+                                             float* pdblPLimit);
 #endif
 
 // much of this is derived from theory documented in Master95 p302-323
 // and Press et al p228-229
 
 ALNIMP int ALNAPI ALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-                                      double dblSignificance,
-                                      double* pdblPLimit)
+                                      float dblSignificance,
+                                      float* pdblPLimit)
 {
 	int nReturn = ValidateALNConfidencePLimit(pConfidence, dblSignificance, pdblPLimit);
   if (nReturn != ALN_NOERROR)
@@ -71,8 +71,8 @@ ALNIMP int ALNAPI ALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
 
 // validate params
 static int ALNAPI ValidateALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-                                              double dblSignificance,
-                                              double* pdblPLimit)
+                                              float dblSignificance,
+                                              float* pdblPLimit)
 {
   if (pConfidence == NULL || pdblPLimit == NULL)
     return ALN_GENERIC;
@@ -83,8 +83,8 @@ static int ALNAPI ValidateALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
 // debug version ASSERTS if bad params
 #ifdef _DEBUG
 static void DebugValidateALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-                                             double dblSignificance,
-                                             double* pdblPLimit)
+                                             float dblSignificance,
+                                             float* pdblPLimit)
 {
   ASSERT(dblSignificance >= 0.0 && dblSignificance <= 1.0);
 }

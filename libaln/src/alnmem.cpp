@@ -39,7 +39,7 @@ static char THIS_FILE[] = __FILE__;
 // nDim variables, 
 // nOutput is default output variable
 // ALN contains one region (index 0) with nDim constraints and one tree node 
-// that is an LFN, constraints have min,max=[-DBL_MAX, DBL_MAX], epsilon=0.0001, 
+// that is an LFN, constraints have min,max=[FLT_MIN, FLT_MAX], epsilon=0.0001, 
 // wmin,wmax=[-1000000, 1000000]
 // ... returns pointer to ALN or NULL on failure
 ALNIMP ALN* ALNAPI ALNCreateALN(int nDim, int nOutput)
@@ -84,8 +84,8 @@ ALNIMP ALN* ALNAPI ALNCreateALN(int nDim, int nOutput)
   for (int i = 0; i < nDim; i++)
   {
     pALN->aRegions->aConstr[i].nVarIndex = i;
-    pALN->aRegions->aConstr[i].dblMin = -DBL_MAX;
-    pALN->aRegions->aConstr[i].dblMax = DBL_MAX;
+    pALN->aRegions->aConstr[i].dblMin = FLT_MIN;
+    pALN->aRegions->aConstr[i].dblMax = FLT_MAX;
     pALN->aRegions->aConstr[i].dblEpsilon = 0.0001;
     
     if (i != nOutput)
@@ -113,17 +113,17 @@ ALNIMP ALN* ALNAPI ALNCreateALN(int nDim, int nOutput)
   pALN->pTree->nParentRegion = 0;
   LFN_SPLIT(pALN->pTree) = NULL;
   LFN_VDIM(pALN->pTree) = nDim;
-  LFN_W(pALN->pTree) = (double*)malloc((nDim + 1) * sizeof(double));
-  LFN_C(pALN->pTree) = (double*)malloc(nDim * sizeof(double));
-  LFN_D(pALN->pTree) = (double*)malloc(nDim * sizeof(double));
+  LFN_W(pALN->pTree) = (float*)malloc((nDim + 1) * sizeof(float));
+  LFN_C(pALN->pTree) = (float*)malloc(nDim * sizeof(float));
+  LFN_D(pALN->pTree) = (float*)malloc(nDim * sizeof(float));
   if (LFN_W(pALN->pTree) == NULL || LFN_C(pALN->pTree) == NULL || LFN_D(pALN->pTree) == NULL)
   {
     ALNDestroyALN(pALN);
     return NULL;
   }
-  memset(LFN_W(pALN->pTree), 0, (nDim + 1) * sizeof(double));
-  memset(LFN_C(pALN->pTree), 0, nDim * sizeof(double));
-  memset(LFN_D(pALN->pTree), 0, nDim * sizeof(double));
+  memset(LFN_W(pALN->pTree), 0, (nDim + 1) * sizeof(float));
+  memset(LFN_C(pALN->pTree), 0, nDim * sizeof(float));
+  memset(LFN_D(pALN->pTree), 0, nDim * sizeof(float));
   return pALN;
 }
 
@@ -149,8 +149,15 @@ int ALNAPI DestroyTree(ALNNODE* pTree)
 
     if (LFN_D(pTree) != NULL)
       free(LFN_D(pTree));
-
-	}
+  }
+  else
+  if (pTree->fNode & NF_MINMAX)
+  {
+	if (MINMAX_CENTROID(pTree) != NULL)
+		free(MINMAX_CENTROID(pTree));
+	if (MINMAX_NORMAL(pTree) != NULL)
+		free(MINMAX_NORMAL(pTree));
+  }
   else
   {
     // destroy children 
@@ -211,7 +218,7 @@ ALNIMP int ALNAPI ALNDestroyALN(ALN* pALN)
 //   ... returns index of new region in ALN, -1 on failure
 //   
 ALNIMP int ALNAPI ALNAddRegion(ALN* pALN, int nParentRegion, 
-                               double dblLearnFactor, 
+                               float dblLearnFactor, 
                                int nConstr, int* anConstr)
 {
   if (pALN == NULL)
@@ -350,8 +357,9 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
     return ALN_GENERIC;  // can't specify both!
 
   // are we splitting?
-  ASSERT(NODE_ISLFN(pParent));
+  ASSERT(NODE_ISLFN(pParent));  // This is temporary and will change below to a MINMAX, at which point we can refer to MINMAX data
   BOOL bSplit = LFN_CANSPLIT(pParent);
+  long Count = (pParent->DATA.LFN.pSplit)->nCount;
 
   // add children
   ALNNODE* apChildren[2];
@@ -380,16 +388,16 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
       LFN_SPLIT(pChild) = NULL;
       LFN_VARMAP(pChild) = NULL;
       LFN_VDIM(pChild) = pALN->nDim;
-      LFN_W(pChild) = (double*)malloc((pALN->nDim + 1) * sizeof(double));
-      LFN_C(pChild) = (double*)malloc(pALN->nDim * sizeof(double));
-      LFN_D(pChild) = (double*)malloc(pALN->nDim * sizeof(double));
+      LFN_W(pChild) = (float*)malloc((pALN->nDim + 1) * sizeof(float));
+      LFN_C(pChild) = (float*)malloc(pALN->nDim * sizeof(float));
+      LFN_D(pChild) = (float*)malloc(pALN->nDim * sizeof(float));
       if (LFN_W(pChild) == NULL || LFN_C(pChild) == NULL ||  LFN_D(pChild) == NULL )
       {
         ThrowALNMemoryException();
       }
 
       // set split
-      if (bSplit) 
+      if (bSplit)
       {
         LFN_SPLIT(pChild) = (ALNLFNSPLIT*)malloc(sizeof(ALNLFNSPLIT));
         if (LFN_SPLIT(pChild) == NULL)
@@ -401,20 +409,23 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
         LFN_SPLIT_RESPTOTAL(pChild) = 0.0;
 
         // copy parent vectors
-        memcpy(LFN_W(pChild), LFN_W(pParent), (pALN->nDim + 1) * sizeof(double));
-        memcpy(LFN_C(pChild), LFN_C(pParent), pALN->nDim * sizeof(double));
-        memcpy(LFN_D(pChild), LFN_D(pParent), pALN->nDim * sizeof(double));
-        // shift LFN up or down depending on parent minmax type
+        memcpy(LFN_W(pChild), LFN_W(pParent), (pALN->nDim + 1) * sizeof(float));
+        memcpy(LFN_C(pChild), LFN_C(pParent), pALN->nDim * sizeof(float));
+        memcpy(LFN_D(pChild), LFN_D(pParent), pALN->nDim * sizeof(float));
+        // shift LFN output value up or down depending on parent minmax type
 				// the shifts are different but close so the two children differentiate
 				// and the combined effect is not to change the value of the single LFN
-        double dblSE = pALN->aRegions[pChild->nParentRegion].dblSmoothEpsilon;
+        float dblSE = pALN->aRegions[pChild->nParentRegion].dblSmoothEpsilon;
 				int nOutput = pALN->nOutput;
-				double dblChange;
+				// The following avoids a crash due to wrongly picking the active leaf node when there is a tie 
+				float dblChange;
 				// 2009.11.19  This change has to be tiny because it affects the fillets!
 				//dblChange = (0.9343727 + i * 0.1334818) * dblSE; old values where did they come from?
 				// When a piece splits into two equal leaf nodes, there is a fillet inserted so both pieces have to move
 				// in the output direction to leave the function unchanged
-				dblChange = i * 0.0000000001 + dblSE; // only one child get the tiny increment so equality of LFNs is very rare for training points
+				// THE FOLLOWING CURES A BUG WHEN TWO LFN's ARE EQUAL
+				dblChange = i * 0.00001F + dblSE; // only one child get the tiny increment so equality of LFNs is very rare for training points
+
         if (nParentMinMaxType == GF_MIN)
 				{
           *LFN_W(pChild) += dblChange;
@@ -434,9 +445,9 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
         LFN_SPLIT(pChild) = NULL;
 
         // zero vectors
-        memset(LFN_W(pChild), 0, (pALN->nDim + 1) * sizeof(double));
-        memset(LFN_C(pChild), 0, pALN->nDim * sizeof(double));
-        memset(LFN_D(pChild), 0, pALN->nDim * sizeof(double));
+        memset(LFN_W(pChild), 0, (pALN->nDim + 1) * sizeof(float));
+        memset(LFN_C(pChild), 0, pALN->nDim * sizeof(float));
+        memset(LFN_D(pChild), 0, pALN->nDim * sizeof(float));
       }
 
       
@@ -472,7 +483,23 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
   // LFN to a minmax without any errors or exceptions
 
   ASSERT(NODE_ISLFN(pParent));
-  
+  float* pCentroidTemp;
+  float* pSigmaTemp;
+  float* pNormalTemp;
+  float dblThresholdTemp = 0;
+  int nDim = pALN->nDim;
+  pCentroidTemp = (float*)malloc((nDim) * sizeof(float)); // The centroid could have a meaningful value which is not used in a MINMAX
+  pNormalTemp = (float*)malloc(nDim * sizeof(float)); // We spend an extra float on this array, but only for a short time.
+  pSigmaTemp = (float*)malloc(nDim * sizeof(float));
+  for (int i = 0; i < nDim - 1; i++)
+  {
+	  pCentroidTemp[i] = LFN_C(pParent)[i];
+	  pNormalTemp[i] = 0;  // since the child centroids are equal
+	  pSigmaTemp[i] = 4.0 * sqrt(LFN_D(pParent)[i]);  // Larger values help to prevent optimization failures. See also split-ops.cpp line 304
+  }
+  pCentroidTemp[nDim - 1] = LFN_C(pParent)[nDim - 1]; // Probably useless
+  pNormalTemp[nDim - 1] = 0;
+  pSigmaTemp[nDim - 1] = 0;
   // free existing vectors
   if (LFN_VARMAP(pParent)) free(LFN_VARMAP(pParent));
   if (LFN_SPLIT(pParent)) free(LFN_SPLIT(pParent));
@@ -491,11 +518,15 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
   memset(MINMAX_CHILDREN(pParent), 0, 2 * sizeof(ALNNODE*));
   MINMAX_LEFT(pParent) = apChildren[0];
   MINMAX_RIGHT(pParent) = apChildren[1];
-  
-  MINMAX_EVAL(pParent) = NULL;
-  MINMAX_ACTIVE(pParent) = NULL;
+  MINMAX_EVAL(pParent) = NULL; // Since we have equal centroids of the children we set to NULL
+  MINMAX_ACTIVE(pParent) = NULL; // MYTEST this and the above line could be NULL, was that the bug?
   MINMAX_GOAL(pParent) = NULL;
-  
+  MINMAX_COUNT(pParent) = Count; //This is the old count of the LFN that has been replaced.
+  MINMAX_CENTROID(pParent) =  pCentroidTemp; // This is the centroid of the split LFN now tansferred to the new MINMAX node.
+  MINMAX_NORMAL(pParent) = pNormalTemp; // we are attaching the allocated arrays to the places in the parent which is now a MINMAX
+  MINMAX_SIGMA(pParent) = pSigmaTemp;
+  MINMAX_THRESHOLD(pParent) = 0;
+    
   ASSERT(NODE_ISMINMAX(pParent) && MINMAX_TYPE(pParent) == nParentMinMaxType);
 
   int nResult = ALN_NOERROR;
@@ -510,7 +541,7 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
       apLFNs[nLFNs - 1] = apChildren[0];
     }
 
-    // recurse, adding more LFNs to right child
+    // recurse, adding more LFNs to right child  // We son't need this, do we?
     nResult = ALNAddLFNs(pALN, apChildren[1], nParentMinMaxType, 
                          nLFNs - 1, apLFNs);
   }
@@ -523,7 +554,6 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
       apLFNs[1] = apChildren[1];
     }
   }
-
   return nResult;
 }
 

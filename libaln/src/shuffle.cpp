@@ -37,7 +37,7 @@ static char THIS_FILE[] = __FILE__;
 ///////////////////////////////////////////////////////////////////////////////
 // shuffle
 
-void ALNAPI Shuffle(int nStart, int nEnd, int* anShuffle)
+void ALNAPI Shuffle(long nStart, long nEnd, long* anShuffle)
 {
   ASSERT(anShuffle);
 

@@ -48,8 +48,8 @@ static void DebugValidateALNCalcConfidence(const ALN* pALN,
 
 static int __cdecl CompareErrors(const void* pElem1, const void* pElem2)
 {
-  double dbl1 = *(double*)pElem1;
-  double dbl2 = *(double*)pElem2;
+  float dbl1 = *(float*)pElem1;
+  float dbl2 = *(float*)pElem2;
 
   if (dbl1 < dbl2)
     return -1;
@@ -77,15 +77,15 @@ ALNIMP int ALNAPI ALNCalcConfidence(const ALN* pALN,
   #endif
 
   // result array
-  double* adblResult = NULL;
+  float* adblResult = NULL;
 
   try
   {
     // see how many points there are
-    int nTRcurrSamples = pDataInfo->nTRcurrSamples;
+    long nTRcurrSamples = pDataInfo->nTRcurrSamples;
 
     // allocate results array
-    adblResult = new double[nTRcurrSamples];
+    adblResult = new float[nTRcurrSamples];
     
     // evaluate on data
     int nStart, nEnd;
@@ -98,14 +98,14 @@ ALNIMP int ALNAPI ALNCalcConfidence(const ALN* pALN,
 
     // set the number of errors and error vector
     int nErr = (nEnd - nStart + 1);
-    double* adblErr = adblResult + nStart;
+    float* adblErr = adblResult + nStart;
     if (nErr <= 0)
     {
       ThrowALNException();  // bad error count
     }
 
     // EvalTree returned the errors in adblResult... now we sort them!
-    qsort(adblErr, nErr, sizeof(double), CompareErrors);
+    qsort(adblErr, nErr, sizeof(float), CompareErrors);
 
     // calculate upper an lower bound indexes by discarding np-1 from each end
     // (conservative approach.. see Masters95 p305)

@@ -120,10 +120,10 @@ void InvertLFN(ALNNODE* pTree, ALN* pALN, int nVar, int nMono)
   ASSERT(NODE_ISLFN(pTree));
     
   // get new output var weight
-  double* adblW = LFN_W(pTree);
-	double* adblC = LFN_C(pTree); // WWA
+  float* adblW = LFN_W(pTree);
+	float* adblC = LFN_C(pTree); // WWA
 
-  double dblWOutput = adblW[nVar + 1];  // account for bias weight
+  float dblWOutput = adblW[nVar + 1];  // account for bias weight
   
   if (dblWOutput == 0)
   { 
@@ -141,12 +141,12 @@ void InvertLFN(ALNNODE* pTree, ALN* pALN, int nVar, int nMono)
     ALNCONSTRAINT* pConstrOut = GetVarConstraint(NODE_REGION(pTree), pALN, 
                                                  pALN->nOutput);
     ASSERT(pConstrOut);
-    double dblEpsilon = pConstrOut->dblEpsilon;
+    float dblEpsilon = pConstrOut->dblEpsilon;
     
     // get min and max on new output var in topmost region
     ASSERT(pALN->aRegions[0].aConstr[nVar].nVarIndex == nVar);
-    double dblMin = pALN->aRegions[0].aConstr[nVar].dblMin;
-    double dblMax = pALN->aRegions[0].aConstr[nVar].dblMax;
+    float dblMin = pALN->aRegions[0].aConstr[nVar].dblMin;
+    float dblMax = pALN->aRegions[0].aConstr[nVar].dblMax;
   
     // calc new output
     dblWOutput = dblEpsilon / (dblMax - dblMin);
@@ -162,7 +162,7 @@ void InvertLFN(ALNNODE* pTree, ALN* pALN, int nVar, int nMono)
   ASSERT(dblWOutput != 0); // must not have a zero weight!
 
   // re-normalize weights so new output var is -1
-  double dblFactor = -1.0 / dblWOutput;
+  float dblFactor = -1.0 / dblWOutput;
 
 #ifdef _DEBUG
   if (nMono == MONO_STRONGDEC || nMono == MONO_WEAKDEC || nMono == MONO_CONSTANT)
@@ -186,7 +186,7 @@ void InvertLFN(ALNNODE* pTree, ALN* pALN, int nVar, int nMono)
   adblW[nVar + 1] = -1.0; // account for bias weight
 
 	// recalculate the bias weight from the new weights and the centroid WWA
-	double sum = 0.0;
+	float sum = 0.0;
 	for(int i = 0; i < nDim; i++) //WWA
 	{
 		sum += adblW[i+1] * adblC[i];  // there is no bias centroid component WWA
@@ -216,13 +216,13 @@ void InvertConstraints(ALN* pALN, int nVar)
 			// leave the existing ranges of variables unchanged
 			if (n != pALN->nOutput)
 			{
-				pALN->aRegions->aConstr[n].dblWMin = -1000000.0;
-				pALN->aRegions->aConstr[n].dblWMax = 1000000.0;
+				pALN->aRegions->aConstr[n].dblWMin = -1000000.0F;
+				pALN->aRegions->aConstr[n].dblWMax = 1000000.0F;
 			}
 			else
 			{
-				pALN->aRegions->aConstr[n].dblWMin = -1.0;
-				pALN->aRegions->aConstr[n].dblWMax = -1.0;
+				pALN->aRegions->aConstr[n].dblWMin = -1.0F;
+				pALN->aRegions->aConstr[n].dblWMax = -1.0F;
 			}
 		}
 	}

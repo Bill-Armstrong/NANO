@@ -47,7 +47,7 @@ static char THIS_FILE[] = __FILE__;
 // NOTE: currently only supports evaluation using default output variable
 // NOTE: for efficiency reasons, there is _no_ parameter checking performed
 //   and no error return value
-ALNIMP double ALNAPI ALNQuickEval(const ALN* pALN, const double* adblX,
+ALNIMP float ALNAPI ALNQuickEval(const ALN* pALN, const float* adblX,
                                   ALNNODE** ppActiveLFN)
 {
   ASSERT(pALN);
@@ -58,7 +58,7 @@ ALNIMP double ALNAPI ALNQuickEval(const ALN* pALN, const double* adblX,
 	// surface value
 
   ALNNODE* pActiveLFN;
-  double dbl =  adblX[pALN->nOutput] + CutoffEval(pALN->pTree, pALN, adblX, 
+  float dbl =  adblX[pALN->nOutput] + CutoffEval(pALN->pTree, pALN, adblX, 
                                                   CEvalCutoff(), &pActiveLFN);
   if (ppActiveLFN)
     *ppActiveLFN = pActiveLFN;

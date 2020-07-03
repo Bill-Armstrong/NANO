@@ -170,8 +170,8 @@ void ALNAPI CalcDataEndPoints(long& nStart, long& nEnd,
 
 // fill input vector
 void ALNAPI FillInputVector(const ALN* pALN,
-                            double* adblX, 
-                            int nPoint,
+                            float* adblX, 
+                            long nSample,
                             int nStart,
                             ALNDATAINFO* pDataInfo,
                             const ALNCALLBACKINFO* pCallbackInfo);
@@ -183,9 +183,9 @@ void ALNAPI FillInputVector(const ALN* pALN,
 struct CEvalCutoff
 {
   int bMin;
-  double dblMin;
+  float dblMin;
   int bMax;
-  double dblMax;
+  float dblMax;
 
   CEvalCutoff()
     { bMin = bMax = FALSE; dblMin = dblMax = 0; }
@@ -196,31 +196,30 @@ void ALNAPI BuildCutoffRoute(ALNNODE* pNode);
 
 // check if value meets cutoff criteria for pNode...
 // assumes that cutoff bounds have already been loosened for child evaluation
-BOOL ALNAPI Cutoff(double dbl, const ALNNODE* pNode, CEvalCutoff& cutoff, 
-                   double dbl4SE);
+BOOL ALNAPI Cutoff(float dbl, const ALNNODE* pNode, CEvalCutoff& cutoff);
 
 // CCutoffInfo struct to store last known LFN and value for a pattern
 struct CCutoffInfo
 {
   ALNNODE* pLFN;
-  double dblValue;
+  float dblValue;
 };
 
 // LFN specific eval - returns distance to surface
 //  - non-destructive, ie, does not change ALN structure
-double ALNAPI CutoffEvalLFN(const ALNNODE* pNode, const ALN* pALN, 
-                            const double* adblX, ALNNODE** ppActiveLFN);
+float ALNAPI CutoffEvalLFN(const ALNNODE* pNode, const ALN* pALN, 
+                            const float* adblX, ALNNODE** ppActiveLFN);
 
 // minmax node specific eval - returns distance to surface
 //  - non-destructive, ie, does not change ALN structure
 // NOTE: cutoff always passed on stack!
-double ALNAPI CutoffEvalMinMax(const ALNNODE* pNode, const ALN* pALN, 
-                             const double* adblX, CEvalCutoff cutoff, 
+float ALNAPI CutoffEvalMinMax(const ALNNODE* pNode, const ALN* pALN, 
+                             const float* adblX, CEvalCutoff cutoff, 
                              ALNNODE** ppActiveLFN);
 
 // generic cutoff eval
-inline double CutoffEval(const ALNNODE* pNode, const ALN* pALN, 
-                         const double* adblX, CEvalCutoff cutoff, 
+inline float CutoffEval(const ALNNODE* pNode, const ALN* pALN, 
+                         const float* adblX, CEvalCutoff cutoff, 
                          ALNNODE** ppActiveLFN)
 {
   return (pNode->fNode & NF_LFN) ? 
@@ -229,24 +228,24 @@ inline double CutoffEval(const ALNNODE* pNode, const ALN* pALN,
 }
 
 // cutoff eval with cutoff info
-double ALNAPI CutoffEval(const ALNNODE* pNode, const ALN* pALN, 
-                         const double* adblX, CCutoffInfo* pCutoffInfo, 
+float ALNAPI CutoffEval(const ALNNODE* pNode, const ALN* pALN, 
+                         const float* adblX, CCutoffInfo* pCutoffInfo, 
                          ALNNODE** ppActiveLFN);
 
 // LFN specific eval - returns distance to surface
 // - adaptive, ie, will change ALN structure
-double ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const double* adblX,
+float ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const float* adblX,
                            ALNNODE** ppActiveLFN);
 
 // minmax node specific adapt eval - returns distance to surface
 // - adaptive, ie, will change ALN structure
 // NOTE: cutoff always passed on stack!
-double ALNAPI AdaptEvalMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX,
+float ALNAPI AdaptEvalMinMax(ALNNODE* pNode, ALN* pALN, const float* adblX,
 	CEvalCutoff cutoff, ALNNODE** ppActiveLFN);
                           
 // generic adapt eval
-inline double AdaptEval(ALNNODE* pNode, ALN* pALN, 
-                        const double* adblX, CEvalCutoff cutoff, 
+inline float AdaptEval(ALNNODE* pNode, ALN* pALN, 
+                        const float* adblX, CEvalCutoff cutoff, 
                         ALNNODE** ppActiveLFN)
 {
   return (pNode->fNode & NF_LFN) ? 
@@ -255,18 +254,18 @@ inline double AdaptEval(ALNNODE* pNode, ALN* pALN,
 }
 
 // adapt eval with cutoff info
-double ALNAPI AdaptEval(ALNNODE* pNode, ALN* pALN, const double* adblX, 
+float ALNAPI AdaptEval(ALNNODE* pNode, ALN* pALN, const float* adblX, 
                         CCutoffInfo* pCutoffInfo, ALNNODE** ppActiveLFN);
 
 
 
 #ifdef _DEBUG
-double ALNAPI DebugEvalMinMax(const ALNNODE* pNode, const ALN* pALN, 
-                            const double* adblX, ALNNODE** ppActiveLFN);
+float ALNAPI DebugEvalMinMax(const ALNNODE* pNode, const ALN* pALN, 
+                            const float* adblX, ALNNODE** ppActiveLFN);
 
 // generic debug eval
-inline double DebugEval(const ALNNODE* pNode, const ALN* pALN, 
-                        const double* adblX, ALNNODE** ppActiveLFN)
+inline float DebugEval(const ALNNODE* pNode, const ALN* pALN, 
+                        const float* adblX, ALNNODE** ppActiveLFN)
 {
   return (pNode->fNode & NF_LFN) ? 
            CutoffEvalLFN(pNode, pALN, adblX, ppActiveLFN) : 
@@ -275,9 +274,8 @@ inline double DebugEval(const ALNNODE* pNode, const ALN* pALN,
 #endif
 
 // calculate active child, response of active child, and distance
-int ALNAPI CalcActiveChild(double& dblRespActive, double& dblDistance, 
-                           double dbl0, double dbl1, const ALNNODE* pNode, 
-                           double dblSE, double dbl4SE, double dblOV16SE);
+int ALNAPI CalcActiveChild(float& dblRespActive, float& dblDistance, 
+                           float dbl0, float dbl1, const ALNNODE* pNode);
 
 // evaluate a tree on a dataset 
 // if bErrorResults is true, then errors are returned in adblResults 
@@ -293,11 +291,11 @@ int ALNAPI CalcActiveChild(double& dblRespActive, double& dblDistance,
 int ALNAPI EvalTree(const ALNNODE* pNode, const ALN* pALN,
                     ALNDATAINFO* pDataInfo,
                     const ALNCALLBACKINFO* pCallbackInfo,
-                    double* adblResult, int* pnStart, int* pnEnd,
+                    float* adblResult, int* pnStart, int* pnEnd,
                     BOOL bErrorResults = FALSE,
                     ALNNODE** apActiveLFNs = NULL,
-                    double* adblInput = NULL,
-                    double* adblOutput = NULL);
+                    float* adblInput = NULL,
+                    float* adblOutput = NULL);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -314,35 +312,18 @@ int ALNAPI CheckMonotonicity(const ALNNODE* pNode, const ALN* pALN, int nVar);
 // used to prepare ALN for training
 BOOL ALNAPI PrepALN(ALN* pALN);
 
-// set smoothing epsilon for a region
-inline void ALNAPI SetSmoothingEpsilon(ALNREGION* pRegion)
-{
-  ASSERT(pRegion);
-  double dblSE = pRegion->dblSmoothEpsilon;
-  if (dblSE > 0.0)
-  {
-    pRegion->dbl4SE = 4 * dblSE;
-    pRegion->dblOV16SE = 1.0 / (16.0 * dblSE);
-  }
-  else
-  {
-    pRegion->dbl4SE = 0.0;
-    pRegion->dblOV16SE = 0.0;
-  }
-} 
-
 // used to count number of LFNs in an ALN
 void ALNAPI CountLFNs(const ALNNODE* pNode, int& nTotal, int& nAdapted);
 
 // init any uninitialized LFN's
-void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const double* adblX);
+void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const float* adblX);
 
 // used to reset resp counters, and other stats (alntrain.cpp)
 void ALNAPI ResetCounters(ALNNODE* pNode, ALN* pALN, 
                           BOOL bMarkAsUseful = FALSE);
 
 // calcs RMS err on data set
-double ALNAPI DoCalcRMSError(const ALN* pALN,
+float ALNAPI DoCalcRMSError(const ALN* pALN,
                              ALNDATAINFO* pDataInfo,
                              const ALNCALLBACKINFO* pCallbackInfo);
 
@@ -363,10 +344,10 @@ inline void Callback(const ALN* pALN, int nCode, void* pParam,
 }
 
 // jitter
-void ALNAPI Jitter(ALN* pALN, double* adblX);
+void ALNAPI Jitter(ALN* pALN, float* adblX);
 
 // shuffle
-void ALNAPI Shuffle(int nStart, int nEnd, int* anShuffle);
+void ALNAPI Shuffle(long nStart, long nEnd, long* anShuffle);
 
 // training context info
 typedef struct tagTRAINDATA
@@ -374,8 +355,8 @@ typedef struct tagTRAINDATA
   int nNotifyMask;
   ALNNOTIFYPROC pfnNotifyProc;
   void* pvData;
-  double dblLearnRate;
-  double dblGlobalError;
+  float dblLearnRate;
+  float dblGlobalError;
   // Potentially add Dmitri's flywheel
 } TRAINDATA;
 
@@ -388,18 +369,18 @@ ALNCONSTRAINT* ALNAPI GetVarConstraint(int nRegion, const ALN* pALN,
                                        int nVar);
 
 // minmax specific adapt
-void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const double* adblX, 
-                      double dblResponse, BOOL bUsefulAdapt, 
+void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const float* adblX, 
+                      float dblResponse, BOOL bUsefulAdapt, 
                       const TRAINDATA* ptdata);
 
 // LFN specific adapt
-void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const double* adblX, 
-                     double dblResponse, BOOL bUsefulAdapt, 
+void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const float* adblX, 
+                     float dblResponse, BOOL bUsefulAdapt, 
                      const TRAINDATA* ptdata);
 
 // generic adapt routine
-inline void Adapt(ALNNODE* pNode, ALN* pALN, const double* adblX, 
-                  double dblResponse, BOOL bUsefulAdapt, 
+inline void Adapt(ALNNODE* pNode, ALN* pALN, const float* adblX, 
+                  float dblResponse, BOOL bUsefulAdapt, 
                   const TRAINDATA* ptdata)
 {
   (pNode->fNode & NF_LFN) ? 
@@ -423,14 +404,14 @@ DTREE* ALNAPI BuildDtree(const ALN* pALN, int nMaxDepth);
 // numerical routines 
 using namespace std;
 #ifndef NAN
-#define NAN numeric_limits<double>::quiet_NaN( )
+#define NAN numeric_limits<float>::quiet_NaN( )
 #endif  // NAN
 
 
 // calculate probability p of an event occuring, such that
 // the probablity of m or less such events occuring in n trials
 // is x; currently limited to accuracy of 1.e-7
-double ALNAPI PLimit(int n, int m, double dblX);
+float ALNAPI PLimit(int n, int m, float dblX);
   // returns indefinite (quiet Nan) if x < 0 or x > 1 or n < 0 
   // returns 0 if m < 0
   // returns 1 if m >= n
@@ -441,15 +422,15 @@ double ALNAPI PLimit(int n, int m, double dblX);
 // arrays U,V,W are scratch space used by SVD
 BOOL ALNAPI CalcCovariance(int nCols,   // number of input vars
                     int nRows,          // number of rows
-                    double* adblX,      // RMA based input vectors (nCols * nRows)
-                    double* adblY,      // RMA based result vector (nRows)
-                    double* adblC,      // RMA covariance matrix (nCols * nCols)
-                    double* adblA,      // RMA fitted parameter vector (nCols)
-                    double* adblS,      // RMA std dev vector (nRows)
-                    double* adblU,      // RMA U matrix (nCols * nRows)
-                    double* adblV,      // RMA V matrix (nCols * nCols)
-                    double* adblW,      // RMA W matrix (nCols)
-                    double& dblChiSq);  // chi square of fit
+                    float* adblX,      // RMA based input vectors (nCols * nRows)
+                    float* adblY,      // RMA based result vector (nRows)
+                    float* adblC,      // RMA covariance matrix (nCols * nCols)
+                    float* adblA,      // RMA fitted parameter vector (nCols)
+                    float* adblS,      // RMA std dev vector (nRows)
+                    float* adblU,      // RMA U matrix (nCols * nRows)
+                    float* adblV,      // RMA V matrix (nCols * nCols)
+                    float* adblW,      // RMA W matrix (nCols)
+                    float& dblChiSq);  // chi square of fit
 
 
 

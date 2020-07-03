@@ -37,7 +37,7 @@ static char THIS_FILE[] = __FILE__;
 ///////////////////////////////////////////////////////////////////////////////
 // init any uninitialized LFN's
 
-void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const double* adblX)
+void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const float* adblX)
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pALN != NULL);
@@ -51,9 +51,9 @@ void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const double* adblX)
   		int nOutput = pALN->nOutput;
   		int nDim = LFN_VDIM(pNode);
       ASSERT(nDim == pALN->nDim); 
-  		double* adblW = LFN_W(pNode) + 1; // weight vector... skip bias
-  		double* adblC = LFN_C(pNode);			// centroid vector
-  		double* adblD = LFN_D(pNode);			// ave sq dist from centroid vector
+  		float* adblW = LFN_W(pNode) + 1; // weight vector... skip bias
+  		float* adblC = LFN_C(pNode);			// centroid vector
+  		float* adblD = LFN_D(pNode);			// ave sq dist from centroid vector
 			// vector initialization
   	  for (int i = 0; i < nDim; i++)
   	  { 
@@ -61,16 +61,15 @@ void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const double* adblX)
   			ASSERT(pConstr != NULL);
 			
         // init weights			
-  			adblW[i] = max(min(pConstr->dblWMax, ALNRandFloat() * 0.0002 - 0.0001),
+  			adblW[i] = (float)max((float)min(pConstr->dblWMax, ALNRandFloat() * 0.00002F - 0.00001F),
   			               pConstr->dblWMin);
   	    adblC[i] = adblX[i];
   	    adblD[i] = pConstr->dblSqEpsilon;
   	  }
-    
   	  // the hyperplane is on the centroid to start so W[0] = 0
   	  LFN_W(pNode)[0] = 0;
     
-  		ASSERT(adblW[nOutput] == -1.0);// make sure output var is -1
+  		ASSERT(adblW[nOutput] == -1.0F);// make sure output var is -1
 
   	  // successfully initialized
       LFN_FLAGS(pNode) |= LF_INIT;

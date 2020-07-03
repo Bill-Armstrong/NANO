@@ -35,7 +35,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-double ALNAPI AdaptEval(ALNNODE* pNode, ALN* pALN, const double* adblX, 
+float ALNAPI AdaptEval(ALNNODE* pNode, ALN* pALN, const float* adblX, 
                         CCutoffInfo* pCutoffInfo, ALNNODE** ppActiveLFN)
 {
   ASSERT(pNode);
@@ -45,7 +45,7 @@ double ALNAPI AdaptEval(ALNNODE* pNode, ALN* pALN, const double* adblX,
   
   // do a cutoff eval to get active LFN and distance
   ALNNODE* pActiveLFN = NULL;
-  double dbl;
+  float dbl;
   CEvalCutoff cutoff;
  
   // check for cutoff info
@@ -73,10 +73,10 @@ double ALNAPI AdaptEval(ALNNODE* pNode, ALN* pALN, const double* adblX,
 
 #ifdef _DEBUG
   ALNNODE* pLFNCheck = NULL;
-  double dblCheck = DebugEval(pNode, pALN, adblX, &pLFNCheck);
-	ASSERT(dbl == dblCheck);
+  float dblCheck = DebugEval(pNode, pALN, adblX, &pLFNCheck);
+	ASSERT(dbl == dblCheck); //MYTEST
 	ASSERT(pLFNCheck == pActiveLFN); // This could break because of equal LFNs after a split.  This was only corrected if smoothing > 0
-	// so now it is corrected in that case too. 
+	// but now it is corrected in the case of no smoothing.
 	// See what happens if we don't use the cutoffs
 	//dbl = dblCheck; // MYTEST assumes debug version is correct (no cutoffs)
 	//pActiveLFN = pLFNCheck; // MYTEST

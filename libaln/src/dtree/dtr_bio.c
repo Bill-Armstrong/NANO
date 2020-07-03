@@ -168,8 +168,8 @@ int ReadBinDtreeFile(FILE* pFile, DTREE** ppDtree)
   for (i = 0; i < (*ppDtree)->nLinearForms; i++)
   {
     READ_OBJ((*ppDtree)->aLinearForms[i].dblBias);
-    READ_ARRAY((*ppDtree)->aLinearForms[i].adblW, sizeof(double), (*ppDtree)->nDim);
-    READ_ARRAY((*ppDtree)->aLinearForms[i].adblC, sizeof(double), (*ppDtree)->nDim);
+    READ_ARRAY((*ppDtree)->aLinearForms[i].adblW, sizeof(float), (*ppDtree)->nDim);
+    READ_ARRAY((*ppDtree)->aLinearForms[i].adblC, sizeof(float), (*ppDtree)->nDim);
   }
 
   /* write blocks */
@@ -322,8 +322,8 @@ int WriteBinDtreeFile(FILE* pFile, DTREE* pDtree)
   for (i = 0; i < pDtree->nLinearForms; i++)
   {
     WRITE_OBJ(pDtree->aLinearForms[i].dblBias);
-    WRITE_ARRAY(pDtree->aLinearForms[i].adblW, sizeof(double), pDtree->nDim);
-    WRITE_ARRAY(pDtree->aLinearForms[i].adblC, sizeof(double), pDtree->nDim);
+    WRITE_ARRAY(pDtree->aLinearForms[i].adblW, sizeof(float), pDtree->nDim);
+    WRITE_ARRAY(pDtree->aLinearForms[i].adblC, sizeof(float), pDtree->nDim);
   }
 
   /* write blocks */

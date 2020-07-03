@@ -44,32 +44,6 @@
 
 #ifndef ALNPP_NOFORCE_LIBS
 
-#ifdef _MSC_VER
-
-#ifdef _DEBUG
-  #ifdef _MT
-    #ifdef _DLL
-    #pragma comment(lib, "libalnppdmtd.lib")   /* MT DLL */
-    #else  /* !_DLL */
-    #pragma comment(lib, "libalnppmtd.lib")    /* MT */
-    #endif /* _DLL */
-  #else
-    #pragma comment(lib, "libalnppd.lib")
-  #endif /* _MT */
-#else
-  #ifdef _MT
-    #ifdef _DLL
-    #pragma comment(lib, "libalnppdmt.lib")    /* MT DLL */
-    #else  /* !_DLL */
-    #pragma comment(lib, "libalnppmt.lib")     /* MT */
-    #endif /* _DLL */
-  #else
-    #pragma comment(lib, "libalnpp.lib")
-  #endif /* _MT */
-#endif
-
-#endif  // _MSC_VER
-
 #endif  // ALNPP_NOFORCE_LIBS
 
 
@@ -109,17 +83,17 @@ public:
   long RowCount() const
     { return m_lRows; }
   
-  double GetColMax(long lCol) const;
-  double GetColMin(long lCol) const;
+  float GetColMax(long lCol) const;
+  float GetColMin(long lCol) const;
   
-  double operator[](long lIndex) const
+  float operator[](long lIndex) const
     {
-      ASSERT(lIndex < (m_lBufferLen / (long)sizeof(double)));
+      ASSERT(lIndex < (m_lBufferLen / (long)sizeof(float)));
       return m_pBuffer[lIndex];
     }
-  double& operator[](long lIndex)
+  float& operator[](long lIndex)
     {
-      ASSERT(lIndex < (m_lBufferLen / (long)sizeof(double)));
+      ASSERT(lIndex < (m_lBufferLen / (long)sizeof(float)));
       return m_pBuffer[lIndex];
     }
 
@@ -127,37 +101,37 @@ public:
     {
       ASSERT((lRow + lDelta) >= 0 && (lRow + lDelta) < m_lRows && 
              lColumn >=0 && lColumn < m_lColumns);
-      ASSERT((lRow + lDelta) * m_lColumns + lColumn < (m_lBufferLen / (long)sizeof(double)));
+      ASSERT((lRow + lDelta) * m_lColumns + lColumn < (m_lBufferLen / (long)sizeof(float)));
       return (lRow + lDelta) * m_lColumns + lColumn;
     }
 
-  const double* GetRowAt(long lRow) const
+  const float* GetRowAt(long lRow) const
     {
       ASSERT(m_pBuffer);
       return m_pBuffer + CalcDataIndex(lRow, 0, 0);
     }
 
-  double* GetRowAt(long lRow)
+  float* GetRowAt(long lRow)
     {
       ASSERT(m_pBuffer);
       return m_pBuffer + CalcDataIndex(lRow, 0, 0);
     }
 
-  double GetAt(long lRow, long lColumn, long lDelta = 0) const
+  float GetAt(long lRow, long lColumn, long lDelta = 0) const
     { 
       ASSERT(m_pBuffer);
       return m_pBuffer[CalcDataIndex(lRow, lColumn, lDelta)];
     }
-  void SetAt(long lRow, long lColumn, double dbl, long lDelta = 0)
+  void SetAt(long lRow, long lColumn, float dbl, long lDelta = 0)
     { 
       ASSERT(m_pBuffer);
       m_pBuffer[CalcDataIndex(lRow, lColumn, lDelta)] = dbl;
     }
 
-	const double* GetDataPtr() const
+	const float* GetDataPtr() const
 		{	return m_pBuffer; }
 
-  double* GetDataPtr()
+  float* GetDataPtr()
 		{	return m_pBuffer; }
 
 // Operations:
@@ -190,7 +164,7 @@ protected:
   // growing the data file
   BOOL Grow(long lNewLen);
   
-  double* m_pBuffer;      // data block
+  float* m_pBuffer;      // data block
   long m_lBufferLen;      // length of block
   long m_lColumns;        // number of columns
   long m_lRows;           // number of rows

@@ -43,8 +43,8 @@ static char THIS_FILE[] = __FILE__;
 //
 //   20/09/96 MMT: seems to work OK so far
 
-double ALNAPI CutoffEval(const ALNNODE* pNode, const ALN* pALN, 
-                         const double* adblX, CCutoffInfo* pCutoffInfo, 
+float ALNAPI CutoffEval(const ALNNODE* pNode, const ALN* pALN, 
+                         const float* adblX, CCutoffInfo* pCutoffInfo, 
                          ALNNODE** ppActiveLFN)
 {
   ASSERT(pNode);
@@ -54,7 +54,7 @@ double ALNAPI CutoffEval(const ALNNODE* pNode, const ALN* pALN,
   
   // do a cutoff eval to get active LFN and distance
   ALNNODE* pActiveLFN = NULL;
-  double dbl;
+  float dbl;
   CEvalCutoff cutoff;
  
   // check for cutoff info
@@ -82,8 +82,8 @@ double ALNAPI CutoffEval(const ALNNODE* pNode, const ALN* pALN,
 
 #ifdef _DEBUG
   ALNNODE* pLFNCheck = NULL;
-  double dblCheck = DebugEval(pNode, pALN, adblX, &pLFNCheck);
-  ASSERT (dbl == dblCheck && pLFNCheck == pActiveLFN);
+  //float dblCheck = DebugEval(pNode, pALN, adblX, &pLFNCheck);
+ // ASSERT (dbl == dblCheck && pLFNCheck == pActiveLFN); MYTEST
 #endif
 
   *ppActiveLFN = pActiveLFN;

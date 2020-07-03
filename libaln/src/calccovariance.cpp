@@ -42,12 +42,12 @@ using namespace Eigen;
 static char THIS_FILE[] = __FILE__;
 #endif
 // helpers for filling and dumping matrices 
-//void fillRMA(MatrixXd &X, double* adblX);
-//void ALNAPI dumpRMA(const MatrixXd &X, double* adblX);
-//void ALNAPI fillCMA(MatrixXd &X, double* adblX);
-//void ALNAPI dumpCMA(const MatrixXd &X, double* adblX);
+//void fillRMA(MatrixXd &X, float* adblX);
+//void ALNAPI dumpRMA(const MatrixXd &X, float* adblX);
+//void ALNAPI fillCMA(MatrixXd &X, float* adblX);
+//void ALNAPI dumpCMA(const MatrixXd &X, float* adblX);
 
-void fillRMA(MatrixXd &X, double* adblX)
+void fillRMA(MatrixXd &X, float* adblX)
 {
 	// The array adblX is organized in row-major order
 	unsigned int nRows, nr, nCols, nc;
@@ -62,7 +62,7 @@ void fillRMA(MatrixXd &X, double* adblX)
 	}
 }
 
-void ALNAPI dumpRMA(const MatrixXd &X, double* adblX)
+void ALNAPI dumpRMA(const MatrixXd &X, float* adblX)
 {
 	// The array adblX is organized in row-major order
 	int nRows, sr, nCols, sc;
@@ -77,7 +77,7 @@ void ALNAPI dumpRMA(const MatrixXd &X, double* adblX)
 	}
 }
 
-void ALNAPI fillCMA(MatrixXd& X, double* adblX)
+void ALNAPI fillCMA(MatrixXd& X, float* adblX)
 {
 	// The array adblX is organized in column-major order
 	int nRows, nr, nCols, nc;
@@ -92,7 +92,7 @@ void ALNAPI fillCMA(MatrixXd& X, double* adblX)
 	}
 }
 
-void ALNAPI dumpCMA(const MatrixXd &X, double* adblX)
+void ALNAPI dumpCMA(const MatrixXd &X, float* adblX)
 {
 	// The array adblX is organized in column-major order
 	int nRows, nr, nCols, nc;
@@ -110,15 +110,15 @@ void ALNAPI dumpCMA(const MatrixXd &X, double* adblX)
 
 BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN inputs - 1
                     int nRows,        // number of rows, i.e. input vectors for a given LFN
-                    double* adblX,    // RMA based input vectors (nRows * nCols)
-                    double* adblY,    // RMA based result vector (nRows)
-                    double* adblC,    // RMA covariance matrix as array (nCols * nCols), is returned
-                    double* adblA,    // RMA fitted parameter vector (nCols)
-                    double* adblS,    // RMA std dev vector (nRows) (a weighting on points) 
-                    double* adblU,    // RMA U matrix (nRows * nRows)
-                    double* adblV,    // RMA V matrix (nCols * nCols)
-                    double* adblW,    // RMA W array (singvals = min(nRows,nCols))containing singular values
-                    double& dblChiSq) // chi square of fit
+                    float* adblX,    // RMA based input vectors (nRows * nCols)
+                    float* adblY,    // RMA based result vector (nRows)
+                    float* adblC,    // RMA covariance matrix as array (nCols * nCols), is returned
+                    float* adblA,    // RMA fitted parameter vector (nCols)
+                    float* adblS,    // RMA std dev vector (nRows) (a weighting on points) 
+                    float* adblU,    // RMA U matrix (nRows * nRows)
+                    float* adblV,    // RMA V matrix (nCols * nCols)
+                    float* adblW,    // RMA W array (singvals = min(nRows,nCols))containing singular values
+                    float& dblChiSq) // chi square of fit
 {
 	// implementation based on SVD in Eigen
 	// note that matrices below are stored in row-major order (RMA)
@@ -138,7 +138,7 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 
 	try
 	{
-		double smax, tmp, thresh;
+		float smax, tmp, thresh;
 		// in a try/catch block to free b in case exception occurs
 		// now we do the SVD on X
 		JacobiSVD<MatrixXd> svd(X, Eigen::ComputeFullU | Eigen::ComputeFullV);
@@ -199,10 +199,10 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 			adblA[i] = A(i);
 		}
 		// finding the measure of error of the fit by chi-squared 
-		double dblChiSq=0.0;
+		float dblChiSq=0.0;
 		for (int i = 0; i < nRows; i++) 
 		{
-			double sum = 0.0;
+			float sum = 0.0;
 			for (int j = 0; j < nCols; j++)
 			{
 				sum += X(i,j)* A(j);
@@ -216,7 +216,7 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 		{
 			for(int i = 0; i <= k; i++)		// use symmetry
 			{
-				double sum = 0.0;
+				float sum = 0.0;
 				for(int j = 0; j < nCols; j++)
 				{
 					sum += V(k,j) * V(i,j) * sinv(j) * sinv(j);

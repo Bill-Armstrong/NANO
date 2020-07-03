@@ -145,8 +145,8 @@ DTRIMP void DTREEAPI GetDtreeError(int nErrno, char* pBuf, int nMaxBufLen)
   GetErrMsg(nErrno, pBuf, nMaxBufLen);
 }
 
-DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, double* adblInput, 
-                              double* pdblResult, int* pnLinearIndex)
+DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, float* adblInput, 
+                              float* pdblResult, int* pnLinearIndex)
 {                    
   DTREENODE* pNode = NULL;
   int nErr = DTR_NOERROR;
@@ -177,8 +177,8 @@ DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, double* adblInput,
 }
     
 DTRIMP int DTREEAPI EvalMinMaxTree(MINMAXNODE* pMMN, LINEARFORM* aLF, 
-                                   int nDim, int nOutput, double* adblInput, 
-                                   double* pdblResult, int* pnLinearIndex)
+                                   int nDim, int nOutput, float* adblInput, 
+                                   float* pdblResult, int* pnLinearIndex)
 {
   if (pMMN->nType == DTREE_LINEAR)
   { 
@@ -198,7 +198,7 @@ DTRIMP int DTREEAPI EvalMinMaxTree(MINMAXNODE* pMMN, LINEARFORM* aLF,
     while (pList != NULL)
     {
       int lIndex;
-      double dbl;
+      float dbl;
       
       int nErr;
       if ((nErr = EvalMinMaxTree(pList, aLF, nDim, nOutput, 
@@ -223,7 +223,7 @@ DTRIMP int DTREEAPI EvalMinMaxTree(MINMAXNODE* pMMN, LINEARFORM* aLF,
 }
 
 DTRIMP int DTREEAPI EvalLinearForm(LINEARFORM* pLF, int nDim, int nOutput,
-                                   double* adblInput, double* pdblResult)
+                                   float* adblInput, float* pdblResult)
 {        
   register int i;
   if (pLF->adblW[nOutput] == 0)

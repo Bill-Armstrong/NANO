@@ -24,7 +24,8 @@
 // training support routines
 
 // libaln/src/alntrain.cpp
-// Revision date: July 3, 2019
+// Revision date: Dec 26, 2019
+
 
 #ifdef ALNDLL
 #define ALNIMP __declspec(dllexport)
@@ -40,10 +41,14 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-// helper declarations relating to ALN tree growth
+// Helper declarations relating to ALN tree growth
 void splitControl(ALN*, ALNDATAINFO*); // This does a test to see if a piece fits well or must be split.
 extern BOOL bALNgrowable = TRUE; //If FALSE, no splitting happens, e.g. for linear regression.
-BOOL bStopTraining = FALSE; // This causes training to stop when all leaf nodes have stopped splitting.
+BOOL bStopTraining = FALSE; // This causes training to stop when all leaf nodes have stopped splitting. This means all linear regression resultss will not change.
+extern BOOL bDistanceOptimization; // This prevents considering leaf nodes so far away from the current input sample that they must be cut off in the max-min structure.
+void DecayWeights(const ALNNODE* pNode, const ALN* pALN, float WeightBound, float WeightDecay);
+extern float WeightBound; // This is a maximum and minimum bound on weights.
+extern float WeightDecay; //  This is a factor close to 1.0. It is used during classification into two classes when lower weights give better generalization.
 
 
 // Train calls ALNTrain, which expects data in a monolithic array, row major order, ie,
@@ -51,30 +56,28 @@ BOOL bStopTraining = FALSE; // This causes training to stop when all leaf nodes 
 //   row 1 col 0, row 1 col 1, ..., row 1 col n,
 //   ...,
 //   row m col 0, row m col 1, ..., row m col n,
-// If MSEorF is positive, then there must be nDim columns in the data array
-// otherwise there must be nDim entries for training samples, nDim entries for the closest other sample minus this one and a double for the distance *\
-// If adblTRdata is NULL, then application must provide a training proc,
-// and must fill the data vector during AN_FILLVECTOR message
-// else adblTRdata points to a file with nTRcurrSamples rows and nCols >0 columns. MYTEST
+// If MSEorF is positive, this is just a level of training error above which pieces can split, then there must be 1-to-1 nDim entries in the data array.
+// If MSEorF is negative, the data array also includes, for each sample, nDim entries for the closest other sample minus this one and a float for the distance between them *\
+
 // nNotifyMask is the bitwise OR of all the notifications that should
 // be sent during training callbacks. Special cases: AN_ALL, AN_NONE.
 // ALN train returns an ALN_* error code, (ALN_NOERROR on success).
 
-// helper declarations
+// Helper declarations
 int ALNAPI ValidateALNTrainInfo(const ALN* pALN,
                                        ALNDATAINFO* pDataInfo,
                                        const ALNCALLBACKINFO* pCallbackInfo,
                                        int nMaxEpochs,
-                                       double dblMinRMSErr,
-                                       double dblLearnRate);
+                                       float dblMinRMSErr,
+                                       float dblLearnRate);
 
 #ifdef _DEBUG
 void DebugValidateALNTrainInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
                                       int nMaxEpochs,
-                                      double dblMinRMSErr,
-                                      double dblLearnRate);
+                                      float dblMinRMSErr,
+                                      float dblLearnRate);
 #endif
 
 
@@ -82,8 +85,8 @@ static int ALNAPI DoTrainALN(ALN* pALN,
                              ALNDATAINFO* pDataInfo,
                              const ALNCALLBACKINFO* pCallbackInfo,
                              int nMaxEpochs,
-                             double dblMinRMSErr,
-                             double dblLearnRate,
+                             float dblMinRMSErr,
+                             float dblLearnRate,
                              BOOL bJitter);
 
 
@@ -92,8 +95,8 @@ ALNIMP int ALNAPI ALNTrain(ALN* pALN,
                            ALNDATAINFO* pDataInfo,
                            const ALNCALLBACKINFO* pCallbackInfo,
                            int nMaxEpochs,
-                           double dblMinRMSErr,
-                           double dblLearnRate,
+                           float dblMinRMSErr,
+                           float dblLearnRate,
                            BOOL bJitter)
 {
 	int nReturn; // = ValidateALNTrainInfo(pALN, pDataInfo, pCallbackInfo,
@@ -123,8 +126,8 @@ static int ALNAPI DoTrainALN(ALN* pALN,
                              ALNDATAINFO* pDataInfo,
                              const ALNCALLBACKINFO* pCallbackInfo,
                              int nMaxEpochs,
-                             double dblMinRMSErr,
-                             double dblLearnRate,
+                             float dblMinRMSErr,
+                             float dblLearnRate,
                              BOOL bJitter)
 {
 	//#ifdef _DEBUG
@@ -134,10 +137,11 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 
 	int nReturn = ALN_NOERROR;		    // assume success
 	int nDim = pALN->nDim;
-	int nTRcurrSamples = pDataInfo->nTRcurrSamples;
-	ALNNODE* pTree = pALN->pTree;	    
-	double* adblX;                    // input vector
-	int* anShuffle = NULL;				    // point index shuffle array
+	long nTRcurrSamples = pDataInfo->nTRcurrSamples;
+	ALNNODE* pTree = pALN->pTree;
+	DecayWeights(pTree, pALN, WeightBound, WeightDecay);
+	float* adblX;                    // input vector
+	long* anShuffle = NULL;				    // point index shuffle array
 	CCutoffInfo* aCutoffInfo = NULL;  // eval cutoff speedup
 
 	TRAININFO traininfo;					    // training info
@@ -163,20 +167,20 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 	try	// main processing block
 	{
 		// allocate input vector
-			adblX = new double[nDim];
+			adblX = new float[nDim];
 		if (!adblX) ThrowALNMemoryException();
-		memset(adblX, 0, sizeof(double) * nDim); // this has space for all the inputs and the output value
+		memset(adblX, 0, sizeof(float) * nDim); // this has space for all the inputs and the output value
 
 		// allocate and init shuffle array
-		anShuffle = new int[nEnd - nStart + 1];
+		anShuffle = new long[nEnd - nStart + 1L];
 		if (!anShuffle) ThrowALNMemoryException();
-		for (int i = nStart; i <= nEnd; i++)
+		for (long i = nStart; i <= nEnd; i++)
 			anShuffle[i - nStart] = i - nStart;
 
 		// allocate and init cutoff info array
 		// pLFN will contain a pointer to the active LFN of a piece
 		// when the input is on that piece.  It will speed up cutoffs in evaluation.
-		aCutoffInfo = new CCutoffInfo[nEnd - nStart + 1];
+		aCutoffInfo = new CCutoffInfo[nEnd - nStart + 1L];
 		if (!aCutoffInfo) ThrowALNMemoryException();
 		for (int i = nStart; i <= nEnd; i++)
 			aCutoffInfo[i - nStart].pLFN = NULL;
@@ -206,12 +210,13 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 		///// begin epoch loop
 		// We reset counters for splitting when adaptation has had a chance to adjust pieces very
 		// closely to the training samples, e.g. the limited number of pieces fits well.
-		// We do nMaxEpochs training, then allow splitting after the last epoch.
+		// We do under nMaxEpochs/2 training, then allow splitting
 		// We must set nMaxEpochs considering epochsize, learning rate,  prescribed RMS error, etc.
 		for (int nEpoch = 0; nEpoch < nMaxEpochs; nEpoch++)
 		{
+			DecayWeights(pTree, pALN, WeightBound, WeightDecay);  // Test weight decay for classification
+			if (nEpoch == nMaxEpochs / 2) bDistanceOptimization = FALSE; // MYTEST Turn optimization off until the end of the splitting epoch; see if necessary later MYTEST
 			int nCutoffs = 0;
-
 			// notify beginning of epoch
 			epochinfo.nEpoch = nEpoch;
 			if (CanCallback(AN_EPOCHSTART, pfnNotifyProc, nNotifyMask))
@@ -221,24 +226,25 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 			}
 
 			// track squared error
-			double dblSqErrorSum = 0;
+			float dblSqErrorSum = 0;
 
 			// We prepare a random reordering of the training data for the next epoch
 			Shuffle(nStart, nEnd, anShuffle);
 
-			long nPoint; // The number of training samples may be huge.
+			long nSample; // The number of training samples may be huge.
 				// this does all the samples in an epoch in a randomized order.
 
-			for (nPoint = nStart; nPoint <= nEnd; nPoint++)
+			for (nSample = nStart; nSample <= nEnd; nSample++)
 			{
-				int nTrainPoint = anShuffle[nPoint - nStart]; //a sample is picked for training
-				ASSERT((nTrainPoint + nStart) <= nEnd);
+				long nTrainSample = anShuffle[nSample - nStart]; // A sample is picked for training
+				ASSERT((nTrainSample + nStart) <= nEnd);
+				
 
 				// fill input vector
-				FillInputVector(pALN, adblX, nTrainPoint, nStart, pDataInfo, pCallbackInfo);
+				FillInputVector(pALN, adblX, nTrainSample, nStart, pDataInfo, pCallbackInfo);
 
 				// if we have our first data point, init LFNs on first pass
-				if (nEpoch == 0 && nPoint == nStart)
+				if (nEpoch == 0 && nSample == nStart)
 					InitLFNs(pTree, pALN, adblX);
 
 
@@ -248,8 +254,15 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 				// do an adapt eval to get active LFN and distance, and to prepare
 				// tree for adaptation
 				ALNNODE* pActiveLFN = NULL;
-				CCutoffInfo& cutoffinfo = aCutoffInfo[nPoint];
-				double dbl = AdaptEval(pTree, pALN, adblX, &cutoffinfo, &pActiveLFN);
+				CCutoffInfo& cutoffinfo = aCutoffInfo[nSample];
+
+				// START MYTEST insert something for speed
+				// Get the cutoff info if possible from a previous epoch
+				// pActiveLFN = cutoffinfo.pLFN;
+				//if ((nEpoch > 1) && !LFN_CANSPLIT(pActiveLFN) && ( ALNRandFloat() > 0.5))	continue;
+				// END MYTEST
+
+				float dbl = AdaptEval(pTree, pALN, adblX, &cutoffinfo, &pActiveLFN);
 
 				// track squared error before adapt, since adapt routines
 				// do not relcalculate value of adapted surface
@@ -259,7 +272,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 				if (CanCallback(AN_ADAPTSTART, pfnNotifyProc, nNotifyMask))
 				{
 					ADAPTINFO adaptinfo;
-					adaptinfo.nAdapt = nPoint - nStart;
+					adaptinfo.nAdapt = nSample - nStart;
 					adaptinfo.adblX = adblX;
 					adaptinfo.dblErr = dbl;
 					Callback(pALN, AN_ADAPTSTART, &adaptinfo, pfnNotifyProc, pvData);
@@ -267,12 +280,12 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 
 				// do a useful adapt to correct any error
 				traindata.dblGlobalError = dbl;
-				Adapt(pTree, pALN, adblX, 1.0, TRUE, &traindata);// we should not adapt in the epoch when counting hits!!
+				if(nEpoch > 0) Adapt(pTree, pALN, adblX, 1.0, TRUE, &traindata);// we should not adapt in the epoch when counting hits!!
 				// notify end of adapt
 				if (CanCallback(AN_ADAPTEND, pfnNotifyProc, nNotifyMask))
 				{
 					ADAPTINFO adaptinfo;
-					adaptinfo.nAdapt = nPoint - nStart;
+					adaptinfo.nAdapt = nSample - nStart;
 					adaptinfo.adblX = adblX;
 					adaptinfo.dblErr = dbl;
 					Callback(pALN, AN_ADAPTEND, &adaptinfo, pfnNotifyProc, pvData);
@@ -284,7 +297,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 			epochinfo.dblEstRMSErr = sqrt(dblSqErrorSum / nTRcurrSamples);
 
 			// calc true RMS if estimate below min, or if last epoch, or every 10 epochs when jittering
-			if (epochinfo.dblEstRMSErr <= dblMinRMSErr || nEpoch == (nMaxEpochs - 1))
+			if (epochinfo.dblEstRMSErr <= dblMinRMSErr || nEpoch == nMaxEpochs)
 			{
 				epochinfo.dblEstRMSErr = DoCalcRMSError(pALN, pDataInfo, pCallbackInfo);
 			}
@@ -301,17 +314,18 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 			traininfo.nActiveLFNs = epochinfo.nActiveLFNs;
 			traininfo.dblRMSErr = epochinfo.dblEstRMSErr;	// used to terminate epoch loop
 			
-			if (CanCallback(AN_EPOCHEND, pfnNotifyProc, nNotifyMask))
+			if (nEpoch == nMaxEpochs - 1 && CanCallback(AN_EPOCHEND, pfnNotifyProc, nNotifyMask))
 			{
 				EPOCHINFO ei(epochinfo);  // make copy to send!
 				Callback(pALN, AN_EPOCHEND, &ei, pfnNotifyProc, pvData);
 			}
 
-			// Split candidate LFNs after the last epoch in this call to ALNTrain.
-			if (nEpoch == (nMaxEpochs - 1))
+			// Split candidate LFNs in a middle epoch in this call to ALNTrain.
+			if (nEpoch == nMaxEpochs/2)
 			{
-				bStopTraining = TRUE;  // this is set to FALSE by any leaf node needing further training
+				bStopTraining = TRUE;  // this will be set to FALSE by any leaf node needing further training after splitControl()
 				splitControl(pALN, pDataInfo);  // This leads to leaf nodes splitting
+				bDistanceOptimization = TRUE;
 			}
 		} // end epoch loop
 
@@ -323,6 +337,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 			// we don't care if user changes it!
 			Callback(pALN, AN_TRAINEND, &traininfo, pfnNotifyProc, pvData);
 		}
+		delete[] adblX;
 	}
 	catch (CALNUserException* e)	  // user abort exception
 	{
@@ -345,7 +360,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 	}
 
 	// deallocate mem
-	delete[] adblX;
+
 	delete[] anShuffle;
 	delete[] aCutoffInfo;
 	return nReturn;
@@ -356,8 +371,8 @@ static int ALNAPI ValidateALNTrainInfo(const ALN* pALN,
                                        ALNDATAINFO* pDataInfo,
                                        const ALNCALLBACKINFO* pCallbackInfo,
                                        int nMaxEpochs,
-                                       double dblMinRMSErr,
-                                       double dblLearnRate)
+                                       float dblMinRMSErr,
+                                       float dblLearnRate)
 {
   int nReturn = ValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
   if (nReturn != ALN_NOERROR)
@@ -389,8 +404,8 @@ static void DebugValidateALNTrainInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
                                       int nMaxEpochs,
-                                      double dblMinRMSErr,
-                                      double dblLearnRate)
+                                      float dblMinRMSErr,
+                                      float dblLearnRate)
 {
   DebugValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
   ASSERT(nMaxEpochs > 0 && dblMinRMSErr >= 0 && dblLearnRate > 0.0 && dblLearnRate <= 0.5);
