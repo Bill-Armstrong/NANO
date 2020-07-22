@@ -38,7 +38,7 @@ static char THIS_FILE[] = __FILE__;
 static int ALNAPI ValidateALNEvalInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
-                                      float* adblResult,
+                                      float* afltResult,
                                       int* pnStart, int* pnEnd);
 
 // evaluation of ALN on data
@@ -46,15 +46,15 @@ static int ALNAPI ValidateALNEvalInfo(const ALN* pALN,
 ALNIMP int ALNAPI ALNEval(const ALN* pALN,
                           ALNDATAINFO* pDataInfo,
                           const ALNCALLBACKINFO* pCallbackInfo,
-                          float* adblResult,
+                          float* afltResult,
                           int* pnStart, int* pnEnd)
 {
 	int nReturn = ValidateALNEvalInfo(pALN, pDataInfo, pCallbackInfo,
-                                    adblResult, pnStart, pnEnd);
+                                    afltResult, pnStart, pnEnd);
   if (nReturn == ALN_NOERROR)
   {
     nReturn = EvalTree(pALN->pTree, pALN, pDataInfo, pCallbackInfo,
-                       adblResult, pnStart, pnEnd, FALSE);
+                       afltResult, pnStart, pnEnd, FALSE);
   }
   
 	return nReturn;
@@ -65,14 +65,14 @@ ALNIMP int ALNAPI ALNEval(const ALN* pALN,
 static int ALNAPI ValidateALNEvalInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
-                                      float* adblResult,
+                                      float* afltResult,
                                       int* pnStart, int* pnEnd)
 {
   int nReturn = ValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
   if (nReturn != ALN_NOERROR)
     return nReturn;
 	
-  if (adblResult == NULL)
+  if (afltResult == NULL)
     return ALN_GENERIC;
 
   return ALN_NOERROR;

@@ -145,8 +145,8 @@ DTRIMP void DTREEAPI GetDtreeError(int nErrno, char* pBuf, int nMaxBufLen)
   GetErrMsg(nErrno, pBuf, nMaxBufLen);
 }
 
-DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, float* adblInput, 
-                              float* pdblResult, int* pnLinearIndex)
+DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, float* afltInput, 
+                              float* pfltResult, int* pnLinearIndex)
 {                    
   DTREENODE* pNode = NULL;
   int nErr = DTR_NOERROR;
@@ -155,7 +155,7 @@ DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, float* adblInput,
   pNode = pDtree->aNodes; 
   while (pNode->nLeaf == 0)
   {
-    if (adblInput[DNODE_VARINDEX(pNode)] <= DNODE_THRESHOLD(pNode))
+    if (afltInput[DNODE_VARINDEX(pNode)] <= DNODE_THRESHOLD(pNode))
       pNode = pDtree->aNodes + DNODE_LEFTINDEX(pNode);
     else
       pNode = pDtree->aNodes + DNODE_RIGHTINDEX(pNode);
@@ -165,26 +165,26 @@ DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, float* adblInput,
   nErr = EvalMinMaxTree(pDtree->aBlocks[DNODE_BLOCKINDEX(pNode)].pMinMaxTree,
                         pDtree->aLinearForms, pDtree->nDim, 
                         pDtree->nOutputIndex, 
-                        adblInput, pdblResult, pnLinearIndex);
+                        afltInput, pfltResult, pnLinearIndex);
                         
   /* bound output */
-  if (*pdblResult < pDtree->aVarDefs[pDtree->nOutputIndex].bound.dblMin)
-    *pdblResult = pDtree->aVarDefs[pDtree->nOutputIndex].bound.dblMin;
-  else if (*pdblResult > pDtree->aVarDefs[pDtree->nOutputIndex].bound.dblMax)
-    *pdblResult = pDtree->aVarDefs[pDtree->nOutputIndex].bound.dblMax;
+  if (*pfltResult < pDtree->aVarDefs[pDtree->nOutputIndex].bound.fltMin)
+    *pfltResult = pDtree->aVarDefs[pDtree->nOutputIndex].bound.fltMin;
+  else if (*pfltResult > pDtree->aVarDefs[pDtree->nOutputIndex].bound.fltMax)
+    *pfltResult = pDtree->aVarDefs[pDtree->nOutputIndex].bound.fltMax;
   
   return nErr;
 }
     
 DTRIMP int DTREEAPI EvalMinMaxTree(MINMAXNODE* pMMN, LINEARFORM* aLF, 
-                                   int nDim, int nOutput, float* adblInput, 
-                                   float* pdblResult, int* pnLinearIndex)
+                                   int nDim, int nOutput, float* afltInput, 
+                                   float* pfltResult, int* pnLinearIndex)
 {
   if (pMMN->nType == DTREE_LINEAR)
   { 
     int nErr = DTR_NOERROR;
     if ((nErr = EvalLinearForm(aLF + MMN_LFINDEX(pMMN), nDim, nOutput, 
-                               adblInput, pdblResult)) != DTR_NOERROR)
+                               afltInput, pfltResult)) != DTR_NOERROR)
       return nErr;
     
     if (pnLinearIndex != NULL)
@@ -198,18 +198,18 @@ DTRIMP int DTREEAPI EvalMinMaxTree(MINMAXNODE* pMMN, LINEARFORM* aLF,
     while (pList != NULL)
     {
       int lIndex;
-      float dbl;
+      float flt;
       
       int nErr;
       if ((nErr = EvalMinMaxTree(pList, aLF, nDim, nOutput, 
-                                 adblInput, &dbl, &lIndex)) != DTR_NOERROR)
+                                 afltInput, &flt, &lIndex)) != DTR_NOERROR)
         return nErr;  
       
       if ((pList == MMN_CHILDLIST(pMMN)) ||                     /* first time thru */
-          (pMMN->nType == DTREE_MIN && dbl < *pdblResult) ||    /* or this is a min */
-          (pMMN->nType == DTREE_MAX && dbl > *pdblResult))      /* or this is a max */
+          (pMMN->nType == DTREE_MIN && flt < *pfltResult) ||    /* or this is a min */
+          (pMMN->nType == DTREE_MAX && flt > *pfltResult))      /* or this is a max */
       {
-        *pdblResult = dbl;
+        *pfltResult = flt;
         if (pnLinearIndex != NULL)
           *pnLinearIndex = lIndex;
       }
@@ -223,19 +223,19 @@ DTRIMP int DTREEAPI EvalMinMaxTree(MINMAXNODE* pMMN, LINEARFORM* aLF,
 }
 
 DTRIMP int DTREEAPI EvalLinearForm(LINEARFORM* pLF, int nDim, int nOutput,
-                                   float* adblInput, float* pdblResult)
+                                   float* afltInput, float* pfltResult)
 {        
   register int i;
-  if (pLF->adblW[nOutput] == 0)
+  if (pLF->afltW[nOutput] == 0)
     return DTR_ZEROOUTPUTWEIGHT;
   /* eval linear form, xi = (w0 + w1x1 + ... + wi-1xi-1 + wi+1 xi+1 + ... + wnxn) / -wi */
-  *pdblResult = pLF->dblBias;
+  *pfltResult = pLF->fltBias;
   for (i = 0; i < nDim; i++)
   {                         
     if (i == nOutput) continue;    /* skip output var */
-    *pdblResult += adblInput[i] * pLF->adblW[i];
+    *pfltResult += afltInput[i] * pLF->afltW[i];
   }
-  *pdblResult /= -pLF->adblW[nOutput];
+  *pfltResult /= -pLF->afltW[nOutput];
   return DTR_NOERROR;
 }
 

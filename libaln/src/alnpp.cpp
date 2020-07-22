@@ -57,7 +57,7 @@ CAln::~CAln()
   ASSERT(m_pALN == NULL);
 }
 
-void ALNAPI CAln::addTRsample(float* adblX, const int nDim)
+void ALNAPI CAln::addTRsample(float* afltX, const int nDim)
 {
 	float sum;
 	int nDimm1 = nDim - 1;
@@ -78,23 +78,23 @@ void ALNAPI CAln::addTRsample(float* adblX, const int nDim)
 	long nTRcurrSamples = thisDataInfo->nTRcurrSamples;
 	int nTRcols = thisDataInfo->nTRcols;
 	long nTRinsert = thisDataInfo->nTRinsert;
-	float dblMSEorF = thisDataInfo->dblMSEorF;
-	float* adblTRdata; // This is a pointer to the buffer on the stack
+	float fltMSEorF = thisDataInfo->fltMSEorF;
+	float* afltTRdata; // This is a pointer to the buffer on the stack
 	ASSERT(nTRcols == nDimt2p1); // Check
 
-	// The new sample adblX will be placed here
+	// The new sample afltX will be placed here
 	long nDimt2p1tTRinsert = nDimt2p1 * nTRinsert;
 
-	// Initialize the data buffer adblTRdata when the first sample is added
+	// Initialize the data buffer afltTRdata when the first sample is added
 	if (nTRcurrSamples == 0) // when adding the first sample
 	{
 		long bufferSize = nTRmaxSamples * nTRcols;
 		//Allocate the buffer on first use 
-		thisDataInfo->adblTRdata = (float*)malloc( bufferSize * sizeof(float));
+		thisDataInfo->afltTRdata = (float*)malloc( bufferSize * sizeof(float));
 		// make the stack pointer point to the allocated space
-		adblTRdata = thisDataInfo->adblTRdata;
+		afltTRdata = thisDataInfo->afltTRdata;
 		// First we fill TRbuff with 0's and an FLT_MAX
-		memset(adblTRdata, 0, bufferSize * sizeof(float));
+		memset(afltTRdata, 0, bufferSize * sizeof(float));
 		/*
 		for (long i = 0; i < nTRmaxSamples; i++)
 		{
@@ -102,14 +102,14 @@ void ALNAPI CAln::addTRsample(float* adblX, const int nDim)
 			
 			for (int j = 0; j < nDimt2; j++)
 			{
-				adblTRdata[nDimt2p1ti + j] = 0; // We manipulate the buffer using the local pointer
+				afltTRdata[nDimt2p1ti + j] = 0; // We manipulate the buffer using the local pointer
 			}
 		}
 		*/
-		adblTRdata[nDimt2] = FLT_MAX; // the value is huge to make sure a new difference vector is inserted at the second insertion
+		afltTRdata[nDimt2] = FLT_MAX; // the value is huge to make sure a new difference vector is inserted at the second insertion
 		for (int j = 0; j < nDim; j++)
 		{
-			adblTRdata[j] = adblX[j];
+			afltTRdata[j] = afltX[j];
 		}
 		// update the buffer values in the ALN
 		thisDataInfo->nTRcurrSamples = 1;
@@ -118,64 +118,64 @@ void ALNAPI CAln::addTRsample(float* adblX, const int nDim)
 	}// End of initializing the data buffer
 
 	// Now comes the processing after initialization of the buffer
-	// There are two major cases depending on whether or not dblMSEorF is < 0.
+	// There are two major cases depending on whether or not fltMSEorF is < 0.
 	// A sample can always be added; the sample at TRinsert has to be replaced if the buffer is already at max size
-	// The following is done in the case dblMSEorF < 0 when the F-test is called for. Otherwise, finding a closest sample etc. is not done.
+	// The following is done in the case fltMSEorF < 0 when the F-test is called for. Otherwise, finding a closest sample etc. is not done.
 	// Of course in that case we can't change later to use the F-test.
 	// Start by comparing the new sample to all in the buffer to find
 	// 1. what other samples it is closest to
 	// 2. what other sample is closest to it.	(N.B. "closest" means * among * the closest if it is not unique)
 	
-	adblTRdata = thisDataInfo->adblTRdata; // restore the stack-based pointer.
-	if (dblMSEorF < 0)
+	afltTRdata = thisDataInfo->afltTRdata; // restore the stack-based pointer.
+	if (fltMSEorF < 0)
 	{
-		float* adblYtemp = (float*)malloc((nDim + 1) * sizeof(float)); // stores the difference vector and square distance 
-					// of the sample which is currently the closest to adblX which is being inserted;
-		float* adblYdiff = (float*)malloc(nDim * sizeof(float)); // stores the differences of adblX to the current buffer sample
-		adblYtemp[nDim] = FLT_MAX; // This forces a new sample to initially be closest to the first when there is no valid adblYtemp vector 
+		float* afltYtemp = (float*)malloc((nDim + 1) * sizeof(float)); // stores the difference vector and square distance 
+					// of the sample which is currently the closest to afltX which is being inserted;
+		float* afltYdiff = (float*)malloc(nDim * sizeof(float)); // stores the differences of afltX to the current buffer sample
+		afltYtemp[nDim] = FLT_MAX; // This forces a new sample to initially be closest to the first when there is no valid afltYtemp vector 
 		for (long i = 0; i < nTRcurrSamples; i++)
 		{
-			int nDimt2p1ti = nDimt2p1 * i; // this is the starting field of the index i sample in adblTRdata
-			// Get the current square distance of the new sample adblX from sample i in adblTRdata (there is at least one already)
+			int nDimt2p1ti = nDimt2p1 * i; // this is the starting field of the index i sample in afltTRdata
+			// Get the current square distance of the new sample afltX from sample i in afltTRdata (there is at least one already)
 			sum = 0;
 			for (int j = 0; j < nDim; j++)
 			{
-				adblYdiff[j] = adblX[j] - adblTRdata[nDimt2p1ti + j];
+				afltYdiff[j] = afltX[j] - afltTRdata[nDimt2p1ti + j];
 				if (j == nDim - 1) break; // use domain components only to calculate square distance
-				sum += adblYdiff[j] * adblYdiff[j]; // TBD later: different axes will contribute with different weights to noise variance
+				sum += afltYdiff[j] * afltYdiff[j]; // TBD later: different axes will contribute with different weights to noise variance
 			}
 			// Compare the sum to the squared distance of the closest to the i-th sample
-			if (sum < adblTRdata[nDimt2p1ti + nDimt2])
+			if (sum < afltTRdata[nDimt2p1ti + nDimt2])
 			{
 				// If the sum is less than for the existing closest
 				// replace the closest to sample i with the new differences and update the square distance
 				for (int j = 0; j < nDim; j++)
 				{
 
-					adblTRdata[nDimt2p1ti + nDim + j] = adblYdiff[j];
+					afltTRdata[nDimt2p1ti + nDim + j] = afltYdiff[j];
 				}
-				adblTRdata[nDimt2p1ti + nDimt2] = sum;
+				afltTRdata[nDimt2p1ti + nDimt2] = sum;
 			}
-			// If the ith sample in adblTRdata is closer to adblX than anything was earlier, then update the temporary values
-			if (sum < adblYtemp[nDim])
+			// If the ith sample in afltTRdata is closer to afltX than anything was earlier, then update the temporary values
+			if (sum < afltYtemp[nDim])
 			{
-				// Store sample i in the temporarily closest sample to adblX with its square distance.
+				// Store sample i in the temporarily closest sample to afltX with its square distance.
 				for (int j = 0; j < nDim; j++)
 				{
-					adblYtemp[j] = adblTRdata[nDimt2p1ti + j] - adblX[j];
+					afltYtemp[j] = afltTRdata[nDimt2p1ti + j] - afltX[j];
 				}
-				adblYtemp[nDim] = sum;
+				afltYtemp[nDim] = sum;
 			}
 		}
 		// Insert the new sample and its difference vector and closest distance at nTRinsert
 		for (int j = 0; j < nDim; j++)
 		{
-			adblTRdata[nDimt2p1tTRinsert + j] = adblX[j];
-			adblTRdata[nDimt2p1tTRinsert + nDim + j] = adblYtemp[j];
+			afltTRdata[nDimt2p1tTRinsert + j] = afltX[j];
+			afltTRdata[nDimt2p1tTRinsert + nDim + j] = afltYtemp[j];
 		}
-		adblTRdata[nDimt2p1tTRinsert + nDimt2] = adblYtemp[nDim];
-		free(adblYdiff);
-		free(adblYtemp);
+		afltTRdata[nDimt2p1tTRinsert + nDimt2] = afltYtemp[nDim];
+		free(afltYdiff);
+		free(afltYtemp);
 	} // end of insertion loop for F-test part
 	else
 	{
@@ -183,10 +183,10 @@ void ALNAPI CAln::addTRsample(float* adblX, const int nDim)
 		// Note: the two lines involving differences would be useful if we changed from doing an F-test to not doing it during a run
 		for (int j = 0; j < nDim; j++)
 		{
-			adblTRdata[nDimt2p1tTRinsert + j] = adblX[j];
-			adblTRdata[nDimt2p1tTRinsert + nDim + j] = 0; // zero out the noise variance part (e.g.from a previous sample with dblMSEorF < 0)
+			afltTRdata[nDimt2p1tTRinsert + j] = afltX[j];
+			afltTRdata[nDimt2p1tTRinsert + nDim + j] = 0; // zero out the noise variance part (e.g.from a previous sample with fltMSEorF < 0)
 		}
-		adblTRdata[nDimt2p1tTRinsert + nDimt2] = 0; // Once we have decided not to use the F-test, we have to stick with that decision
+		afltTRdata[nDimt2p1tTRinsert + nDimt2] = 0; // Once we have decided not to use the F-test, we have to stick with that decision
 	}
 	// The buffer has been updated, now we see where the next insertion can be done
 	if (nTRcurrSamples < nTRmaxSamples)
@@ -202,27 +202,27 @@ void ALNAPI CAln::addTRsample(float* adblX, const int nDim)
 
 void ALNAPI CAln::reduceNoiseVariance()
 {
-	// This routine should only be used when there are many samples in adblTRdata since
+	// This routine should only be used when there are many samples in afltTRdata since
 	// the closest other sample to a sample should have a close value of the ideal function
 	// In that case we replace all sample values by the average of two and get 1/2 the noise variance.
 	ALNDATAINFO* thisDataInfo = this->GetDataInfo();
-	float* adblTRdata = thisDataInfo->adblTRdata;
+	float* afltTRdata = thisDataInfo->afltTRdata;
 	//int nTRmaxSamples = thisDataInfo->nTRmaxSamples;
 	long nTRcurrSamples = thisDataInfo->nTRcurrSamples;
 	int nTRcols = thisDataInfo->nTRcols;
 	long nTRinsert = thisDataInfo->nTRinsert;
-	//float dblMSEorF = thisDataInfo->dblMSEorF;
-	if (!adblTRdata) return; // this avoids a crash
-	if (thisDataInfo->dblMSEorF > 0) return; // we are not using noise variance
+	//float fltMSEorF = thisDataInfo->fltMSEorF;
+	if (!afltTRdata) return; // this avoids a crash
+	if (thisDataInfo->fltMSEorF > 0) return; // we are not using noise variance
 	int nDim = (nTRcols - 1)/2;
 	int nDimm1 = nDim - 1;
 	int nDimt2m1 = nDim * 2 - 1;
 	float value;
 	for (long i = 0; i < nTRcurrSamples; i++)
 	{
-		value = adblTRdata[nTRcols * i + nDimm1 ];
-		value -= 0.5 * adblTRdata[nTRcols * i + nDimt2m1];
-		adblTRdata[nTRcols * i + nDimm1] = value;
+		value = afltTRdata[nTRcols * i + nDimm1 ];
+		value -= 0.5 * afltTRdata[nTRcols * i + nDimt2m1];
+		afltTRdata[nTRcols * i + nDimm1] = value;
 	}
 }
 
@@ -269,16 +269,16 @@ float CAln::GetEpsilon(int nVar, int nRegion) const
   const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
   ASSERT(pConstr != NULL);
 
-  return pConstr->dblEpsilon; 
+  return pConstr->fltEpsilon; 
 }
 
-void CAln::SetEpsilon(float dblEpsilon, int nVar, int nRegion)
+void CAln::SetEpsilon(float fltEpsilon, int nVar, int nRegion)
 { 
   ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
   ASSERT(pConstr != NULL);
 
-  pConstr->dblEpsilon = dblEpsilon;
-	pConstr->dblSqEpsilon = dblEpsilon * dblEpsilon;
+  pConstr->fltEpsilon = fltEpsilon;
+	pConstr->fltSqEpsilon = fltEpsilon * fltEpsilon;
 }
 
 float CAln::GetWeightMin(int nVar, int nRegion) const
@@ -286,10 +286,10 @@ float CAln::GetWeightMin(int nVar, int nRegion) const
   const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
   ASSERT(pConstr != NULL);
 
-  return pConstr->dblWMin; 
+  return pConstr->fltWMin; 
 }
 
-void CAln::SetWeightMin(float dblWMin, int nVar, int nRegion)
+void CAln::SetWeightMin(float fltWMin, int nVar, int nRegion)
 { 
   ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
   ASSERT(pConstr != NULL);
@@ -297,7 +297,7 @@ void CAln::SetWeightMin(float dblWMin, int nVar, int nRegion)
     // can't change output var weight!
   
   if (nVar != m_pALN->nOutput)
-    pConstr->dblWMin = dblWMin; 
+    pConstr->fltWMin = fltWMin; 
 }
 
 float CAln::GetWeightMax(int nVar, int nRegion) const
@@ -305,10 +305,10 @@ float CAln::GetWeightMax(int nVar, int nRegion) const
   const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
   ASSERT(pConstr != NULL);
 
-  return pConstr->dblWMax; 
+  return pConstr->fltWMax; 
 }
 
-void CAln::SetWeightMax(float dblWMax, int nVar, int nRegion)
+void CAln::SetWeightMax(float fltWMax, int nVar, int nRegion)
 { 
   ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
   ASSERT(pConstr != NULL);
@@ -316,7 +316,7 @@ void CAln::SetWeightMax(float dblWMax, int nVar, int nRegion)
     // can't change output var weight!
   
   if (nVar != m_pALN->nOutput)
-    pConstr->dblWMax = dblWMax; 
+    pConstr->fltWMax = fltWMax; 
 }  
 
 float CAln::GetMin(int nVar, int nRegion) const
@@ -324,15 +324,15 @@ float CAln::GetMin(int nVar, int nRegion) const
   const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
   ASSERT(pConstr != NULL);
 
-  return pConstr->dblMin; 
+  return pConstr->fltMin; 
 }
 
-void CAln::SetMin(float dblMin, int nVar, int nRegion)
+void CAln::SetMin(float fltMin, int nVar, int nRegion)
 { 
   ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
   ASSERT(pConstr != NULL);
   
-  pConstr->dblMin = dblMin; 
+  pConstr->fltMin = fltMin; 
 }
 
 float CAln::GetMax(int nVar, int nRegion) const
@@ -340,15 +340,15 @@ float CAln::GetMax(int nVar, int nRegion) const
   const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
   ASSERT(pConstr != NULL);
 
-  return pConstr->dblMax; 
+  return pConstr->fltMax; 
 }
 
-void CAln::SetMax(float dblMax, int nVar, int nRegion)
+void CAln::SetMax(float fltMax, int nVar, int nRegion)
 { 
   ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
   ASSERT(pConstr != NULL);
   
-  pConstr->dblMax = dblMax; 
+  pConstr->fltMax = fltMax; 
 }  
 
 ALNNODE* CAln::GetTree()
@@ -367,14 +367,14 @@ const ALNNODE* CAln::GetTree() const
   return m_pALN->pTree;
 }
 
-void CAln::SetDataInfo(float* adblTRdata, const long nTRmaxSamples, long nTRcurrSamples, int nTRcols, long nTRinsert,	const float dblMSEorF)
+void CAln::SetDataInfo(float* afltTRdata, const long nTRmaxSamples, long nTRcurrSamples, int nTRcols, long nTRinsert,	const float fltMSEorF)
 {
-  m_datainfo.adblTRdata = adblTRdata;
+  m_datainfo.afltTRdata = afltTRdata;
   m_datainfo.nTRmaxSamples = nTRmaxSamples;
   m_datainfo.nTRcurrSamples = nTRcurrSamples;
   m_datainfo.nTRcols = nTRcols;
   m_datainfo.nTRinsert = nTRinsert;
-  m_datainfo.dblMSEorF = dblMSEorF;
+  m_datainfo.fltMSEorF = fltMSEorF;
 }
 
 BOOL CAln::Create(int nDim, int nOutput)
@@ -396,11 +396,11 @@ BOOL CAln::Create(int nDim, int nOutput)
 }
 
 #ifdef ENABLE_REGIONS
-int CAln::AddRegion(int nParentRegion, float dblLearnFactor, 
+int CAln::AddRegion(int nParentRegion, float fltLearnFactor, 
                     int nConstr, int* anConstr)
 {
   m_nLastError = ALN_NOERROR;
-  return ALNAddRegion(m_pALN, nParentRegion, dblLearnFactor,
+  return ALNAddRegion(m_pALN, nParentRegion, fltLearnFactor,
                       nConstr, anConstr);
 }
 #endif
@@ -450,7 +450,7 @@ struct CALLBACKDATA
 };
 
 // training - uses internal ALNDATAINFO if pData == NULL
-BOOL CAln::Train(int nMaxEpochs, float dblMinRMSErr, float dblLearnRate,
+BOOL CAln::Train(int nMaxEpochs, float fltMinRMSErr, float fltLearnRate,
                  BOOL bJitter, int nNotifyMask /*= AN_NONE*/, 
                  ALNDATAINFO* pData /*= NULL*/, void* pvData /*= NULL*/)
 {
@@ -466,7 +466,7 @@ BOOL CAln::Train(int nMaxEpochs, float dblMinRMSErr, float dblLearnRate,
   callback.pvData = &data;
   callback.pfnNotifyProc = ALNNotifyProc;
 
-  m_nLastError = ALNTrain(m_pALN, pData, &callback, nMaxEpochs, dblMinRMSErr, dblLearnRate, bJitter);
+  m_nLastError = ALNTrain(m_pALN, pData, &callback, nMaxEpochs, fltMinRMSErr, fltLearnRate, bJitter);
 
 	return (m_nLastError == ALN_NOERROR || m_nLastError == ALN_USERABORT);
 }
@@ -487,17 +487,17 @@ float CAln::CalcRMSError(int nNotifyMask /*= AN_NONE*/,
   callback.pvData = &data;
   callback.pfnNotifyProc = ALNNotifyProc;
   
-  float dbl;
-  m_nLastError = ::ALNCalcRMSError(m_pALN, pData, &callback, &dbl);
+  float flt;
+  m_nLastError = ::ALNCalcRMSError(m_pALN, pData, &callback, &flt);
 
   if (m_nLastError != ALN_NOERROR)
-    dbl = -1.0;
+    flt = -1.0;
 
-  return dbl;
+  return flt;
 }
 
 // eval
-BOOL CAln::Eval(float* adblResult, int* pnStart /*=NULL*/, 
+BOOL CAln::Eval(float* afltResult, int* pnStart /*=NULL*/, 
                 int* pnEnd /*= NULL*/, int nNotifyMask /*= AN_NONE*/,
                 ALNDATAINFO* pData /*= NULL*/, void* pvData /*= NULL*/)
 {
@@ -513,16 +513,16 @@ BOOL CAln::Eval(float* adblResult, int* pnStart /*=NULL*/,
   callback.pvData = &data;
   callback.pfnNotifyProc = ALNNotifyProc;
 
-  m_nLastError = ALNEval(m_pALN, pData, &callback, adblResult, pnStart, pnEnd);
+  m_nLastError = ALNEval(m_pALN, pData, &callback, afltResult, pnStart, pnEnd);
 
   return m_nLastError == ALN_NOERROR;
 }
 
 // quick eval
-float CAln::QuickEval(const float* adblX, ALNNODE** ppActiveLFN /*= NULL*/)
+float CAln::QuickEval(const float* afltX, ALNNODE** ppActiveLFN /*= NULL*/)
 {
   m_nLastError = ALN_NOERROR;
-  return ALNQuickEval(m_pALN, adblX, ppActiveLFN);
+  return ALNQuickEval(m_pALN, afltX, ppActiveLFN);
 }
 
 // get variable monotonicicty, returns -1 on failure
@@ -591,25 +591,25 @@ BOOL CAln::CalcConfidence(ALNCONFIDENCE* pConfidence,
 }
 
 float CAln::ConfidencePLimit(const ALNCONFIDENCE* pConfidence, 
-                              float dblSignificance)
+                              float fltSignificance)
 {
-  float dblPLimit;
+  float fltPLimit;
   
-  if (ALNConfidencePLimit(pConfidence, dblSignificance, &dblPLimit) != ALN_NOERROR)
+  if (ALNConfidencePLimit(pConfidence, fltSignificance, &fltPLimit) != ALN_NOERROR)
     return -1.0;
   
-  return dblPLimit;
+  return fltPLimit;
 }
 
 float CAln::ConfidenceTLimit(const ALNCONFIDENCE* pConfidence, 
-                              float dblInterval)
+                              float fltInterval)
 {
-  float dblTLimit;
+  float fltTLimit;
   
-  if (ALNConfidenceTLimit(pConfidence, dblInterval, &dblTLimit) != ALN_NOERROR)
+  if (ALNConfidenceTLimit(pConfidence, fltInterval, &fltTLimit) != ALN_NOERROR)
     return -1.0;
   
-  return dblTLimit;
+  return fltTLimit;
 }
 
 // lfn analysis

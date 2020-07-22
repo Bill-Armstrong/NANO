@@ -71,12 +71,12 @@ int ALNAPI CheckMonotonicity(const ALNNODE* pNode, const ALN* pALN, int nVar)
   if (NODE_MINMAXTYPE(pNode) & NF_LFN)
   {
     // examine actual weight on var
-    float dblW = LFN_W(pNode)[nVar + 1];   // ...skip bias weight
-    if (dblW < 0)
+    float fltW = LFN_W(pNode)[nVar + 1];   // ...skip bias weight
+    if (fltW < 0)
     {
       return MONO_STRONGDEC;
     }
-    else if (dblW > 0)
+    else if (fltW > 0)
     {
       return MONO_STRONGINC;
     }

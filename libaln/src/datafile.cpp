@@ -79,19 +79,19 @@ float CDataFile::GetColMax(long lCol) const
   ASSERT(lCol >=0 && lCol < m_lColumns);
   ASSERT(m_pBuffer);
                
-  float* pdblBase = m_pBuffer + lCol;
+  float* pfltBase = m_pBuffer + lCol;
 
-  float dblMax = *pdblBase;               
-  for(long i = 0; i < m_lRows; i++, pdblBase += m_lColumns)
+  float fltMax = *pfltBase;               
+  for(long i = 0; i < m_lRows; i++, pfltBase += m_lColumns)
   {
-    float dbl = *pdblBase;               
-    if (dbl > dblMax)
+    float flt = *pfltBase;               
+    if (flt > fltMax)
     {
-      dblMax = dbl;
+      fltMax = flt;
     }
   }
   
-  return dblMax;
+  return fltMax;
 }
 
 float CDataFile::GetColMin(long lCol) const
@@ -99,19 +99,19 @@ float CDataFile::GetColMin(long lCol) const
   ASSERT(lCol >=0 && lCol < m_lColumns);
   ASSERT(m_pBuffer);
   
-  float* pdblBase = m_pBuffer + lCol;
+  float* pfltBase = m_pBuffer + lCol;
 
-  float dblMin = m_pBuffer[lCol];               
-  for(long i = 0; i < m_lRows; i++, pdblBase += m_lColumns)
+  float fltMin = m_pBuffer[lCol];               
+  for(long i = 0; i < m_lRows; i++, pfltBase += m_lColumns)
   {
-    float dbl = *pdblBase;               
-    if (dbl < dblMin)
+    float flt = *pfltBase;               
+    if (flt < fltMin)
     {
-      dblMin = dbl;
+      fltMin = flt;
     }
   }
   
-  return dblMin;
+  return fltMin;
 }
          
 BOOL CDataFile::Create(long lRows, long lColumns)
@@ -320,8 +320,8 @@ BOOL CDataFile::Read(const char* pszFileName)
       }
 
       // pTok is now null terminated, so we can parse out a float
-      float dbl;
-      if (!SimpleFloatParse(pTok, dbl))
+      float flt;
+      if (!SimpleFloatParse(pTok, flt))
       {
         // invalid input!
         delete[] pBuf;
@@ -343,7 +343,7 @@ BOOL CDataFile::Read(const char* pszFileName)
       }
 
       // store data
-      m_pBuffer[lIndex] = dbl;
+      m_pBuffer[lIndex] = flt;
 
       // increase column count
       lCol++;  
@@ -453,10 +453,10 @@ BOOL CDataFile::Write(const char* pszFileName, int nDelim /*= '\t'*/)
     for(long j = 0; j < m_lColumns; j++)
     {
       long lIndex = i * m_lColumns + j;
-      float dbl = m_pBuffer[lIndex];     
+      float flt = m_pBuffer[lIndex];     
 
       // value
-      fprintf(f, "%0.19g", dbl);
+      fprintf(f, "%0.19g", flt);
      
       // delim
       if (j < (m_lColumns - 1))

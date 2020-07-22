@@ -122,10 +122,10 @@ public:
       ASSERT(m_pBuffer);
       return m_pBuffer[CalcDataIndex(lRow, lColumn, lDelta)];
     }
-  void SetAt(long lRow, long lColumn, float dbl, long lDelta = 0)
+  void SetAt(long lRow, long lColumn, float flt, long lDelta = 0)
     { 
       ASSERT(m_pBuffer);
-      m_pBuffer[CalcDataIndex(lRow, lColumn, lDelta)] = dbl;
+      m_pBuffer[CalcDataIndex(lRow, lColumn, lDelta)] = flt;
     }
 
 	const float* GetDataPtr() const

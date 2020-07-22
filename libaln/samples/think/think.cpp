@@ -1,6 +1,6 @@
 // NANO program
 // This program controls the libaln NANO library.  The user has to input the name of the data file and
-// the columns to be used as inputs and the (single) output. The dblMSEorF value if negative, uses an F-test
+// the columns to be used as inputs and the (single) output. The fltMSEorF value if negative, uses an F-test
 // to decide whether to break a linear piece (a multi-dimensional hyperplane in general) into two separate
 // hyperplanes connected by a max or min operator. If an F-test is not used, a positive level of Mean
 // Square Training Error, below which the pieces will not break, can be set.
@@ -8,7 +8,7 @@
 #ifdef __GNUC__
 #include <typeinfo>
 #endif
-
+#include "aln.h"
 #include "alnpp.h"
 #include "datafile.h"
 #include "cmyaln.h"
@@ -25,10 +25,10 @@ BOOL bDistanceOptimization = FALSE;
 static char szInfo[] = "NANO (Noise-Attenuating Neuron Online) program\n"
 "Copyright (C)  2019 William W. Armstrong\n"
 "Licensed under LGPL\n\n";
-float dblTrainErr;
+float fltTrainErr;
 int nMaxEpochs;
 int nNumberLFNs;
-// dblMSEorF can be a positive square error limit on training below which pieces won't split, or a negative number calling for an F-test.
+// fltMSEorF can be a positive square error limit on training below which pieces won't split, or a negative number calling for an F-test.
 // This is a local stopping criterion comparable to the global stopping criteria for other neural nets using a validation set.
 // Special cases are -25 -50 -75 where the values come from tables; the other values are approximate, calculated by a simple formula.
 // F-tests for -75 and -90 are likelyto stop training before a perfect fit, and -35 and -25 may prolong training and tend to overfit.
@@ -49,7 +49,7 @@ BOOL bClassify2 = TRUE; // FALSE produces the usual function learning; TRUE is f
 int main(int argc, char* argv[])
 {
 	// The first four arguments are the data file name, nDim (number of ALNinputs including one for the output),
-	// nMaxEpochs value (training epochs including one epoch of splitting), the dblMSEorF value for stopping splitting, and the weight bound,
+	// nMaxEpochs value (training epochs including one epoch of splitting), the fltMSEorF value for stopping splitting, and the weight bound,
 	// Example input: think(VeryNoisySine.txt, 2, 20, 0.1, 12) or think(NoisySinCos20000.txt, 3, 3, -90, 0.5).
 	// When the program is executed from Visual Studio, the above inputs can be specified in the properties of the think project, Debugging>>
 	// Command Arguments with quotes around the file name and spaces instead of commas.
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 
 	if (argc != 7 ) // We expect arguments as listed here (argc is not counted among them)
 	{
-		std::cout << "Bad argument list!\n" << "Usage: " << "Data_file_name nDim nMaxEpochs dblRMSEorF WeightBound Downshift  " << std::endl;
+		std::cout << "Bad argument list!\n" << "Usage: " << "Data_file_name nDim nMaxEpochs fltRMSEorF WeightBound Downshift  " << std::endl;
 		return 1;
 	}
 	CDataFile file;
@@ -78,15 +78,15 @@ int main(int argc, char* argv[])
 	long nTRmaxSamples = file.RowCount(); 
 	int nCols = file.ColumnCount();
 	nMaxEpochs = atoi(argv[3]);
-	float dblRMSEorF = (float) atof(argv[4]); // a negative value indicates use of an F-test to stop splitting, intuition understands dblRMSEorF, but if >0 we use the square
-	float dblMSEorF = dblRMSEorF > 0 ? pow(dblRMSEorF, 2) : dblRMSEorF;
+	float fltRMSEorF = (float) atof(argv[4]); // a negative value indicates use of an F-test to stop splitting, intuition understands fltRMSEorF, but if >0 we use the square
+	float fltMSEorF = fltRMSEorF > 0 ? pow(fltRMSEorF, 2) : fltRMSEorF;
 	WeightBound = (float) atof(argv[5]); // Plus or minus this value bounds the weights from above and below in cases where all inputs have the same characeristics
 	int* ColumnNumber = (int*)malloc(nDim * sizeof(int));
 	for (int ALNinput = 0; ALNinput < nDim; ALNinput++)
 	{
 		ColumnNumber[ALNinput] = ALNinput;
 	}
-	int nTRcols = 2 * nDim + 1; // The nDim columns of sample data in adblTRdata are extended 
+	int nTRcols = 2 * nDim + 1; // The nDim columns of sample data in afltTRdata are extended 
 								// to 2 * nDim + 1 total columns for the noise-attenuation tool.
 	WeightDecay = atof(argv[6]);
 
@@ -169,26 +169,26 @@ int main(int argc, char* argv[])
 	} // End of special code for one- or two-class pattern classification
 
 	ALNREGION* pRegion = pALN->GetRegion(0);
-	pRegion->dblSmoothEpsilon = 0;
+	pRegion->fltSmoothEpsilon = 0;
 	// Restrictions on weights (0 is the region -- the region concept is not fully implemented)
 	for (int m = 0; m < nDim-1; m++)
 	{
 		pALN->SetWeightMin(-WeightBound, m, 0);
 		pALN->SetWeightMax(WeightBound, m, 0); // MYTEST  try all weights negative
 	}
-	// This sets up the training buffer of floats adblTRbuffer. The F-test is specified in split_ops.cpp
+	// This sets up the training buffer of floats afltTRbuffer. The F-test is specified in split_ops.cpp
 	ALNDATAINFO* pdata = pALN->GetDataInfo();
 	pdata->nTRmaxSamples = nTRmaxSamples;
 	pdata->nTRcurrSamples = 0;
 	pdata->nTRcols = nTRcols;
 	pdata->nTRinsert = 0;
-	pdata->dblMSEorF = dblMSEorF;
+	pdata->fltMSEorF = fltMSEorF;
 	// The following sets the alpha for the F-test
-	if (dblMSEorF < 0) setSplitAlpha(pdata);
+	if (fltMSEorF < 0) setSplitAlpha(pdata);
 	std::cout << "Loading the data buffer ... please wait" << std::endl;
 	// Load the buffer; as the buffer gets each new sample, it is compared to existing samples to create a noise variance tool.
 	// During training, once the weights of a piece are known, the noise variance can be estimated.
-	float* adblX = (float*)malloc(nDim * sizeof(float));
+	float* afltX = (float*)malloc(nDim * sizeof(float));
 	int colno;
 	long samplesAdded = 0;
 	float temp;
@@ -198,14 +198,14 @@ int main(int argc, char* argv[])
 		for (int j = 0; j < nDim; j++)
 		{
 			colno = ColumnNumber[j];
-			adblX[j] = file.GetAt(i, colno, 0);
+			afltX[j] = file.GetAt(i, colno, 0);
 		}
 		if (bClassify2)
 		{
-			temp = adblX[nDim - 1]; // Replace the desired value by +1.0 for the target, -1.0 for the others.
-			adblX[nDim - 1] = (fabs(temp - targetDigit) < 0.1) ? 1.0 : -1.0;
+			temp = afltX[nDim - 1]; // Replace the desired value by +1.0 for the target, -1.0 for the others.
+			afltX[nDim - 1] = (fabs(temp - targetDigit) < 0.1) ? 1.0 : -1.0;
 		}
-		if (!bOneClass || (adblX[nDim - 1] > 0)) pALN->addTRsample(adblX, nDim);  // skip putting all the non-target samples into the buffer if doing OneClass
+		if (!bOneClass || (afltX[nDim - 1] > 0)) pALN->addTRsample(afltX, nDim);  // skip putting all the non-target samples into the buffer if doing OneClass
 	}
 	ASSERT(pdata->nTRcurrSamples == samplesAdded);
 	std::cout << "ALNDATAINFO: " << "TRmaxSamples = " << pdata->nTRmaxSamples << "  "
@@ -224,10 +224,10 @@ int main(int argc, char* argv[])
 		{
 			if (jj == nDim) std::cout << "closest is ";
 			if (jj == nDimt2) std::cout << " square dist = ";
-			std::cout << pdata->adblTRdata[nDimt2p1 * ii + jj] << " ";
+			std::cout << pdata->afltTRdata[nDimt2p1 * ii + jj] << " ";
 		}
 		std::cout << std::endl;
-		averageNVsample += 0.5 * pow(pdata->adblTRdata[nDimt2p1 * ii + nDimt2], 2); // MYTEST is this the right entry?
+		averageNVsample += 0.5 * pow(pdata->afltTRdata[nDimt2p1 * ii + nDimt2], 2); // MYTEST is this the right entry?
 	}
 	averageNVsample /= nLinesPrinted;
 	std::cout << "\n\n Average noise difference = " << averageNVsample << std::endl;
@@ -238,8 +238,8 @@ int main(int argc, char* argv[])
 	bStopTraining = FALSE;
 	bAlphaBeta = FALSE;
 	bDistanceOptimization = FALSE;
-	float dblLearnRate = 0.2F;
-	float dblMinRMSE = 0.00000001F;// This is set small and not very useful.  dblMSEorF is used now to stop training.
+	float fltLearnRate = 0.2F;
+	float fltMinRMSE = 0.00000001F;// This is set small and not very useful.  fltMSEorF is used now to stop training.
 	int nNotifyMask = AN_TRAIN; // required callbacks for information or insertion of data. You can OR them together with |
 	ALNNODE** ppActiveLFN = NULL;
 
@@ -257,7 +257,7 @@ int main(int argc, char* argv[])
 			// VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV  Training!
 
 			//pTree = pALN->GetTree();
-			if (!pALN->Train(nMaxEpochs, dblMinRMSE, dblLearnRate, bJitter, nNotifyMask))
+			if (!pALN->Train(nMaxEpochs, fltMinRMSE, fltLearnRate, bJitter, nNotifyMask))
 			{
 				std::cout << " Training failed!" << std::endl;
 				flush(std::cout);
@@ -309,11 +309,11 @@ int main(int argc, char* argv[])
 			// Evaluate the ALN on this row
 			for (int k = 0; k < nDim; k++) // Get the domain coordinates and desired output
 			{
-				adblX[k] = file.GetAt(i, ColumnNumber[k], 0);
+				afltX[k] = file.GetAt(i, ColumnNumber[k], 0);
 			}
-			desired = adblX[nDim - 1]; // Store the desired output according to the training file
-			adblX[nDim - 1] = -250; // Be sure the desired output will not help in the computation  MYTEST does this do it????
-			entry = pALN->QuickEval(adblX, ppActiveLFN); // get the ALN-computed value for entry into the output file
+			desired = afltX[nDim - 1]; // Store the desired output according to the training file
+			afltX[nDim - 1] = -250; // Be sure the desired output will not help in the computation  MYTEST does this do it????
+			entry = pALN->QuickEval(afltX, ppActiveLFN); // get the ALN-computed value for entry into the output file
 			ExtendTR.SetAt(i, nCols, entry, 0); // the first additional column on the right is the ALN output
 			float correctClass;
 			if(bClassify2)
@@ -348,8 +348,8 @@ int main(int argc, char* argv[])
 		std::cin >> iterations;
 		if (iterations == 1)
 		{
-			std::cin >> iterations >> dblMSEorF >> WeightBound >> WeightDecay;
-			pdata->dblMSEorF = dblMSEorF;
+			std::cin >> iterations >> fltMSEorF >> WeightBound >> WeightDecay;
+			pdata->fltMSEorF = fltMSEorF;
 			for (int m = 0; m < nDim - 1; m++)
 			{
 				pALN->SetWeightMin(-WeightBound, m, 0);
@@ -368,10 +368,10 @@ int main(int argc, char* argv[])
 	{
 		for (int j = 0; j < nDim; j++)
 		{
-			adblX[j] = trainfile.GetAt(i, j, 0);
+			afltX[j] = trainfile.GetAt(i, j, 0);
 		}
-		adblX[nDim - 1] = 0; // This desired output value is thus not input to QuickEval
-		ALNoutput = pALN->QuickEval(adblX, ppActiveLFN);
+		afltX[nDim - 1] = 0; // This desired output value is thus not input to QuickEval
+		ALNoutput = pALN->QuickEval(afltX, ppActiveLFN);
 	}
 	// Record end time
 	auto finish = std::chrono::high_resolution_clock::now();
@@ -383,10 +383,10 @@ int main(int argc, char* argv[])
 	{
 		for (int j = 0; j < nDim; j++)
 		{
-			adblX[j] = trainfile.GetAt(i, j, 0);
+			afltX[j] = trainfile.GetAt(i, j, 0);
 		}
-		adblX[nDim - 1] = 0; // This desired output value is thus not input to QuickEval
-		// ALNoutput = pALN->QuickEval(adblX, ppActiveLFN);
+		afltX[nDim - 1] = 0; // This desired output value is thus not input to QuickEval
+		// ALNoutput = pALN->QuickEval(afltX, ppActiveLFN);
 	}
 	// Record end time
 	finish = std::chrono::high_resolution_clock::now();
@@ -418,11 +418,11 @@ int main(int argc, char* argv[])
 	{
 		for (int j = 0; j < nDim; j++) // Get the domain values
 		{
-			adblX[j] = testfile.GetAt(i, j, 0);
+			afltX[j] = testfile.GetAt(i, j, 0);
 		}
-		DesiredOutput = (fabs(adblX[nDim - 1] - targetDigit) < 0.1 ? 10 : -10); // This is the correct class in the test file MYTEST??????
-		adblX[nDim - 1] = -250.0; // Put in an incorrect value here
-		ALNoutput = pALN->QuickEval(adblX, ppActiveLFN);
+		DesiredOutput = (fabs(afltX[nDim - 1] - targetDigit) < 0.1 ? 10 : -10); // This is the correct class in the test file MYTEST??????
+		afltX[nDim - 1] = -250.0; // Put in an incorrect value here
+		ALNoutput = pALN->QuickEval(afltX, ppActiveLFN);
 		if (ALNoutput * DesiredOutput > 0) 
 		{
 			nCorrect++;
@@ -434,8 +434,8 @@ int main(int argc, char* argv[])
 	}
 	std::cout << "Correct: " << nCorrect << " Wrong: " << nWrong << endl;
 
-	free(adblX);
-	free(pdata->adblTRdata);
+	free(afltX);
+	free(pdata->afltTRdata);
 	pALN->Destroy();
 	//aln.Destroy(); which one to use?
 }

@@ -67,17 +67,17 @@ BOOL ALNAPI DoPrepRegions(ALN* pALN)
     // iterate over var constraints
     for (int j = 0; j < pRegion->nConstr; j++)
     {
-      float dblEpsilon = pRegion->aConstr[j].dblEpsilon;
+      float fltEpsilon = pRegion->aConstr[j].fltEpsilon;
 
       if (j == pALN->nOutput)
       {
         // make sure wmin and wmax are -1
-        pRegion->aConstr[j].dblWMin = -1.0;
-        pRegion->aConstr[j].dblWMax = -1.0;
+        pRegion->aConstr[j].fltWMin = -1.0;
+        pRegion->aConstr[j].fltWMax = -1.0;
       }
 
       // calc sq epsilon
-      pRegion->aConstr[j].dblSqEpsilon = dblEpsilon * dblEpsilon; // this may be useless now
+      pRegion->aConstr[j].fltSqEpsilon = fltEpsilon * fltEpsilon; // this may be useless now
     }
 
 

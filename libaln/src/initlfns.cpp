@@ -37,11 +37,11 @@ static char THIS_FILE[] = __FILE__;
 ///////////////////////////////////////////////////////////////////////////////
 // init any uninitialized LFN's
 
-void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const float* adblX)
+void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const float* afltX)
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pALN != NULL);
-	ASSERT(adblX != NULL);
+	ASSERT(afltX != NULL);
 	
 	// are we an LFN?
 	if (NODE_ISLFN(pNode))
@@ -51,9 +51,9 @@ void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const float* adblX)
   		int nOutput = pALN->nOutput;
   		int nDim = LFN_VDIM(pNode);
       ASSERT(nDim == pALN->nDim); 
-  		float* adblW = LFN_W(pNode) + 1; // weight vector... skip bias
-  		float* adblC = LFN_C(pNode);			// centroid vector
-  		float* adblD = LFN_D(pNode);			// ave sq dist from centroid vector
+  		float* afltW = LFN_W(pNode) + 1; // weight vector... skip bias
+  		float* afltC = LFN_C(pNode);			// centroid vector
+  		float* afltD = LFN_D(pNode);			// ave sq dist from centroid vector
 			// vector initialization
   	  for (int i = 0; i < nDim; i++)
   	  { 
@@ -61,15 +61,15 @@ void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const float* adblX)
   			ASSERT(pConstr != NULL);
 			
         // init weights			
-  			adblW[i] = (float)max((float)min(pConstr->dblWMax, ALNRandFloat() * 0.00002F - 0.00001F),
-  			               pConstr->dblWMin);
-  	    adblC[i] = adblX[i];
-  	    adblD[i] = pConstr->dblSqEpsilon;
+  			afltW[i] = (float)max((float)min(pConstr->fltWMax, ALNRandFloat() * 0.00002F - 0.00001F),
+  			               pConstr->fltWMin);
+  	    afltC[i] = afltX[i];
+  	    afltD[i] = pConstr->fltSqEpsilon;
   	  }
   	  // the hyperplane is on the centroid to start so W[0] = 0
   	  LFN_W(pNode)[0] = 0;
     
-  		ASSERT(adblW[nOutput] == -1.0F);// make sure output var is -1
+  		ASSERT(afltW[nOutput] == -1.0F);// make sure output var is -1
 
   	  // successfully initialized
       LFN_FLAGS(pNode) |= LF_INIT;
@@ -80,7 +80,7 @@ void ALNAPI InitLFNs(ALNNODE* pNode, ALN* pALN, const float* adblX)
 	  // we're a minmax... iterate over children
 	  ASSERT(NODE_ISMINMAX(pNode));
 
-    InitLFNs(MINMAX_LEFT(pNode), pALN, adblX);
-    InitLFNs(MINMAX_RIGHT(pNode), pALN, adblX);
+    InitLFNs(MINMAX_LEFT(pNode), pALN, afltX);
+    InitLFNs(MINMAX_RIGHT(pNode), pALN, afltX);
   }
 }

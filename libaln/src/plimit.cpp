@@ -47,12 +47,12 @@ static char THIS_FILE[] = __FILE__;
 // method: advance p until cumulative binomial dist 0 to m events in n 
 //         trials drops to x
 
-float ALNAPI PLimit(int n, int m, float dblX)
+float ALNAPI PLimit(int n, int m, float fltX)
 {
-  static const float dblInc = 0.1;     // coarse increment
-  static const float dblAcc = 1.0e-7;  // maximum accuracy
+  static const float fltInc = 0.1;     // coarse increment
+  static const float fltAcc = 1.0e-7;  // maximum accuracy
 
-  if (dblX < 0.0 || dblX > 1.0 || n < 0)
+  if (fltX < 0.0 || fltX > 1.0 || n < 0)
   {
     return NAN;
   }
@@ -70,31 +70,31 @@ float ALNAPI PLimit(int n, int m, float dblX)
   // therfore, Y goes to 0 as P approaches desired value
 
   // lower bound
-  float dblP1 = 0.0;
-  float dblY1 = dblX - 1.0;
-  ASSERT(dblY1 <= 0.0);
+  float fltP1 = 0.0;
+  float fltY1 = fltX - 1.0;
+  ASSERT(fltY1 <= 0.0);
 
   // begin coarse approximation of P
   
   // scan upward until Y3 is +ve
-  float dblP3, dblY3;
-  for (dblP3 = dblInc; dblP3 < 1.0; dblP3 += dblInc)
+  float fltP3, fltY3;
+  for (fltP3 = fltInc; fltP3 < 1.0; fltP3 += fltInc)
   {
-    dblY3 = dblX - (1.0 - ibeta(m + 1, n - m, dblP3));  //ibet??
+    fltY3 = fltX - (1.0 - ibeta(m + 1, n - m, fltP3));  //ibet??
                    // cumulative binomial dist 0 to m events in n trials, 
                    // see Press et al p229
 
     // convergence test (unlikely at this point)
-    if (fabs(dblY3) < dblAcc)
-      return dblP3;
+    if (fabs(fltY3) < fltAcc)
+      return fltP3;
 
     // check for sign change
-    if (dblY3 > 0.0)
+    if (fltY3 > 0.0)
       break;  // we've bracketed desired value
 
     // else, new lower bound
-    dblP1 = dblP3;
-    dblY1 = dblY3;
+    fltP1 = fltP3;
+    fltY1 = fltY3;
   }
 
   // P1 and P3 bracket desired value... refine using ridders method
@@ -103,52 +103,52 @@ float ALNAPI PLimit(int n, int m, float dblX)
   for (int i = 0; i < nMaxIt; i++)
   {
     // get mid-values
-    float dblP2 = 0.5 * (dblP1 + dblP3);
-    if ((dblP3 - dblP1) < dblAcc)   // convergence test
-      return dblP2;
+    float fltP2 = 0.5 * (fltP1 + fltP3);
+    if ((fltP3 - fltP1) < fltAcc)   // convergence test
+      return fltP2;
     
-    float dblY2 = dblX - (1.0 - ibeta(m + 1, n - m, dblP2)); //ibeta??
+    float fltY2 = fltX - (1.0 - ibeta(m + 1, n - m, fltP2)); //ibeta??
 
     // convergence test
-    if (fabs(dblY2) < dblAcc)
-      return dblP2;
+    if (fabs(fltY2) < fltAcc)
+      return fltP2;
 
-    float dblDenom = sqrt(dblY2 * dblY2 - dblY1 * dblY3);  // y1, y3 opposite sign
-    float dblTrial = dblP2 + (dblP1 - dblP2) * dblY2 / dblDenom;
+    float fltDenom = sqrt(fltY2 * fltY2 - fltY1 * fltY3);  // y1, y3 opposite sign
+    float fltTrial = fltP2 + (fltP1 - fltP2) * fltY2 / fltDenom;
 
-    float dblY = dblX - (1.0 - ibeta(m + 1, n - m, dblTrial));  //ibeta
+    float fltY = fltX - (1.0 - ibeta(m + 1, n - m, fltTrial));  //ibeta
 
     // convergence test
-    if (fabs(dblY) < dblAcc)
-      return dblTrial;
+    if (fabs(fltY) < fltAcc)
+      return fltTrial;
 
     // between mid and test point?
-    if ((dblY2 < 0.0) && (dblY > 0.0))
+    if ((fltY2 < 0.0) && (fltY > 0.0))
     {
-      dblP1 = dblP2;    // new lower bound
-      dblY1 = dblY2;
-      dblP3 = dblTrial; // new upper bound
-      dblY3 = dblY;
+      fltP1 = fltP2;    // new lower bound
+      fltY1 = fltY2;
+      fltP3 = fltTrial; // new upper bound
+      fltY3 = fltY;
     }
-    else if ((dblY < 0.0) && (dblY2 > 0.0))
+    else if ((fltY < 0.0) && (fltY2 > 0.0))
     {
-      dblP1 = dblTrial; // new lower bound
-      dblY1 = dblY;
-      dblP3 = dblP2;    // new upper bound
-      dblY3 = dblY2;
+      fltP1 = fltTrial; // new lower bound
+      fltY1 = fltY;
+      fltP3 = fltP2;    // new upper bound
+      fltY3 = fltY2;
     }
-    else if (dblY < 0.0)  // both negative
+    else if (fltY < 0.0)  // both negative
     {
-      dblP1 = dblTrial;
-      dblY1 = dblY;
+      fltP1 = fltTrial;
+      fltY1 = fltY;
     }
     else  // both positive
     {
-      dblP3 = dblTrial;
-      dblY3 = dblY;
+      fltP3 = fltTrial;
+      fltY3 = fltY;
     }
   }
 
   // convergence failed... return best guess?
-  return 0.5 * (dblP1 + dblP3); 
+  return 0.5 * (fltP1 + fltP3); 
 }

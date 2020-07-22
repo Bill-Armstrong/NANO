@@ -48,12 +48,12 @@ static void DebugValidateALNCalcConfidence(const ALN* pALN,
 
 static int __cdecl CompareErrors(const void* pElem1, const void* pElem2)
 {
-  float dbl1 = *(float*)pElem1;
-  float dbl2 = *(float*)pElem2;
+  float flt1 = *(float*)pElem1;
+  float flt2 = *(float*)pElem2;
 
-  if (dbl1 < dbl2)
+  if (flt1 < flt2)
     return -1;
-  else if (dbl1 > dbl2)
+  else if (flt1 > flt2)
     return 1;
 
   return 0;
@@ -77,7 +77,7 @@ ALNIMP int ALNAPI ALNCalcConfidence(const ALN* pALN,
   #endif
 
   // result array
-  float* adblResult = NULL;
+  float* afltResult = NULL;
 
   try
   {
@@ -85,12 +85,12 @@ ALNIMP int ALNAPI ALNCalcConfidence(const ALN* pALN,
     long nTRcurrSamples = pDataInfo->nTRcurrSamples;
 
     // allocate results array
-    adblResult = new float[nTRcurrSamples];
+    afltResult = new float[nTRcurrSamples];
     
     // evaluate on data
     int nStart, nEnd;
     nReturn = EvalTree(pALN->pTree, pALN, pDataInfo, pCallbackInfo, 
-                       adblResult, &nStart, &nEnd, TRUE);
+                       afltResult, &nStart, &nEnd, TRUE);
     if (nReturn != ALN_NOERROR)
     {
       ThrowALNException();
@@ -98,20 +98,20 @@ ALNIMP int ALNAPI ALNCalcConfidence(const ALN* pALN,
 
     // set the number of errors and error vector
     int nErr = (nEnd - nStart + 1);
-    float* adblErr = adblResult + nStart;
+    float* afltErr = afltResult + nStart;
     if (nErr <= 0)
     {
       ThrowALNException();  // bad error count
     }
 
-    // EvalTree returned the errors in adblResult... now we sort them!
-    qsort(adblErr, nErr, sizeof(float), CompareErrors);
+    // EvalTree returned the errors in afltResult... now we sort them!
+    qsort(afltErr, nErr, sizeof(float), CompareErrors);
 
     // calculate upper an lower bound indexes by discarding np-1 from each end
     // (conservative approach.. see Masters95 p305)
-    int nDiscard = (int)floor((float)nErr * pConfidence->dblP - 1);
+    int nDiscard = (int)floor((float)nErr * pConfidence->fltP - 1);
     
-    // if nErr * pConfidence->dblP is less than 1, then nDiscard will be less than 0
+    // if nErr * pConfidence->fltP is less than 1, then nDiscard will be less than 0
     if (nDiscard < 0)
       nDiscard = 0;
 
@@ -123,12 +123,12 @@ ALNIMP int ALNAPI ALNCalcConfidence(const ALN* pALN,
     // set lower bound
     int nLower = nDiscard;
     ASSERT(nLower >= 0 && nLower < nErr);
-    pConfidence->dblLowerBound = adblErr[nLower];
+    pConfidence->fltLowerBound = afltErr[nLower];
     
     // set upper bound
     int nUpper = nErr - nDiscard - 1;
     ASSERT(nUpper >= 0 && nUpper < nErr);
-    pConfidence->dblUpperBound = adblErr[nUpper];
+    pConfidence->fltUpperBound = afltErr[nUpper];
   }
   catch (CALNUserException* e)	  // user abort exception
 	{
@@ -151,7 +151,7 @@ ALNIMP int ALNAPI ALNCalcConfidence(const ALN* pALN,
 	}
 
   // deallocate mem
-  delete[] adblResult;
+  delete[] afltResult;
   
 	return nReturn;
 }
@@ -167,7 +167,7 @@ static int ALNAPI ValidateALNCalcConfidence(const ALN* pALN,
   if (nReturn != ALN_NOERROR)
     return nReturn;
   
-  if (pConfidence->dblP <= 0.0 || pConfidence->dblP >= 0.5)
+  if (pConfidence->fltP <= 0.0 || pConfidence->fltP >= 0.5)
     return ALN_GENERIC;
 
   return ALN_NOERROR;
@@ -181,6 +181,6 @@ static void DebugValidateALNCalcConfidence(const ALN* pALN,
                                      ALNCONFIDENCE* pConfidence)
 {
   DebugValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
-  ASSERT(pConfidence->dblP > 0.0 && pConfidence->dblP < 0.5);
+  ASSERT(pConfidence->fltP > 0.0 && pConfidence->fltP < 0.5);
 }
 #endif

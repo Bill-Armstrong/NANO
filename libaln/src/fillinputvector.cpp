@@ -35,27 +35,27 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 void ALNAPI FillInputVector(const ALN* pALN,
-                            float* adblX, 
+                            float* afltX, 
                             long nSample,
                             int nStart,
                             ALNDATAINFO* pDataInfo,
                             const ALNCALLBACKINFO* pCallbackInfo)
 {
-  ASSERT(adblX);
+  ASSERT(afltX);
   ASSERT(pALN);
 
   int nDim = pALN->nDim;  // register statement removed
   int nCols = pDataInfo->nTRcols; // This is 2 * nDim + 1
-  const float* adblTRdata = pDataInfo->adblTRdata;
+  const float* afltTRdata = pDataInfo->afltTRdata;
   const VARINFO* aVarInfo = pDataInfo->aVarInfo; // Not used
 
   // fill input vector
   VECTORINFO vectorinfo;        
   vectorinfo.bNeedData = FALSE;
-  if (adblTRdata != NULL)
+  if (afltTRdata != NULL)
   {
     ASSERT(nStart == 0);	// we must start at zero, since no aVarInfo
-    memcpy(adblX, adblTRdata + (nSample * nCols), sizeof(float) * nDim); 
+    memcpy(afltX, afltTRdata + (nSample * nCols), sizeof(float) * nDim); 
   }
   // send vector info message
 	if (pCallbackInfo && CanCallback(AN_VECTORINFO, pCallbackInfo->pfnNotifyProc,
@@ -63,7 +63,7 @@ void ALNAPI FillInputVector(const ALN* pALN,
 	{
 	vectorinfo.nSample = nSample + nStart; // nStart based
 	vectorinfo.aVarInfo = aVarInfo;
-	vectorinfo.adblX = adblX;
+	vectorinfo.afltX = afltX;
 	Callback(pALN, AN_VECTORINFO, &vectorinfo, pCallbackInfo->pfnNotifyProc,
 				pCallbackInfo->pvData);
 	

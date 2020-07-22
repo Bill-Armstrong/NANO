@@ -40,9 +40,9 @@ extern long CountLeafevals;
 //  - returns distance of LFN from point
 
 float ALNAPI CutoffEvalLFN(const ALNNODE* pNode, const ALN* pALN, 
-                            const float* adblX, ALNNODE** ppActiveLFN)
+                            const float* afltX, ALNNODE** ppActiveLFN)
 {
-  ASSERT(adblX != NULL);
+  ASSERT(afltX != NULL);
   ASSERT(pALN != NULL);
   ASSERT(pNode != NULL);
   ASSERT(ppActiveLFN != NULL);
@@ -55,13 +55,13 @@ float ALNAPI CutoffEvalLFN(const ALNNODE* pNode, const ALN* pALN,
 
   // calc dist of point from line
   int nDim = pALN->nDim;
-  const float* adblW = LFN_W(pNode);
-  float dblA = *adblW++;                 // skip past bias weight       
+  const float* afltW = LFN_W(pNode);
+  float fltA = *afltW++;                 // skip past bias weight       
   for (int i = 0; i < nDim; i++)     
   {
-    dblA += adblW[i] * adblX[i];
+    fltA += afltW[i] * afltX[i];
   }
   CountLeafevals++;
-  // NODE_DISTANCE(pNode) = dblA; optional?
-  return dblA;
+  // NODE_DISTANCE(pNode) = fltA; optional?
+  return fltA;
 }

@@ -42,14 +42,14 @@ using namespace Eigen;
 static char THIS_FILE[] = __FILE__;
 #endif
 // helpers for filling and dumping matrices 
-//void fillRMA(MatrixXd &X, float* adblX);
-//void ALNAPI dumpRMA(const MatrixXd &X, float* adblX);
-//void ALNAPI fillCMA(MatrixXd &X, float* adblX);
-//void ALNAPI dumpCMA(const MatrixXd &X, float* adblX);
+//void fillRMA(MatrixXd &X, float* afltX);
+//void ALNAPI dumpRMA(const MatrixXd &X, float* afltX);
+//void ALNAPI fillCMA(MatrixXd &X, float* afltX);
+//void ALNAPI dumpCMA(const MatrixXd &X, float* afltX);
 
-void fillRMA(MatrixXd &X, float* adblX)
+void fillRMA(MatrixXd &X, float* afltX)
 {
-	// The array adblX is organized in row-major order
+	// The array afltX is organized in row-major order
 	unsigned int nRows, nr, nCols, nc;
 	nRows = X.rows();
 	nCols = X.cols();
@@ -57,14 +57,14 @@ void fillRMA(MatrixXd &X, float* adblX)
 	{
 		for(nc = 0; nc < nCols; ++nc)
 		{
-			X(nr,nc) = adblX[nr*nCols + nc];
+			X(nr,nc) = afltX[nr*nCols + nc];
 		}
 	}
 }
 
-void ALNAPI dumpRMA(const MatrixXd &X, float* adblX)
+void ALNAPI dumpRMA(const MatrixXd &X, float* afltX)
 {
-	// The array adblX is organized in row-major order
+	// The array afltX is organized in row-major order
 	int nRows, sr, nCols, sc;
 	nRows = X.rows();
 	nCols = X.cols();
@@ -72,14 +72,14 @@ void ALNAPI dumpRMA(const MatrixXd &X, float* adblX)
 	{
 		for(sc = 0; sc < nCols; ++sc)
 		{
-			adblX[sr*nCols + sc] = X(sr,sc) ;
+			afltX[sr*nCols + sc] = X(sr,sc) ;
 		}
 	}
 }
 
-void ALNAPI fillCMA(MatrixXd& X, float* adblX)
+void ALNAPI fillCMA(MatrixXd& X, float* afltX)
 {
-	// The array adblX is organized in column-major order
+	// The array afltX is organized in column-major order
 	int nRows, nr, nCols, nc;
 	nRows = X.rows();
 	nCols = X.cols();
@@ -87,14 +87,14 @@ void ALNAPI fillCMA(MatrixXd& X, float* adblX)
 	{
 		for(nr = 0; nr < nRows; ++nr)
 		{
-			X(nr, nc) = adblX[nc*nRows + nr];
+			X(nr, nc) = afltX[nc*nRows + nr];
 		}
 	}
 }
 
-void ALNAPI dumpCMA(const MatrixXd &X, float* adblX)
+void ALNAPI dumpCMA(const MatrixXd &X, float* afltX)
 {
-	// The array adblX is organized in column-major order
+	// The array afltX is organized in column-major order
 	int nRows, nr, nCols, nc;
 	nRows = X.rows();
 	nCols = X.cols();
@@ -102,7 +102,7 @@ void ALNAPI dumpCMA(const MatrixXd &X, float* adblX)
 	{
 		for(nr = 0; nr < nRows; ++nr)
 		{
-			adblX[nc*nRows + nr] = X(nr, nc);
+			afltX[nc*nRows + nr] = X(nr, nc);
 		}
 	}
 }
@@ -110,22 +110,22 @@ void ALNAPI dumpCMA(const MatrixXd &X, float* adblX)
 
 BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN inputs - 1
                     int nRows,        // number of rows, i.e. input vectors for a given LFN
-                    float* adblX,    // RMA based input vectors (nRows * nCols)
-                    float* adblY,    // RMA based result vector (nRows)
-                    float* adblC,    // RMA covariance matrix as array (nCols * nCols), is returned
-                    float* adblA,    // RMA fitted parameter vector (nCols)
-                    float* adblS,    // RMA std dev vector (nRows) (a weighting on points) 
-                    float* adblU,    // RMA U matrix (nRows * nRows)
-                    float* adblV,    // RMA V matrix (nCols * nCols)
-                    float* adblW,    // RMA W array (singvals = min(nRows,nCols))containing singular values
-                    float& dblChiSq) // chi square of fit
+                    float* afltX,    // RMA based input vectors (nRows * nCols)
+                    float* afltY,    // RMA based result vector (nRows)
+                    float* afltC,    // RMA covariance matrix as array (nCols * nCols), is returned
+                    float* afltA,    // RMA fitted parameter vector (nCols)
+                    float* afltS,    // RMA std dev vector (nRows) (a weighting on points) 
+                    float* afltU,    // RMA U matrix (nRows * nRows)
+                    float* afltV,    // RMA V matrix (nCols * nCols)
+                    float* afltW,    // RMA W array (singvals = min(nRows,nCols))containing singular values
+                    float& fltChiSq) // chi square of fit
 {
 	// implementation based on SVD in Eigen
 	// note that matrices below are stored in row-major order (RMA)
-  ASSERT(adblX && adblY && adblC && adblA && adblS && adblU && adblV && adblW);
+  ASSERT(afltX && afltY && afltC && afltA && afltS && afltU && afltV && afltW);
   BOOL bSuccess = TRUE;
 	MatrixXd X(nRows,nCols);
-	fillRMA(X,adblX);
+	fillRMA(X,afltX);
 	MatrixXd U(nRows,nRows);
 	MatrixXd V(nCols,nCols);
 	int singvals = std::min(nRows, nCols);
@@ -146,8 +146,8 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 		V = svd.matrixV();
 		s = svd.singularValues();
 		// put result of the SVD into the arrays in the call
-		dumpRMA(U, adblU);
-		dumpRMA(V, adblV);
+		dumpRMA(U, afltU);
+		dumpRMA(V, afltV);
 		// find the maximal singular value
 		smax = 0.0;
 		for (int j = 0; j < singvals; j++) {
@@ -157,7 +157,7 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 		thresh = TOL*smax;
 		for (int j = 0; j < singvals; j++){
 				if (s(j) < thresh)	s(j) = 0.0;
-				adblW[j] = s(j);
+				afltW[j] = s(j);
 		}
 		// Create the inverses, extended by 0 where necessary to make nCols
 		for (int j = 0; j < nCols; j++) {
@@ -175,7 +175,7 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 		VectorXd Y(nRows);
 		for (int sr = 0; sr < nRows; sr++)
 		{
-			Y(sr) = adblY[sr]; // this Y is incorrect for the entries j = 0 to j = 4  Something is overwriting the Y array!!!!
+			Y(sr) = afltY[sr]; // this Y is incorrect for the entries j = 0 to j = 4  Something is overwriting the Y array!!!!
 		}
 		MatrixXd UT(nRows, nRows);
 		UT = U.transpose();  // This is the inverse of U
@@ -196,10 +196,10 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 		// return the values in A to the pointer structure
 		for (int i = 0; i < nCols; i++)
 		{
-			adblA[i] = A(i);
+			afltA[i] = A(i);
 		}
 		// finding the measure of error of the fit by chi-squared 
-		float dblChiSq=0.0;
+		float fltChiSq=0.0;
 		for (int i = 0; i < nRows; i++) 
 		{
 			float sum = 0.0;
@@ -207,8 +207,8 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 			{
 				sum += X(i,j)* A(j);
 			}
-			tmp=(Y(i) - sum)/adblS[i]; // adblS[i] is a weight on input vector i, usually 1.0
-			dblChiSq += tmp*tmp;
+			tmp=(Y(i) - sum)/afltS[i]; // afltS[i] is a weight on input vector i, usually 1.0
+			fltChiSq += tmp*tmp;
 		}
 
     // calc covariance matrix C
@@ -221,7 +221,7 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 				{
 					sum += V(k,j) * V(i,j) * sinv(j) * sinv(j);
 				}
-				adblC[i*nCols+k] = adblC[k*nCols+i] = sum; 
+				afltC[i*nCols+k] = afltC[k*nCols+i] = sum; 
 			}
 		}
   }

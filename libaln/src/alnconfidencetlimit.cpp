@@ -37,37 +37,37 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 static int ALNAPI ValidateALNConfidenceTLimit(const ALNCONFIDENCE* pConfidence,
-                                              float dblInterval,
-                                              float* pdblTLimit);
+                                              float fltInterval,
+                                              float* pfltTLimit);
 
 #ifdef _DEBUG
 static void DebugValidateALNConfidenceTLimit(const ALNCONFIDENCE* pConfidence,
-                                             float dblInterval,
-                                             float* pdblTLimit);
+                                             float fltInterval,
+                                             float* pfltTLimit);
 #endif
 
 // much of this is derived from theory documented in Master95 p302-323
 // and Press et al p228-229
 
 ALNIMP int ALNAPI ALNConfidenceTLimit(const ALNCONFIDENCE* pConfidence,
-                                      float dblInterval,
-                                      float* pdblTLimit)
+                                      float fltInterval,
+                                      float* pfltTLimit)
 {
-	int nReturn = ValidateALNConfidenceTLimit(pConfidence, dblInterval, pdblTLimit);
+	int nReturn = ValidateALNConfidenceTLimit(pConfidence, fltInterval, pfltTLimit);
   if (nReturn != ALN_NOERROR)
     return nReturn;
   
   #ifdef _DEBUG
-    DebugValidateALNConfidenceTLimit(pConfidence, dblInterval, pdblTLimit);
+    DebugValidateALNConfidenceTLimit(pConfidence, fltInterval, pfltTLimit);
   #endif
 
   // calc number of samples in tail
-  int nTailSamples = (int)floor((float)pConfidence->nSamples * pConfidence->dblP - 1);
+  int nTailSamples = (int)floor((float)pConfidence->nSamples * pConfidence->fltP - 1);
   
   // calculate probablity of exceeding desired interval
-  *pdblTLimit = (float)1.0 - ibeta((float)(pConfidence->nSamples - 2 * nTailSamples + 1), // need incomp beta fn
+  *pfltTLimit = (float)1.0 - ibeta((float)(pConfidence->nSamples - 2 * nTailSamples + 1), // need incomp beta fn
                              (float)(2 * nTailSamples), 
-                             dblInterval);
+                             fltInterval);
 
 	return nReturn;
 }
@@ -75,10 +75,10 @@ ALNIMP int ALNAPI ALNConfidenceTLimit(const ALNCONFIDENCE* pConfidence,
 
 // validate params
 static int ALNAPI ValidateALNConfidenceTLimit(const ALNCONFIDENCE* pConfidence,
-                                              float dblInterval,
-                                              float* pdblTLimit)
+                                              float fltInterval,
+                                              float* pfltTLimit)
 {
-  if (pConfidence == NULL || pdblTLimit == NULL)
+  if (pConfidence == NULL || pfltTLimit == NULL)
     return ALN_GENERIC;
 
   return ALN_NOERROR;
@@ -87,9 +87,9 @@ static int ALNAPI ValidateALNConfidenceTLimit(const ALNCONFIDENCE* pConfidence,
 // debug version ASSERTS if bad params
 #ifdef _DEBUG
 static void DebugValidateALNConfidenceTLimit(const ALNCONFIDENCE* pConfidence,
-                                             float dblInterval,
-                                             float* pdblTLimit)
+                                             float fltInterval,
+                                             float* pfltTLimit)
 {
-  ASSERT(dblInterval >= 0.0 && dblInterval <= 1.0);
+  ASSERT(fltInterval >= 0.0 && fltInterval <= 1.0);
 }
 #endif

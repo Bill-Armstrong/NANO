@@ -91,9 +91,9 @@ DTRIMP int DTREEAPI GetDtreeVersion();
 
 typedef struct tagLINEARFORM      /* describes a linear form                */
 {                    
-  float dblBias;                 /* bias: computed from centroid,weights   */
-  float* adblW;                  /* weight vector has nDim elements        */
-  float* adblC;                  /* centroid vector has nDim elements      */
+  float fltBias;                 /* bias: computed from centroid,weights   */
+  float* afltW;                  /* weight vector has nDim elements        */
+  float* afltC;                  /* centroid vector has nDim elements      */
 } LINEARFORM;                     /* 16 bytes                               */
 
 typedef struct tagMINMAXNODE      /* describes a min/max tree node          */
@@ -120,7 +120,7 @@ typedef struct tagDTREENODE       /* describes a decision tree node         */
     int nBlockIndex;              /* index of block if this is a leaf       */
     struct
     {                             /* if this is an internal DTREE node...         */
-      float dblT;                /* threshold on a variable has split a block */
+      float fltT;                /* threshold on a variable has split a block */
       int nVarIndex;              /* variable index                         */
       int nLeftIndex;             /* index of left child                    */
       int nRightIndex;            /* index of right child                   */
@@ -129,7 +129,7 @@ typedef struct tagDTREENODE       /* describes a decision tree node         */
 } DTREENODE;                      /* 28 bytes                               */
 
 #define DNODE_BLOCKINDEX(pNode) ((pNode)->info.nBlockIndex)
-#define DNODE_THRESHOLD(pNode) ((pNode)->info.node.dblT)
+#define DNODE_THRESHOLD(pNode) ((pNode)->info.node.fltT)
 #define DNODE_VARINDEX(pNode) ((pNode)->info.node.nVarIndex)
 #define DNODE_LEFTINDEX(pNode) ((pNode)->info.node.nLeftIndex)
 #define DNODE_RIGHTINDEX(pNode) ((pNode)->info.node.nRightIndex)
@@ -142,8 +142,8 @@ typedef struct tagBLOCK           /* describes a block structure            */
   
 typedef struct tagVARBOUND        /* variable bound structure               */
 {
-  float dblMin;                  /* variable minimum                       */
-  float dblMax;                  /* variable maximum                       */
+  float fltMin;                  /* variable minimum                       */
+  float fltMax;                  /* variable maximum                       */
 } VARBOUND;                       /* 16 bytes                               */
 
 typedef struct tagVARDEF          /* variable definition                    */
@@ -152,8 +152,8 @@ typedef struct tagVARDEF          /* variable definition                    */
   char* pszName;                  /* variable name                          */
 } VARDEF;                         /* 20 bytes                               */
 
-#define VARDEF_MIN(pVar) ((pVar)->bound.dblMin)
-#define VARDEF_MAX(pVar) ((pVar)->bound.dblMax)
+#define VARDEF_MIN(pVar) ((pVar)->bound.fltMin)
+#define VARDEF_MAX(pVar) ((pVar)->bound.fltMax)
   
 typedef struct tagDTREE           /* main decision tree struct              */
 {
@@ -232,25 +232,25 @@ DTRIMP int DTREEAPI BinWriteDtree(const char* pszFileName, DTREE* pDtree);
 */
                                                                         
 /* returns DTR_NOERROR on success             
-   places a result in *pdblResult
+   places a result in *pfltResult
    returns index of linear form that calculated the result in
    plLinearIndex (if not NULL) */
-DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, float* adblInput, 
-                              float* pdblResult, int* pnLinearIndex);
+DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, float* afltInput, 
+                              float* pfltResult, int* pnLinearIndex);
 
 /* min/max tree evaluation         
    returns DTR_NOERROR on success         
-   places result in pdblResult, 
+   places result in pfltResult, 
    places responsible linear index in plLinearIndex (if not NULL) */
 DTRIMP int DTREEAPI EvalMinMaxTree(MINMAXNODE* pMMN, LINEARFORM* aLF, int nDim, 
-                                   int nOutput, float* adblInput, 
-                                   float* pdblResult, int* pnLinearIndex);
+                                   int nOutput, float* afltInput, 
+                                   float* pfltResult, int* pnLinearIndex);
                             
 /* linear form evaluation         
    returns DTR_NOERROROR on success         
-   places result in pdblResult */
+   places result in pfltResult */
 DTRIMP int DTREEAPI EvalLinearForm(LINEARFORM* pLF, int nDim, int nOutput, 
-                                   float* adblInput, float* pdblResult);
+                                   float* afltInput, float* pfltResult);
 
                                  
 /*                                 

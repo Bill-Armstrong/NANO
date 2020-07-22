@@ -48,20 +48,20 @@ int ALNAPI ValidateALNDataInfo(const ALN* pALN,
   }
   /*
   // must have at least one training point or not have a training set
-	if ((pDataInfo->nTRcurrSamples <= 0) && (pDataInfo->dblMSEorF <= 0))
+	if ((pDataInfo->nTRcurrSamples <= 0) && (pDataInfo->fltMSEorF <= 0))
   {
     return ALN_GENERIC;
   }
 
   // need proc if no data
-  if(pDataInfo->adblTRdata == NULL && 
+  if(pDataInfo->afltTRdata == NULL && 
      (pCallbackInfo == NULL || pCallbackInfo->pfnNotifyProc == NULL)   )
   {
     return ALN_GENERIC;
   }
 
   // need AN_VECTORINFO if no data
-  if(pDataInfo->adblTRdata == NULL && 
+  if(pDataInfo->afltTRdata == NULL && 
      (pCallbackInfo == NULL || !(pCallbackInfo->nNotifyMask & AN_VECTORINFO)))
   {
     return ALN_GENERIC;
@@ -69,7 +69,7 @@ int ALNAPI ValidateALNDataInfo(const ALN* pALN,
 
   // make sure columns valid
   if (pDataInfo->aVarInfo == NULL && 
-      pDataInfo->adblTRdata != NULL && 
+      pDataInfo->afltTRdata != NULL && 
       pDataInfo->nTRcols < pALN->nDim)
   {
     return ALN_GENERIC;
@@ -95,11 +95,11 @@ void ALNAPI DebugValidateALNDataInfo(const ALN* pALN,
   ASSERT(pDataInfo->nTRcurrSamples > 0);
 
   // valid data cols
-  ASSERT((pDataInfo->adblTRdata != NULL && pDataInfo->nTRcols > 0) || 
-         pDataInfo->adblTRdata == NULL);
+  ASSERT((pDataInfo->afltTRdata != NULL && pDataInfo->nTRcols > 0) || 
+         pDataInfo->afltTRdata == NULL);
 
   // valid notify proc
-  ASSERT(pDataInfo->adblTRdata != NULL || 
+  ASSERT(pDataInfo->afltTRdata != NULL || 
          (pCallbackInfo != NULL && 
           pCallbackInfo->pfnNotifyProc != NULL && 
           (pCallbackInfo->nNotifyMask & AN_VECTORINFO)));
@@ -111,7 +111,7 @@ void ALNAPI DebugValidateALNDataInfo(const ALN* pALN,
     for (int i = 0; i < pALN->nDim; i++)
     {
       // column validity
-      ASSERT(pDataInfo->adblTRdata);
+      ASSERT(pDataInfo->afltTRdata);
     }
   }
 }

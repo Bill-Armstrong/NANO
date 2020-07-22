@@ -140,9 +140,9 @@ extern "C" {
 #define LFN_VDIM(pNode) ((pNode)->DATA.LFN.nVDim)
 #define LFN_WDIM(pNode) ((pNode)->DATA.LFN.nVDim + 1)
 #define LFN_VARMAP(pNode) ((pNode)->DATA.LFN.afVarMap)
-#define LFN_W(pNode) ((pNode)->DATA.LFN.adblW)
-#define LFN_C(pNode) ((pNode)->DATA.LFN.adblC)
-#define LFN_D(pNode) ((pNode)->DATA.LFN.adblD)
+#define LFN_W(pNode) ((pNode)->DATA.LFN.afltW)
+#define LFN_C(pNode) ((pNode)->DATA.LFN.afltC)
+#define LFN_D(pNode) ((pNode)->DATA.LFN.afltD)
 #define MINMAX_FLAGS(pNode) ((pNode)->fNode)
 #define MINMAX_TYPE(pNode) ((pNode)->fNode & (GF_MIN | GF_MAX))
 #define MINMAX_ISMAX(pNode) ((pNode)->fNode & GF_MAX)
@@ -154,7 +154,7 @@ extern "C" {
 
 
 #define NODE_ISEVAL(pNode) ((pNode)->fNode & NF_EVAL)
-#define NODE_DISTANCE(pNode) ((pNode)->dblDistance)
+#define NODE_DISTANCE(pNode) ((pNode)->fltDistance)
 #define NODE_RESPCOUNTLASTEPOCH(pNode) ((pNode)->nRespCountLastEpoch)
 #define NODE_RESPCOUNT(pNode) ((pNode)->nRespCount)
 #define NODE_ISUSELESS(pNode, nDim) ((pNode)->nRespCountLastEpoch + (pNode)->nRespCount < (nDim))
@@ -163,18 +163,18 @@ extern "C" {
 #define LFN_CANSPLIT(pNode) ((pNode)->fNode & LF_SPLIT)
 #define LFN_SPLIT(pNode) ((pNode)->DATA.LFN.pSplit)
 #define LFN_SPLIT_COUNT(pNode) ((pNode)->DATA.LFN.pSplit->nCount)
-#define LFN_SPLIT_SQERR(pNode) ((pNode)->DATA.LFN.pSplit->dblSqError)
-#define LFN_SPLIT_RESPTOTAL(pNode) ((pNode)->DATA.LFN.pSplit->dblRespTotal)
-#define LFN_SPLIT_T(pNode) ((pNode)->DATA.LFN.pSplit->dblT)
+#define LFN_SPLIT_SQERR(pNode) ((pNode)->DATA.LFN.pSplit->fltSqError)
+#define LFN_SPLIT_RESPTOTAL(pNode) ((pNode)->DATA.LFN.pSplit->fltRespTotal)
+#define LFN_SPLIT_T(pNode) ((pNode)->DATA.LFN.pSplit->fltT)
 
 #define MINMAX_ACTIVE(pNode) ((pNode)->DATA.MINMAX.pActiveChild)
-#define MINMAX_RESPACTIVE(pNode) ((pNode)->DATA.MINMAX.dblRespActive)
+#define MINMAX_RESPACTIVE(pNode) ((pNode)->DATA.MINMAX.fltRespActive)
 #define MINMAX_GOAL(pNode) ((pNode)->DATA.MINMAX.pGoalChild)
 #define MINMAX_EVAL(pNode) ((pNode)->DATA.MINMAX.pEvalChild)
 #define MINMAX_CENTROID(pNode) ((pNode)->DATA.MINMAX.pCentroid)
 #define MINMAX_SIGMA(pNode)  ((pNode)->DATA.MINMAX.pSigma)
 #define MINMAX_NORMAL(pNode)  ((pNode)->DATA.MINMAX.pNormal)
-#define MINMAX_THRESHOLD(pNode) ((pNode)->DATA.MINMAX.dblThreshold)
+#define MINMAX_THRESHOLD(pNode) ((pNode)->DATA.MINMAX.fltThreshold)
 #define MINMAX_COUNT(pNode) ((pNode)->DATA.MINMAX.SampleCount)
 /*
 /////////////////////////////////////////////////////////////////////////////
@@ -185,23 +185,23 @@ extern "C" {
 	typedef struct tagALNCONSTRAINT
 	{
 		int    nVarIndex;                 /* variable index                      */
-		float dblEpsilon;  							/* epsilon constraint                  */
-		float dblMin, dblMax;            /* range constraints                   */
-		float dblWMin, dblWMax;          /* weight constraints                  */
+		float fltEpsilon;  							/* epsilon constraint                  */
+		float fltMin, fltMax;            /* range constraints                   */
+		float fltWMin, fltWMax;          /* weight constraints                  */
 
 		/* auto calculated quantities */
-		float dblSqEpsilon;  						/* store for epsilon squared value      */
+		float fltSqEpsilon;  						/* store for epsilon squared value      */
 	} ALNCONSTRAINT;
 
-	/* LFN split structure - dblRespTotal is used in two different ways:
+	/* LFN split structure - fltRespTotal is used in two different ways:
 		 1. during training of linear pieces and
 		 2. during tree growth by pieces splitting */
 	typedef struct tagALNLFNSPLIT
 	{
 		int nCount;
-		float dblSqError;                /* squared error                       */
-		float dblRespTotal;              /* total response                      */
-		float dblT;                      /* convexity criterion								 */
+		float fltSqError;                /* squared error                       */
+		float fltRespTotal;              /* total response                      */
+		float fltT;                      /* convexity criterion								 */
 	} ALNLFNSPLIT;
 
 	/* node structure -------------------------------------------------------- */
@@ -213,7 +213,7 @@ extern "C" {
 		int fNode;                        /* node flags (NF_*, LF_*, GF_*)       */
 		int nRespCount;                   /* responsibility count current epoch  */
 		int nRespCountLastEpoch;          /* responsibility count previous epoch */
-		float dblDistance;               /* distance to current input point     */
+		float fltDistance;               /* distance to current input point     */
 
 		union tagDATA
 		{
@@ -221,22 +221,22 @@ extern "C" {
 			{
 				char* afVarMap;               /* var index bitmap,                   */
 											  /*   currently unused, must be NULL    */
-				int nVDim;                    /* vector dimensions, except adblW     */
-				float* adblW;                /* weight vector, nVDim + 1 elements   */
-				float* adblC;                /* centroid vector                     */
-				float* adblD;                /* ave sq dist from centroid vector    */
+				int nVDim;                    /* vector dimensions, except afltW     */
+				float* afltW;                /* weight vector, nVDim + 1 elements   */
+				float* afltC;                /* centroid vector                     */
+				float* afltD;                /* ave sq dist from centroid vector    */
 				ALNLFNSPLIT* pSplit;          /* split structure                     */
 			} LFN;
 			struct tagMINMAX
 			{
-				float dblRespActive;           /* response on active child          */
+				float fltRespActive;           /* response on active child          */
 				struct tagALNNODE* pActiveChild;/* active child on current input     */
 				struct tagALNNODE* pGoalChild;  /* goal child on current input       */
 				struct tagALNNODE* pEvalChild;  /* first eval child on current input */
 				float* pCentroid;              /* centroid of the samples activating this node -- allocate nDim - 1 floats at split*/
 				float* pNormal;                /* normal to hyperplane between left child and centroid -- allocate as above */
 				float* pSigma;                 /* estimated half-width of a node beyond which the leaves are cut off -- allocate as above*/
-				float  dblThreshold;           /* a constant to which the dot product of X with the normal is to be compared*/
+				float  fltThreshold;           /* a constant to which the dot product of X with the normal is to be compared*/
 				long SampleCount;               /* current count of samples under this node */
 				union tagCHILDREN
 				{
@@ -259,47 +259,47 @@ extern "C" {
 	{
 		int nParentRegion;                /* index of parent region in ALN       */
 																			/*   currently unused, must be -1      */
-		float dblLearnFactor;	          /* learning rate factor                */
+		float fltLearnFactor;	          /* learning rate factor                */
 		char* afVarMap;                   /* var index bitmap,                   */
 																			/*   currently unused, must be NULL    */
 		int nConstr;                      /* number of constraints in array      */
 		ALNCONSTRAINT* aConstr;           /* array of constraints                */
 
-		float dblSmoothEpsilon;          /* smoothing epsilon                   */
+		float fltSmoothEpsilon;          /* smoothing epsilon                   */
 
 		/* auto calculated quantities */
-		float dbl4SE;                    /* 4 * smoothing epsilon, not used               */
-		float dblOV16SE;                 /* 1 / 16 * not used         */
+		float flt4SE;                    /* 4 * smoothing epsilon, not used               */
+		float fltOV16SE;                 /* 1 / 16 * not used         */
 	} ALNREGION;
 
 	/* confidence interval structure ----------------------------------------- */
 	typedef struct tagALNCONFIDENCE
 	{
-		float dblP;          /* one-sided tail probability, the actual          */
+		float fltP;          /* one-sided tail probability, the actual          */
 													/* symmetric confidence interval is 1 - 2p         */
-		float dblLowerBound; /* upper bound on error                            */
-		float dblUpperBound; /* lower bound on error                            */
+		float fltLowerBound; /* upper bound on error                            */
+		float fltUpperBound; /* lower bound on error                            */
 		int    nSamples;      /* number of samples used when calculating bounds  */
 	} ALNCONFIDENCE;
 
 	/* LFN analysis structures ----------------------------------------------- */
 	typedef struct tagLFNSTATS
 	{
-		float dblRSS;        /* regression sum of squares                       */
-		float dblESS;        /* Error (residual) sum of squares                 */
-		float dblDF;         /* degrees of freedom                              */
-		float dblR2;         /* doefficient of determination                    */
-		float dblSEE;        /* standard error of estimation                    */
-		float dblF;          /* F-statistic                                     */
-		float dblFp;         /* probability of F                                */
+		float fltRSS;        /* regression sum of squares                       */
+		float fltESS;        /* Error (residual) sum of squares                 */
+		float fltDF;         /* degrees of freedom                              */
+		float fltR2;         /* doefficient of determination                    */
+		float fltSEE;        /* standard error of estimation                    */
+		float fltF;          /* F-statistic                                     */
+		float fltFp;         /* probability of F                                */
 	} LFNSTATS;
 
 	typedef struct tagLFNWEIGHTSTATS
 	{
-		float dblW;          /* value of weight                                 */
-		float dblSEw;        /* standard error of the weight                    */
-		float dblT;          /* T-statistic                                     */
-		float dblTp;         /* probability of T                                */
+		float fltW;          /* value of weight                                 */
+		float fltSEw;        /* standard error of the weight                    */
+		float fltT;          /* T-statistic                                     */
+		float fltTp;         /* probability of T                                */
 	} LFNWEIGHTSTATS;
 
 
@@ -330,7 +330,7 @@ extern "C" {
 		int nSample;               /* training or eval sequence number            */
 		int bNeedData;            /* TRUE if callback must supply data           */
 		const VARINFO* aVarInfo;  /* VARINFO array, may be NULL                  */
-		float* adblX;	          /* input vector, can be modified               */
+		float* afltX;	          /* input vector, can be modified               */
 	} VECTORINFO;
 
 	/* structures used for passing info to training notification procedure     */
@@ -339,7 +339,7 @@ extern "C" {
 		int nEpoch;					      /* epoch number                                */
 		int nLFNs;					      /* number of LFNs in ALN                       */
 		int nActiveLFNs;			    /* number of active LFNs in ALN                */
-		float dblEstRMSErr;	    /* estimated RMS error                         */
+		float fltEstRMSErr;	    /* estimated RMS error                         */
 	} EPOCHINFO;
 
 	typedef struct tagTRAININFO
@@ -347,32 +347,32 @@ extern "C" {
 		int nEpochs;					    /* total number of epochs required,            */
 		int nLFNs;						    /* number of LFNs in ALN                       */
 		int nActiveLFNs;			    /* number of resp. LFNs in ALN, 0 at start     */
-		float dblRMSErr;			    /* RMS error, 0 at start                       */
+		float fltRMSErr;			    /* RMS error, 0 at start                       */
 	} TRAININFO;
 
 	typedef struct tagADAPTINFO
 	{
 		int nAdapt;						    /* adaptation sequence number                  */
-		const float* adblX;	    /* training vector                             */
-		float dblErr;				    /* signed distance from point to surface       */
+		const float* afltX;	    /* training vector                             */
+		float fltErr;				    /* signed distance from point to surface       */
 	} ADAPTINFO;
 
 	typedef struct tagLFNADAPTINFO
 	{
-		const float* adblX;      /* training vector                             */
+		const float* afltX;      /* training vector                             */
 		ALNNODE* pLFN;            /* pointer to adapting LFN                     */
-		float dblResponse;       /* the weight on the adapting LFN              */
-		float dblError;          /* global error we are adapting to             */
+		float fltResponse;       /* the weight on the adapting LFN              */
+		float fltError;          /* global error we are adapting to             */
 	} LFNADAPTINFO;
 
 	typedef struct tagALNDATAINFO
 	{
-		float* adblTRdata;			/* data array...NULL -- initialized after ALN initialization.                   */
+		float* afltTRdata;			/* data array...NULL -- initialized after ALN initialization.                   */
 		long nTRmaxSamples;		/* the greatest number of samples allowed in this ALN's buffer					*/
-		long nTRcurrSamples;			/* number of data samples currently in this ALN's training buffer adblTRdata	*/
+		long nTRcurrSamples;			/* number of data samples currently in this ALN's training buffer afltTRdata	*/
 		int nTRcols;			/* columns in this ALN's data buffer -- training samples + noise variance data	*/
 		long nTRinsert;			/* the next insertion point for a new sample in this circular buffer			*/
-		float dblMSEorF;			/* split criterion:this if > 0, F-test if <= 0          MYTEST, used as dblLimit*/
+		float fltMSEorF;			/* split criterion:this if > 0, F-test if <= 0          MYTEST, used as fltLimit*/
 		const VARINFO* aVarInfo;	/* variable info = NULL,later max partial derivatives of noise variance ??		*/
 	} ALNDATAINFO;
 
@@ -466,8 +466,8 @@ extern "C" {
 		ALNDATAINFO* pDataInfo,
 		const ALNCALLBACKINFO* pCallbackInfo,
 		int nMaxEpochs,
-		float dblMinRMSErr,
-		float dblLearnRate,
+		float fltMinRMSErr,
+		float fltLearnRate,
 		BOOL bJitter);
 
 	/*
@@ -477,7 +477,7 @@ extern "C" {
 	ALNIMP int ALNAPI ALNCalcRMSError(const ALN* pALN,
 		ALNDATAINFO* pDataInfo,
 		const ALNCALLBACKINFO* pCallbackInfo,
-		float* pdblRMSErr);
+		float* pfltRMSErr);
 
 	/*
 	// ALN variable monotonicity type
@@ -496,13 +496,13 @@ extern "C" {
 	ALNIMP int ALNAPI ALNEval(const ALN* pALN,
 		ALNDATAINFO* pDataInfo,
 		const ALNCALLBACKINFO* pCallbackInfo,
-		float* adblResult,
+		float* afltResult,
 		int* pnStart, int* pnEnd);
 
 	/*
 	// quick evaluation of ALN on single vector
 	*/
-	ALNIMP float ALNAPI ALNQuickEval(const ALN* pALN, const float* adblX,
+	ALNIMP float ALNAPI ALNQuickEval(const ALN* pALN, const float* afltX,
 		ALNNODE** ppActiveLFN);
 
 
@@ -513,9 +513,9 @@ extern "C" {
 
 	/*
 	// calc the confidence intervals for a data set
-	// the ALNCONFIDENCE structure must have its dblP member intialized
+	// the ALNCONFIDENCE structure must have its fltP member intialized
 	// to contain the desired area in each tail outside the confidence
-	// interval - dblP must be greater than 0 and less than 0.5
+	// interval - fltP must be greater than 0 and less than 0.5
 	// returns ALN_* error code, (ALN_NOERROR on success)
 	*/
 	ALNIMP int ALNAPI ALNCalcConfidence(const ALN* pALN,
@@ -526,26 +526,26 @@ extern "C" {
 	/*
 	// confidence in the confidence intervals:
 	// calculates a value PLimit such that there is only a chance
-	// dblSignificance (usually 0.05 or 0.01) that the interval bounds
+	// fltSignificance (usually 0.05 or 0.01) that the interval bounds
 	// in pConfidence would have been chosen to bound tails of area
-	// dblPLimit
+	// fltPLimit
 	*/
 	ALNIMP int ALNAPI ALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-		float dblSignificance,
-		float* pdblPLimit);
+		float fltSignificance,
+		float* pfltPLimit);
 
 
 	/*
 	// confidence in the confidence intervals:
 	// calculates probability that the confidence interval in pConfidence
 	// covers a specified minimum fraction (tolerance interval) of the
-	// symmetric distribution having area dblInterval (usually
-	// 1 - 4 * pConfidence->dblP)
+	// symmetric distribution having area fltInterval (usually
+	// 1 - 4 * pConfidence->fltP)
 	*/
 
 	ALNIMP int ALNAPI ALNConfidenceTLimit(const ALNCONFIDENCE* pConfidence,
-		float dblInterval,
-		float* pdblTLimit);
+		float fltInterval,
+		float* pfltTLimit);
 
 
 	/*
@@ -619,7 +619,7 @@ extern "C" {
 	// returns index of new region in ALN, -1 on failure
 	*/
 	ALNIMP int ALNAPI ALNAddRegion(ALN* pALN, int nParentRegion,
-		float dblLearnFactor,
+		float fltLearnFactor,
 		int nConstr, int* anConstr);
 
 #endif /* ENABLE_REGIONS */

@@ -47,21 +47,21 @@ static char THIS_FILE[] = __FILE__;
 // NOTE: currently only supports evaluation using default output variable
 // NOTE: for efficiency reasons, there is _no_ parameter checking performed
 //   and no error return value
-ALNIMP float ALNAPI ALNQuickEval(const ALN* pALN, const float* adblX,
+ALNIMP float ALNAPI ALNQuickEval(const ALN* pALN, const float* afltX,
                                   ALNNODE** ppActiveLFN)
 {
   ASSERT(pALN);
-  ASSERT(adblX);
+  ASSERT(afltX);
 
 	// CUTOFF_EVAL returns distance from surface to point in the direction of
 	// the default output variable, so we need to add that in to get the actual
 	// surface value
 
   ALNNODE* pActiveLFN;
-  float dbl =  adblX[pALN->nOutput] + CutoffEval(pALN->pTree, pALN, adblX, 
+  float flt =  afltX[pALN->nOutput] + CutoffEval(pALN->pTree, pALN, afltX, 
                                                   CEvalCutoff(), &pActiveLFN);
   if (ppActiveLFN)
     *ppActiveLFN = pActiveLFN;
 
-  return dbl;
+  return flt;
 }

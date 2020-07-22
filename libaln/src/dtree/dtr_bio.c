@@ -152,8 +152,8 @@ int ReadBinDtreeFile(FILE* pFile, DTREE** ppDtree)
       (*ppDtree)->aVarDefs[i].pszName[nLen] = '\0';
     }
     
-    READ_OBJ((*ppDtree)->aVarDefs[i].bound.dblMin);
-    READ_OBJ((*ppDtree)->aVarDefs[i].bound.dblMax);
+    READ_OBJ((*ppDtree)->aVarDefs[i].bound.fltMin);
+    READ_OBJ((*ppDtree)->aVarDefs[i].bound.fltMax);
   }
 
   /* read linear forms */
@@ -167,9 +167,9 @@ int ReadBinDtreeFile(FILE* pFile, DTREE** ppDtree)
   }
   for (i = 0; i < (*ppDtree)->nLinearForms; i++)
   {
-    READ_OBJ((*ppDtree)->aLinearForms[i].dblBias);
-    READ_ARRAY((*ppDtree)->aLinearForms[i].adblW, sizeof(float), (*ppDtree)->nDim);
-    READ_ARRAY((*ppDtree)->aLinearForms[i].adblC, sizeof(float), (*ppDtree)->nDim);
+    READ_OBJ((*ppDtree)->aLinearForms[i].fltBias);
+    READ_ARRAY((*ppDtree)->aLinearForms[i].afltW, sizeof(float), (*ppDtree)->nDim);
+    READ_ARRAY((*ppDtree)->aLinearForms[i].afltC, sizeof(float), (*ppDtree)->nDim);
   }
 
   /* write blocks */
@@ -207,7 +207,7 @@ int ReadBinDtreeFile(FILE* pFile, DTREE** ppDtree)
     }
     else
     {
-      READ_OBJ((*ppDtree)->aNodes[i].info.node.dblT);
+      READ_OBJ((*ppDtree)->aNodes[i].info.node.fltT);
       READ_OBJ((*ppDtree)->aNodes[i].info.node.nVarIndex);
       READ_OBJ((*ppDtree)->aNodes[i].info.node.nLeftIndex);
       READ_OBJ((*ppDtree)->aNodes[i].info.node.nRightIndex);
@@ -314,16 +314,16 @@ int WriteBinDtreeFile(FILE* pFile, DTREE* pDtree)
     if (nLen > 0)
       WRITE_ARRAY(pDtree->aVarDefs[i].pszName, sizeof(char), nLen);
     
-    WRITE_OBJ(pDtree->aVarDefs[i].bound.dblMin);
-    WRITE_OBJ(pDtree->aVarDefs[i].bound.dblMax);
+    WRITE_OBJ(pDtree->aVarDefs[i].bound.fltMin);
+    WRITE_OBJ(pDtree->aVarDefs[i].bound.fltMax);
   }
 
   /* write linear forms */
   for (i = 0; i < pDtree->nLinearForms; i++)
   {
-    WRITE_OBJ(pDtree->aLinearForms[i].dblBias);
-    WRITE_ARRAY(pDtree->aLinearForms[i].adblW, sizeof(float), pDtree->nDim);
-    WRITE_ARRAY(pDtree->aLinearForms[i].adblC, sizeof(float), pDtree->nDim);
+    WRITE_OBJ(pDtree->aLinearForms[i].fltBias);
+    WRITE_ARRAY(pDtree->aLinearForms[i].afltW, sizeof(float), pDtree->nDim);
+    WRITE_ARRAY(pDtree->aLinearForms[i].afltC, sizeof(float), pDtree->nDim);
   }
 
   /* write blocks */
@@ -347,7 +347,7 @@ int WriteBinDtreeFile(FILE* pFile, DTREE* pDtree)
     }
     else
     {
-      WRITE_OBJ(pDtree->aNodes[i].info.node.dblT);
+      WRITE_OBJ(pDtree->aNodes[i].info.node.fltT);
       WRITE_OBJ(pDtree->aNodes[i].info.node.nVarIndex);
       WRITE_OBJ(pDtree->aNodes[i].info.node.nLeftIndex);
       WRITE_OBJ(pDtree->aNodes[i].info.node.nRightIndex);

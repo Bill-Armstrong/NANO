@@ -68,10 +68,10 @@ ALNIMP ALN* ALNAPI ALNCreateALN(int nDim, int nOutput)
   pALN->aRegions->nParentRegion = -1;  // no parent
 
   // default region learn factor
-  pALN->aRegions->dblLearnFactor = 1.0;
+  pALN->aRegions->fltLearnFactor = 1.0;
   
   // region smoothing epsilon - disabled
-  pALN->aRegions->dblSmoothEpsilon = 0.0;
+  pALN->aRegions->fltSmoothEpsilon = 0.0;
   
   // allocate and init region var constraints
   pALN->aRegions->aConstr = (ALNCONSTRAINT*)malloc(nDim * sizeof(ALNCONSTRAINT));
@@ -84,19 +84,19 @@ ALNIMP ALN* ALNAPI ALNCreateALN(int nDim, int nOutput)
   for (int i = 0; i < nDim; i++)
   {
     pALN->aRegions->aConstr[i].nVarIndex = i;
-    pALN->aRegions->aConstr[i].dblMin = FLT_MIN;
-    pALN->aRegions->aConstr[i].dblMax = FLT_MAX;
-    pALN->aRegions->aConstr[i].dblEpsilon = 0.0001;
+    pALN->aRegions->aConstr[i].fltMin = FLT_MIN;
+    pALN->aRegions->aConstr[i].fltMax = FLT_MAX;
+    pALN->aRegions->aConstr[i].fltEpsilon = 0.0001;
     
     if (i != nOutput)
     {
-      pALN->aRegions->aConstr[i].dblWMin = -1000000.0;
-      pALN->aRegions->aConstr[i].dblWMax = 1000000.0;
+      pALN->aRegions->aConstr[i].fltWMin = -1000000.0;
+      pALN->aRegions->aConstr[i].fltWMax = 1000000.0;
     }
     else
     {
-      pALN->aRegions->aConstr[i].dblWMin = -1.0;
-      pALN->aRegions->aConstr[i].dblWMax = -1.0;
+      pALN->aRegions->aConstr[i].fltWMin = -1.0;
+      pALN->aRegions->aConstr[i].fltWMax = -1.0;
     }
   }
 
@@ -218,7 +218,7 @@ ALNIMP int ALNAPI ALNDestroyALN(ALN* pALN)
 //   ... returns index of new region in ALN, -1 on failure
 //   
 ALNIMP int ALNAPI ALNAddRegion(ALN* pALN, int nParentRegion, 
-                               float dblLearnFactor, 
+                               float fltLearnFactor, 
                                int nConstr, int* anConstr)
 {
   if (pALN == NULL)
@@ -233,7 +233,7 @@ ALNIMP int ALNAPI ALNAddRegion(ALN* pALN, int nParentRegion,
   if ((nConstr > 0 && nConstr < pALN->nDim) && anConstr == NULL)
     return -1;
 
-  if (dblLearnFactor < 0)
+  if (fltLearnFactor < 0)
     return -1;
   
   // allocate var map?
@@ -307,15 +307,15 @@ ALNIMP int ALNAPI ALNAddRegion(ALN* pALN, int nParentRegion,
 
   // assign region members
   aRegions[nNewRegion].nParentRegion = nParentRegion;
-  aRegions[nNewRegion].dblLearnFactor = dblLearnFactor;
+  aRegions[nNewRegion].fltLearnFactor = fltLearnFactor;
   aRegions[nNewRegion].nConstr = nConstr;
   aRegions[nNewRegion].aConstr = aConstr;
   aRegions[nNewRegion].afVarMap = afVarMap;
 
   // smoothing memebrs initially uncalculated (will be calc'ed in PrepALN)
-  aRegions[nNewRegion].dblSmoothEpsilon = 0;   // TODO: this should be a param!
-  aRegions[nNewRegion].dbl4SE = 0;                    
-  aRegions[nNewRegion].dblOV16SE = 0;                 
+  aRegions[nNewRegion].fltSmoothEpsilon = 0;   // TODO: this should be a param!
+  aRegions[nNewRegion].flt4SE = 0;                    
+  aRegions[nNewRegion].fltOV16SE = 0;                 
 
   return nNewRegion;
 }
@@ -382,7 +382,7 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
       pChild->nParentRegion = pParent->nParentRegion;
       pChild->nRespCount = 0;
       pChild->nRespCountLastEpoch = 0;
-      pChild->dblDistance = 0;
+      pChild->fltDistance = 0;
 
       // allocate vectors
       LFN_SPLIT(pChild) = NULL;
@@ -415,26 +415,26 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
         // shift LFN output value up or down depending on parent minmax type
 				// the shifts are different but close so the two children differentiate
 				// and the combined effect is not to change the value of the single LFN
-        float dblSE = pALN->aRegions[pChild->nParentRegion].dblSmoothEpsilon;
+        float fltSE = pALN->aRegions[pChild->nParentRegion].fltSmoothEpsilon;
 				int nOutput = pALN->nOutput;
 				// The following avoids a crash due to wrongly picking the active leaf node when there is a tie 
-				float dblChange;
+				float fltChange;
 				// 2009.11.19  This change has to be tiny because it affects the fillets!
-				//dblChange = (0.9343727 + i * 0.1334818) * dblSE; old values where did they come from?
+				//fltChange = (0.9343727 + i * 0.1334818) * fltSE; old values where did they come from?
 				// When a piece splits into two equal leaf nodes, there is a fillet inserted so both pieces have to move
 				// in the output direction to leave the function unchanged
 				// THE FOLLOWING CURES A BUG WHEN TWO LFN's ARE EQUAL
-				dblChange = i * 0.00001F + dblSE; // only one child get the tiny increment so equality of LFNs is very rare for training points
+				fltChange = i * 0.00001F + fltSE; // only one child get the tiny increment so equality of LFNs is very rare for training points
 
         if (nParentMinMaxType == GF_MIN)
 				{
-          *LFN_W(pChild) += dblChange;
-					LFN_C(pChild)[nOutput] += dblChange;
+          *LFN_W(pChild) += fltChange;
+					LFN_C(pChild)[nOutput] += fltChange;
 				}
         else
 				{
-          *LFN_W(pChild) -= dblChange;
-					LFN_C(pChild)[nOutput] -= dblChange;
+          *LFN_W(pChild) -= fltChange;
+					LFN_C(pChild)[nOutput] -= fltChange;
 				}
 
         // set LFN initialized
@@ -486,7 +486,7 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
   float* pCentroidTemp;
   float* pSigmaTemp;
   float* pNormalTemp;
-  float dblThresholdTemp = 0;
+  float fltThresholdTemp = 0;
   int nDim = pALN->nDim;
   pCentroidTemp = (float*)malloc((nDim) * sizeof(float)); // The centroid could have a meaningful value which is not used in a MINMAX
   pNormalTemp = (float*)malloc(nDim * sizeof(float)); // We spend an extra float on this array, but only for a short time.

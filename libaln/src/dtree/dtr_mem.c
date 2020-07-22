@@ -289,20 +289,20 @@ DTRIMP LINEARFORM* DTREEAPI CreateLinearFormArray(int nForms, int nDim)
   for (i = 0; i < nForms; i++)
   {                                  
     /* weights */
-    if ((aForms[i].adblW = (float*)malloc(sizeVec)) == NULL)
+    if ((aForms[i].afltW = (float*)malloc(sizeVec)) == NULL)
     {
       DestroyLinearFormArray(aForms, nForms);
       return NULL;
     }
-    memset(aForms[i].adblW, 0, sizeVec);
+    memset(aForms[i].afltW, 0, sizeVec);
     
     /* centroid */
-    if ((aForms[i].adblC = (float*)malloc(sizeVec)) == NULL)
+    if ((aForms[i].afltC = (float*)malloc(sizeVec)) == NULL)
     {
       DestroyLinearFormArray(aForms, nForms);
       return NULL;
     }
-    memset(aForms[i].adblC, 0, sizeVec);
+    memset(aForms[i].afltC, 0, sizeVec);
   }
   
   return aForms;
@@ -318,8 +318,8 @@ DTRIMP void DTREEAPI DestroyLinearFormArray(LINEARFORM* aForms, int nForms)
   /* delete weight and centroid vectors */
   for (i = 0; i < nForms; i++)
   {
-    free(aForms[i].adblW);
-    free(aForms[i].adblC);
+    free(aForms[i].afltW);
+    free(aForms[i].afltC);
   }
                
   free(aForms);

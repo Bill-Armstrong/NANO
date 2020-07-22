@@ -68,16 +68,16 @@ int ALNAPI ValidateALNTrainInfo(const ALN* pALN,
                                        ALNDATAINFO* pDataInfo,
                                        const ALNCALLBACKINFO* pCallbackInfo,
                                        int nMaxEpochs,
-                                       float dblMinRMSErr,
-                                       float dblLearnRate);
+                                       float fltMinRMSErr,
+                                       float fltLearnRate);
 
 #ifdef _DEBUG
 void DebugValidateALNTrainInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
                                       int nMaxEpochs,
-                                      float dblMinRMSErr,
-                                      float dblLearnRate);
+                                      float fltMinRMSErr,
+                                      float fltLearnRate);
 #endif
 
 
@@ -85,8 +85,8 @@ static int ALNAPI DoTrainALN(ALN* pALN,
                              ALNDATAINFO* pDataInfo,
                              const ALNCALLBACKINFO* pCallbackInfo,
                              int nMaxEpochs,
-                             float dblMinRMSErr,
-                             float dblLearnRate,
+                             float fltMinRMSErr,
+                             float fltLearnRate,
                              BOOL bJitter);
 
 
@@ -95,12 +95,12 @@ ALNIMP int ALNAPI ALNTrain(ALN* pALN,
                            ALNDATAINFO* pDataInfo,
                            const ALNCALLBACKINFO* pCallbackInfo,
                            int nMaxEpochs,
-                           float dblMinRMSErr,
-                           float dblLearnRate,
+                           float fltMinRMSErr,
+                           float fltLearnRate,
                            BOOL bJitter)
 {
 	int nReturn; // = ValidateALNTrainInfo(pALN, pDataInfo, pCallbackInfo,
-    //                             nMaxEpochs, dblMinRMSErr, dblLearnRate); MYTEST stopping validation for training
+    //                             nMaxEpochs, fltMinRMSErr, fltLearnRate); MYTEST stopping validation for training
  
 	//if (nReturn == ALN_NOERROR)
   {
@@ -108,7 +108,7 @@ ALNIMP int ALNAPI ALNTrain(ALN* pALN,
     if (PrepALN(pALN))
     {
       nReturn = DoTrainALN(pALN, pDataInfo, pCallbackInfo,
-                           nMaxEpochs, dblMinRMSErr, dblLearnRate,
+                           nMaxEpochs, fltMinRMSErr, fltLearnRate,
                            bJitter);
     }
     else
@@ -126,13 +126,13 @@ static int ALNAPI DoTrainALN(ALN* pALN,
                              ALNDATAINFO* pDataInfo,
                              const ALNCALLBACKINFO* pCallbackInfo,
                              int nMaxEpochs,
-                             float dblMinRMSErr,
-                             float dblLearnRate,
+                             float fltMinRMSErr,
+                             float fltLearnRate,
                              BOOL bJitter)
 {
 	//#ifdef _DEBUG
 	// DebugValidateALNTrainInfo(pALN, pDataInfo, pCallbackInfo, nMaxEpochs, 
-	//                           dblMinRMSErr, dblLearnRate);
+	//                           fltMinRMSErr, fltLearnRate);
 	//#endif
 
 	int nReturn = ALN_NOERROR;		    // assume success
@@ -140,7 +140,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 	long nTRcurrSamples = pDataInfo->nTRcurrSamples;
 	ALNNODE* pTree = pALN->pTree;
 	DecayWeights(pTree, pALN, WeightBound, WeightDecay);
-	float* adblX;                    // input vector
+	float* afltX;                    // input vector
 	long* anShuffle = NULL;				    // point index shuffle array
 	CCutoffInfo* aCutoffInfo = NULL;  // eval cutoff speedup
 
@@ -153,7 +153,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 	ALNNOTIFYPROC pfnNotifyProc = (pCallbackInfo == NULL) ? NULL : pCallbackInfo->pfnNotifyProc;
 
 	// init traindata
-	traindata.dblLearnRate = dblLearnRate; // an epoch is 1 pass through the training data
+	traindata.fltLearnRate = fltLearnRate; // an epoch is 1 pass through the training data
 	traindata.nNotifyMask = nNotifyMask;
 	traindata.pvData = pvData;
 	traindata.pfnNotifyProc = pfnNotifyProc;
@@ -167,9 +167,9 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 	try	// main processing block
 	{
 		// allocate input vector
-			adblX = new float[nDim];
-		if (!adblX) ThrowALNMemoryException();
-		memset(adblX, 0, sizeof(float) * nDim); // this has space for all the inputs and the output value
+			afltX = new float[nDim];
+		if (!afltX) ThrowALNMemoryException();
+		memset(afltX, 0, sizeof(float) * nDim); // this has space for all the inputs and the output value
 
 		// allocate and init shuffle array
 		anShuffle = new long[nEnd - nStart + 1L];
@@ -193,12 +193,12 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 		traininfo.nEpochs = nMaxEpochs;
 		traininfo.nLFNs = nLFNs;
 		traininfo.nActiveLFNs = 0;
-		traininfo.dblRMSErr = 0.0;
+		traininfo.fltRMSErr = 0.0;
 	
 		epochinfo.nEpoch = 0;
 		epochinfo.nLFNs = nLFNs;
 		epochinfo.nActiveLFNs = nAdaptedLFNs;
-		epochinfo.dblEstRMSErr = 0.0;
+		epochinfo.fltEstRMSErr = 0.0;
     
 		// notify beginning of training
 		if (CanCallback(AN_TRAINSTART, pfnNotifyProc, nNotifyMask))
@@ -226,7 +226,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 			}
 
 			// track squared error
-			float dblSqErrorSum = 0;
+			float fltSqErrorSum = 0;
 
 			// We prepare a random reordering of the training data for the next epoch
 			Shuffle(nStart, nEnd, anShuffle);
@@ -241,15 +241,15 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 				
 
 				// fill input vector
-				FillInputVector(pALN, adblX, nTrainSample, nStart, pDataInfo, pCallbackInfo);
+				FillInputVector(pALN, afltX, nTrainSample, nStart, pDataInfo, pCallbackInfo);
 
 				// if we have our first data point, init LFNs on first pass
 				if (nEpoch == 0 && nSample == nStart)
-					InitLFNs(pTree, pALN, adblX);
+					InitLFNs(pTree, pALN, afltX);
 
 
 				// jitter the data point
-				if (bJitter) Jitter(pALN, adblX);
+				if (bJitter) Jitter(pALN, afltX);
 
 				// do an adapt eval to get active LFN and distance, and to prepare
 				// tree for adaptation
@@ -262,44 +262,44 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 				//if ((nEpoch > 1) && !LFN_CANSPLIT(pActiveLFN) && ( ALNRandFloat() > 0.5))	continue;
 				// END MYTEST
 
-				float dbl = AdaptEval(pTree, pALN, adblX, &cutoffinfo, &pActiveLFN);
+				float flt = AdaptEval(pTree, pALN, afltX, &cutoffinfo, &pActiveLFN);
 
 				// track squared error before adapt, since adapt routines
 				// do not relcalculate value of adapted surface
-				dblSqErrorSum += dbl * dbl;
+				fltSqErrorSum += flt * flt;
 
 				// notify start of adapt
 				if (CanCallback(AN_ADAPTSTART, pfnNotifyProc, nNotifyMask))
 				{
 					ADAPTINFO adaptinfo;
 					adaptinfo.nAdapt = nSample - nStart;
-					adaptinfo.adblX = adblX;
-					adaptinfo.dblErr = dbl;
+					adaptinfo.afltX = afltX;
+					adaptinfo.fltErr = flt;
 					Callback(pALN, AN_ADAPTSTART, &adaptinfo, pfnNotifyProc, pvData);
 				}
 
 				// do a useful adapt to correct any error
-				traindata.dblGlobalError = dbl;
-				if(nEpoch > 0) Adapt(pTree, pALN, adblX, 1.0, TRUE, &traindata);// we should not adapt in the epoch when counting hits!!
+				traindata.fltGlobalError = flt;
+				if(nEpoch > 0) Adapt(pTree, pALN, afltX, 1.0, TRUE, &traindata);// we should not adapt in the epoch when counting hits!!
 				// notify end of adapt
 				if (CanCallback(AN_ADAPTEND, pfnNotifyProc, nNotifyMask))
 				{
 					ADAPTINFO adaptinfo;
 					adaptinfo.nAdapt = nSample - nStart;
-					adaptinfo.adblX = adblX;
-					adaptinfo.dblErr = dbl;
+					adaptinfo.afltX = afltX;
+					adaptinfo.fltErr = flt;
 					Callback(pALN, AN_ADAPTEND, &adaptinfo, pfnNotifyProc, pvData);
 				}
 			}	// end for each point in data set
 
 
 			// estimate RMS error on training set for this epoch
-			epochinfo.dblEstRMSErr = sqrt(dblSqErrorSum / nTRcurrSamples);
+			epochinfo.fltEstRMSErr = sqrt(fltSqErrorSum / nTRcurrSamples);
 
 			// calc true RMS if estimate below min, or if last epoch, or every 10 epochs when jittering
-			if (epochinfo.dblEstRMSErr <= dblMinRMSErr || nEpoch == nMaxEpochs)
+			if (epochinfo.fltEstRMSErr <= fltMinRMSErr || nEpoch == nMaxEpochs)
 			{
-				epochinfo.dblEstRMSErr = DoCalcRMSError(pALN, pDataInfo, pCallbackInfo);
+				epochinfo.fltEstRMSErr = DoCalcRMSError(pALN, pDataInfo, pCallbackInfo);
 			}
 
 			// notify end of epoch
@@ -312,7 +312,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 			traininfo.nEpochs = nEpoch;
 			traininfo.nLFNs = epochinfo.nLFNs;
 			traininfo.nActiveLFNs = epochinfo.nActiveLFNs;
-			traininfo.dblRMSErr = epochinfo.dblEstRMSErr;	// used to terminate epoch loop
+			traininfo.fltRMSErr = epochinfo.fltEstRMSErr;	// used to terminate epoch loop
 			
 			if (nEpoch == nMaxEpochs - 1 && CanCallback(AN_EPOCHEND, pfnNotifyProc, nNotifyMask))
 			{
@@ -337,7 +337,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 			// we don't care if user changes it!
 			Callback(pALN, AN_TRAINEND, &traininfo, pfnNotifyProc, pvData);
 		}
-		delete[] adblX;
+		delete[] afltX;
 	}
 	catch (CALNUserException* e)	  // user abort exception
 	{
@@ -371,8 +371,8 @@ static int ALNAPI ValidateALNTrainInfo(const ALN* pALN,
                                        ALNDATAINFO* pDataInfo,
                                        const ALNCALLBACKINFO* pCallbackInfo,
                                        int nMaxEpochs,
-                                       float dblMinRMSErr,
-                                       float dblLearnRate)
+                                       float fltMinRMSErr,
+                                       float fltLearnRate)
 {
   int nReturn = ValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
   if (nReturn != ALN_NOERROR)
@@ -385,13 +385,13 @@ static int ALNAPI ValidateALNTrainInfo(const ALN* pALN,
   }
 
   // need non-negative error
-  if (dblMinRMSErr < 0)
+  if (fltMinRMSErr < 0)
   {
     return ALN_GENERIC;
   }
 
   // learnrate should be positive and probably no more than than 0.5
-	if (dblLearnRate < 0.0 || dblLearnRate > 0.5)
+	if (fltLearnRate < 0.0 || fltLearnRate > 0.5)
 	{
 		return ALN_GENERIC;
 	}
@@ -404,10 +404,10 @@ static void DebugValidateALNTrainInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
                                       int nMaxEpochs,
-                                      float dblMinRMSErr,
-                                      float dblLearnRate)
+                                      float fltMinRMSErr,
+                                      float fltLearnRate)
 {
   DebugValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
-  ASSERT(nMaxEpochs > 0 && dblMinRMSErr >= 0 && dblLearnRate > 0.0 && dblLearnRate <= 0.5);
+  ASSERT(nMaxEpochs > 0 && fltMinRMSErr >= 0 && fltLearnRate > 0.0 && fltLearnRate <= 0.5);
 }
 #endif

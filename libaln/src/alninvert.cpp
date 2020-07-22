@@ -120,12 +120,12 @@ void InvertLFN(ALNNODE* pTree, ALN* pALN, int nVar, int nMono)
   ASSERT(NODE_ISLFN(pTree));
     
   // get new output var weight
-  float* adblW = LFN_W(pTree);
-	float* adblC = LFN_C(pTree); // WWA
+  float* afltW = LFN_W(pTree);
+	float* afltC = LFN_C(pTree); // WWA
 
-  float dblWOutput = adblW[nVar + 1];  // account for bias weight
+  float fltWOutput = afltW[nVar + 1];  // account for bias weight
   
-  if (dblWOutput == 0)
+  if (fltWOutput == 0)
   { 
     ASSERT(nMono == MONO_WEAKINC || nMono == MONO_WEAKDEC || nMono == MONO_CONSTANT);
 
@@ -141,57 +141,57 @@ void InvertLFN(ALNNODE* pTree, ALN* pALN, int nVar, int nMono)
     ALNCONSTRAINT* pConstrOut = GetVarConstraint(NODE_REGION(pTree), pALN, 
                                                  pALN->nOutput);
     ASSERT(pConstrOut);
-    float dblEpsilon = pConstrOut->dblEpsilon;
+    float fltEpsilon = pConstrOut->fltEpsilon;
     
     // get min and max on new output var in topmost region
     ASSERT(pALN->aRegions[0].aConstr[nVar].nVarIndex == nVar);
-    float dblMin = pALN->aRegions[0].aConstr[nVar].dblMin;
-    float dblMax = pALN->aRegions[0].aConstr[nVar].dblMax;
+    float fltMin = pALN->aRegions[0].aConstr[nVar].fltMin;
+    float fltMax = pALN->aRegions[0].aConstr[nVar].fltMax;
   
     // calc new output
-    dblWOutput = dblEpsilon / (dblMax - dblMin);
-    ASSERT(dblWOutput > 0);
+    fltWOutput = fltEpsilon / (fltMax - fltMin);
+    ASSERT(fltWOutput > 0);
   
     // determine sign of output weight
     if (nMono != MONO_WEAKINC && nMono != MONO_STRONGINC)
-      dblWOutput *= -1; // make it a decreasing function
+      fltWOutput *= -1; // make it a decreasing function
 
     // otherwise leave it positive
   } 
   
-  ASSERT(dblWOutput != 0); // must not have a zero weight!
+  ASSERT(fltWOutput != 0); // must not have a zero weight!
 
   // re-normalize weights so new output var is -1
-  float dblFactor = -1.0 / dblWOutput;
+  float fltFactor = -1.0 / fltWOutput;
 
 #ifdef _DEBUG
   if (nMono == MONO_STRONGDEC || nMono == MONO_WEAKDEC || nMono == MONO_CONSTANT)
   {
     // expect factor to be positive
-    ASSERT(dblFactor > 0); 
+    ASSERT(fltFactor > 0); 
   }
   else
   {
     // expect factor to be negative 
-    ASSERT(dblFactor < 0); 
+    ASSERT(fltFactor < 0); 
   }
 #endif
 
   int nDim = pALN->nDim;
   for (int i = 0; i < nDim; i++) // don't include bias WWA
   {
-    adblW[i+1] *= dblFactor;
+    afltW[i+1] *= fltFactor;
   }
-  // explicitly set output var weight in case original adblW[nVar] was zero
-  adblW[nVar + 1] = -1.0; // account for bias weight
+  // explicitly set output var weight in case original afltW[nVar] was zero
+  afltW[nVar + 1] = -1.0; // account for bias weight
 
 	// recalculate the bias weight from the new weights and the centroid WWA
 	float sum = 0.0;
 	for(int i = 0; i < nDim; i++) //WWA
 	{
-		sum += adblW[i+1] * adblC[i];  // there is no bias centroid component WWA
+		sum += afltW[i+1] * afltC[i];  // there is no bias centroid component WWA
 	}
-	adblW[0] = - sum;
+	afltW[0] = - sum;
 }
 
 void InvertConstraints(ALN* pALN, int nVar)
@@ -216,13 +216,13 @@ void InvertConstraints(ALN* pALN, int nVar)
 			// leave the existing ranges of variables unchanged
 			if (n != pALN->nOutput)
 			{
-				pALN->aRegions->aConstr[n].dblWMin = -1000000.0F;
-				pALN->aRegions->aConstr[n].dblWMax = 1000000.0F;
+				pALN->aRegions->aConstr[n].fltWMin = -1000000.0F;
+				pALN->aRegions->aConstr[n].fltWMax = 1000000.0F;
 			}
 			else
 			{
-				pALN->aRegions->aConstr[n].dblWMin = -1.0F;
-				pALN->aRegions->aConstr[n].dblWMax = -1.0F;
+				pALN->aRegions->aConstr[n].fltWMin = -1.0F;
+				pALN->aRegions->aConstr[n].fltWMax = -1.0F;
 			}
 		}
 	}

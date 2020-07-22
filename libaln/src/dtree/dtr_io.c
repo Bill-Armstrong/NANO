@@ -70,7 +70,7 @@ typedef struct tagTOKEN
   union
   {
     long l;
-    float dbl;
+    float flt;
     char sz[MAXTOKLEN];
   } value;
 } TOKEN;        
@@ -412,13 +412,13 @@ int GetVarDef(FILE* pFile, VARDEF* pVarDef)
     return DTR_MISSINGVARBOUNDSTART;
   if (GetDoubleToken(pFile, &tok) != L_DBL)  /* minimum */
     return DTR_BADVARBOUND;
-  pVarDef->bound.dblMin = tok.value.dbl;
+  pVarDef->bound.fltMin = tok.value.flt;
   if (GetToken(pFile, &tok) != ',')           /* comma */
     return DTR_MISSINGVARBOUNDCOMMA;
   if (GetDoubleToken(pFile, &tok) != L_DBL)  /* maximum */
     return DTR_BADVARBOUND;
-  pVarDef->bound.dblMax = tok.value.dbl;
-  if (pVarDef->bound.dblMin >= pVarDef->bound.dblMax) /* check range */
+  pVarDef->bound.fltMax = tok.value.flt;
+  if (pVarDef->bound.fltMin >= pVarDef->bound.fltMax) /* check range */
     return DTR_NEGATIVEVARBOUNDRANGE;
   if (GetToken(pFile, &tok) != ']')           /* ']' */
     return DTR_MISSINGVARBOUNDSTART;
@@ -571,16 +571,16 @@ int GetLinearForm(FILE* pFile, int nDim, int nOutput, LINEARFORM* pLF,
   /* init linear form to have all zero weights, centroid */
   for (i = 0; i < nDim; i++)
   {
-    pLF->adblW[i] = 0;
-    pLF->adblC[i] = 0;
+    pLF->afltW[i] = 0;
+    pLF->afltC[i] = 0;
   }
 
   /* get token */
   nType = GetToken(pFile, &tok);
   while(nType != ';')
   {
-    float dblW;
-    float dblC;
+    float fltW;
+    float fltC;
     int nVarIndex;
     int nCSign;
                 
@@ -593,7 +593,7 @@ int GetLinearForm(FILE* pFile, int nDim, int nOutput, LINEARFORM* pLF,
     /* get weight */   
     if (nType == L_INT)
     {
-      tok.value.dbl = tok.value.l;
+      tok.value.flt = tok.value.l;
       nType = L_DBL;
     }
     if (nType != L_DBL)
@@ -601,8 +601,8 @@ int GetLinearForm(FILE* pFile, int nDim, int nOutput, LINEARFORM* pLF,
       nErr = DTR_BADLINEARWEIGHT;
       goto LINEARFORM_ERR;
     }
-    dblW = tok.value.dbl;
-    if (bNeg) dblW = -dblW;
+    fltW = tok.value.flt;
+    if (bNeg) fltW = -fltW;
     
     /* get centroid expr. */
     if (GetToken(pFile, &tok) != '(')
@@ -650,8 +650,8 @@ int GetLinearForm(FILE* pFile, int nDim, int nOutput, LINEARFORM* pLF,
       nErr = DTR_BADLINEARCENTROID;
       goto LINEARFORM_ERR;
     }
-    dblC = tok.value.dbl;
-    if (bNeg) dblC = -dblC;
+    fltC = tok.value.flt;
+    if (bNeg) fltC = -fltC;
     
     /* get close paren */
     if (GetToken(pFile, &tok) != ')')
@@ -661,8 +661,8 @@ int GetLinearForm(FILE* pFile, int nDim, int nOutput, LINEARFORM* pLF,
     }
                  
     /* assign weight and centroid, and mark as seen */
-    pLF->adblW[nVarIndex] = dblW;
-    pLF->adblC[nVarIndex] = dblC;
+    pLF->afltW[nVarIndex] = fltW;
+    pLF->afltC[nVarIndex] = fltC;
     SETMAP(aVarMap, nVarIndex); 
     
     /* lookahead */
@@ -682,13 +682,13 @@ int GetLinearForm(FILE* pFile, int nDim, int nOutput, LINEARFORM* pLF,
   if (nOutput >= nDim)                /* verify output index */
     return DTR_BADOUTPUTRANGE;
                                    
-  if (pLF->adblW[nOutput] == 0)       /* make sure output weight != 0 */
+  if (pLF->afltW[nOutput] == 0)       /* make sure output weight != 0 */
     return DTR_ZEROOUTPUTWEIGHT;
                      
   /* calc bias weight */
-  pLF->dblBias = 0;
+  pLF->fltBias = 0;
   for (i = 0; i < nDim; i++)
-    pLF->dblBias -= pLF->adblW[i] * pLF->adblC[i];
+    pLF->fltBias -= pLF->afltW[i] * pLF->afltC[i];
 
 LINEARFORM_ERR:
 
@@ -740,9 +740,9 @@ int GetDtreeNode(FILE* pFile, BLOCK* aBlocks, int nBlocks, VARDEF* aVarDefs,
       return DTR_MISSINGDTREELE; 
     if (GetDoubleToken(pFile, &tok) != L_DBL)  /* threshold */
       return DTR_MISSINGDTREETHRESHOLD;
-    DNODE_THRESHOLD(pNode) = tok.value.dbl;
-    if (DNODE_THRESHOLD(pNode) < aVarDefs[DNODE_VARINDEX(pNode)].bound.dblMin ||
-        DNODE_THRESHOLD(pNode) > aVarDefs[DNODE_VARINDEX(pNode)].bound.dblMax)
+    DNODE_THRESHOLD(pNode) = tok.value.flt;
+    if (DNODE_THRESHOLD(pNode) < aVarDefs[DNODE_VARINDEX(pNode)].bound.fltMin ||
+        DNODE_THRESHOLD(pNode) > aVarDefs[DNODE_VARINDEX(pNode)].bound.fltMax)
       return DTR_BADTHRESHOLDRANGE;         /* check thresh range */
     
     if (GetToken(pFile, &tok) != ')')       /* ')' */
@@ -936,7 +936,7 @@ int GetDoubleToken(FILE* pFile, TOKEN* pTok)
   int nType = GetToken(pFile, pTok);
   if (nType == L_INT)
   {
-    pTok->value.dbl = pTok->value.l;  /* convert int to float */
+    pTok->value.flt = pTok->value.l;  /* convert int to float */
     nType = L_DBL;
   }
   return nType;
@@ -1010,7 +1010,7 @@ int GetNumber(FILE* pFile, TOKEN* pTok)
 
   if (nDots > 0 || nE > 0)
   {           
-    pTok->value.dbl = atof(szTok);
+    pTok->value.flt = atof(szTok);
     nType = L_DBL;
   }
   else
@@ -1171,7 +1171,7 @@ int ExportDtreeFile(FILE* pFile, const char* pszFileName, DTREE* pDtree)
   { 
     static char _szVarDef[] = "%s : [%.19lg, %.19lg];\n";
     VARDEF* pV = pDtree->aVarDefs + i;
-    fprintf(pFile, _szVarDef, pV->pszName, pV->bound.dblMin, pV->bound.dblMax);
+    fprintf(pFile, _szVarDef, pV->pszName, pV->bound.fltMin, pV->bound.fltMax);
   }
   
   /* write output */
@@ -1199,27 +1199,27 @@ int ExportDtreeFile(FILE* pFile, const char* pszFileName, DTREE* pDtree)
     for (j = 0; j < pDtree->nDim; j++)
     {                  
       int nWSign, nCSign; 
-      float dblW, dblC;
+      float fltW, fltC;
     
-      if (pLF->adblW[j] == 0)
+      if (pLF->afltW[j] == 0)
         continue;               
       
-      dblW = pLF->adblW[j];
-      dblC = pLF->adblC[j];
+      fltW = pLF->afltW[j];
+      fltC = pLF->afltC[j];
 
       /* change signs in expression so weight and centroid are always positive */
-      if (dblW < 0 && nVarsOut > 0) /* only change sign on weight if not first var */
+      if (fltW < 0 && nVarsOut > 0) /* only change sign on weight if not first var */
       {
         nWSign = '-';
-        dblW = -dblW;
+        fltW = -fltW;
       }
       else
         nWSign = '+'; 
         
-      if (dblC < 0)
+      if (fltC < 0)
       {
         nCSign = '+';
-        dblC = -dblC;
+        fltC = -fltC;
       }
       else
         nCSign = '-';
@@ -1227,7 +1227,7 @@ int ExportDtreeFile(FILE* pFile, const char* pszFileName, DTREE* pDtree)
       if (nVarsOut > 0)
         fprintf(pFile, _szSign, nWSign);
         
-      fprintf(pFile, _szVar, dblW, pDtree->aVarDefs[j].pszName, nCSign, dblC);
+      fprintf(pFile, _szVar, fltW, pDtree->aVarDefs[j].pszName, nCSign, fltC);
       nVarsOut++;
     }
     /* write statement end */

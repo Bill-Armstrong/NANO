@@ -40,11 +40,11 @@ static char THIS_FILE[] = __FILE__;
 static void DebugValidateEvalTreeInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
-                                      float* adblResult,
+                                      float* afltResult,
                                       int* pnStart, int* pnEnd,
                                       ALNNODE** apActiveLFNs,
-                                      float* adblInput,
-                                      float* adblOutput);
+                                      float* afltInput,
+                                      float* afltOutput);
 #endif
 
 // evaluation of ALN on data
@@ -53,18 +53,18 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
                     const ALN* pALN,
                     ALNDATAINFO* pDataInfo,
                     const ALNCALLBACKINFO* pCallbackInfo,
-                    float* adblResult,
+                    float* afltResult,
                     int* pnStart, int* pnEnd,
                     BOOL bErrorResults /*= FALSE*/,
                     ALNNODE** apActiveLFNs /*= NULL*/,
-                    float* adblInput /*= NULL*/,
-                    float* adblOutput /*= NULL*/)
+                    float* afltInput /*= NULL*/,
+                    float* afltOutput /*= NULL*/)
 {
   ASSERT(pNode);
 #ifdef _DEBUG
   DebugValidateEvalTreeInfo(pALN, pDataInfo, pCallbackInfo,
-                            adblResult, pnStart, pnEnd, 
-                            apActiveLFNs, adblInput, adblOutput);
+                            afltResult, pnStart, pnEnd, 
+                            apActiveLFNs, afltInput, afltOutput);
 #endif
   
   int nDim = pALN->nDim;
@@ -85,7 +85,7 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
 
   // evaluation loop
   int nReturn = ALN_NOERROR;        // assume OK
-  float* adblX = NULL;             // eval vector
+  float* afltX = NULL;             // eval vector
   ALNNODE* pTree = pALN->pTree;		  // on stack for quicker access
   CCutoffInfo* aCutoffInfo = NULL;  
  
@@ -99,9 +99,9 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
 
 
   	// allocate input vector     
-   	adblX = new float[nDim];   
-    if (!adblX) ThrowALNMemoryException();
-    memset(adblX, 0, sizeof(float) * nDim);
+   	afltX = new float[nDim];   
+    if (!afltX) ThrowALNMemoryException();
+    memset(afltX, 0, sizeof(float) * nDim);
 
     // main loop
     ALNNODE* pActiveLFN = NULL;
@@ -109,26 +109,26 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
     {
 		nDimt2p1ti = nDimt2p1 * i;
       // fill input vector
-      FillInputVector(pALN, adblX, i - nStart, nStart, pDataInfo, pCallbackInfo);
+      FillInputVector(pALN, afltX, i - nStart, nStart, pDataInfo, pCallbackInfo);
 
       // copy input vector?
-      if (adblInput)
+      if (afltInput)
       {
         // get the input row
-        float* adblRow = adblInput + nDimt2p1ti; // Changed this to give the correct buffer width.
+        float* afltRow = afltInput + nDimt2p1ti; // Changed this to give the correct buffer width.
 
         // copy values
-        memcpy(adblRow, adblX, pALN->nDim * sizeof(float));
+        memcpy(afltRow, afltX, pALN->nDim * sizeof(float));
         
         // set the bias value in the output var spot
-        adblRow[pALN->nOutput] = 1.0; // should we change to - 1.0 from 1.0 ?
+        afltRow[pALN->nOutput] = 1.0; // should we change to - 1.0 from 1.0 ?
       }
 
       // copy desired output 
       // ... do this before setting output value in input vector to zero below
-      if (adblOutput)
+      if (afltOutput)
       {
-        adblOutput[i] = adblX[pALN->nOutput];
+        afltOutput[i] = afltX[pALN->nOutput];
       }
 
       // CutoffEval returns distance from surface to point in the direction of
@@ -136,14 +136,14 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
       // to get the actual surface value
       if (!bErrorResults)
       {
-        adblX[pALN->nOutput] = 0; // set output value to zero...
+        afltX[pALN->nOutput] = 0; // set output value to zero...
 
         // ... since output value is zero, the distance CutoffEval returns
         // is the value of the function surface
       }
 
       // get the distance from the point to the surface defined by the ALN
-      adblResult[i] = CutoffEval(pTree, pALN, adblX, CEvalCutoff(),
+      afltResult[i] = CutoffEval(pTree, pALN, afltX, CEvalCutoff(),
                                  &pActiveLFN);
       
       // save the active LFN
@@ -174,7 +174,7 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
   }
 
   // clear memory	
-	delete[] adblX;
+	delete[] afltX;
   return nReturn;
 }
 
@@ -183,14 +183,14 @@ int ALNAPI EvalTree(const ALNNODE* pNode,
 static void DebugValidateEvalTreeInfo(const ALN* pALN,
                                       ALNDATAINFO* pDataInfo,
                                       const ALNCALLBACKINFO* pCallbackInfo,
-                                      float* adblResult,
+                                      float* afltResult,
                                       int* pnStart, int* pnEnd,
                                       ALNNODE** apActiveLFNs,
-                                      float* adblInput,
-                                      float* adblOutput)
+                                      float* afltInput,
+                                      float* afltOutput)
 {
   DebugValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
   
-  ASSERT(adblResult != NULL);
+  ASSERT(afltResult != NULL);
 }
 #endif

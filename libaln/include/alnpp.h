@@ -81,23 +81,23 @@ public:
 
   // variable epsilon
   float GetEpsilon(int nVar, int nRegion = 0) const;
-  void SetEpsilon(float dblEpsilon, int nVar, int nRegion = 0);
+  void SetEpsilon(float fltEpsilon, int nVar, int nRegion = 0);
 
   // variable weight max/min
   float GetWeightMin(int nVar, int nRegion = 0) const;
-  void SetWeightMin(float dblWMin, int nVar, int nRegion = 0);
+  void SetWeightMin(float fltWMin, int nVar, int nRegion = 0);
   float GetWeightMax(int nVar, int nRegion = 0) const;
-  void SetWeightMax(float dblWMax, int nVar, int nRegion = 0);
+  void SetWeightMax(float fltWMax, int nVar, int nRegion = 0);
 
   // variable max/min
   float GetMin(int nVar, int nRegion = 0) const;
-  void SetMin(float dblMin, int nVar, int nRegion = 0);
+  void SetMin(float fltMin, int nVar, int nRegion = 0);
   float GetMax(int nVar, int nRegion = 0) const;
-  void SetMax(float dblMax, int nVar, int nRegion = 0);
+  void SetMax(float fltMax, int nVar, int nRegion = 0);
 
 	// aln data 
   ALNDATAINFO* GetDataInfo() { return &m_datainfo; }
-  void SetDataInfo(float* adblTRdata, const long nTRmaxSamples, long nTRcurrSamples, int nTRcols, long nTRinsert, const float dblMSEorF);
+  void SetDataInfo(float* afltTRdata, const long nTRmaxSamples, long nTRcurrSamples, int nTRcols, long nTRinsert, const float fltMSEorF);
                   
   // region (nRegion must be 0)
   ALNREGION* GetRegion(int nRegion = 0);
@@ -112,7 +112,7 @@ public:
 
   // region, tree growth
 #ifdef ENABLE_REGIONS
-  int AddRegion(int nParentRegion, float dblLearnFactor, 
+  int AddRegion(int nParentRegion, float fltLearnFactor, 
                 int nConstr, int* anConstr);
 #endif
   BOOL AddLFNs(ALNNODE* pParent, int nParentMinMaxType, 
@@ -127,7 +127,7 @@ public:
   BOOL Destroy();
 
   // training
-  BOOL Train(int nMaxEpochs, float dblMinRMSErr, float dblLearnRate,
+  BOOL Train(int nMaxEpochs, float fltMinRMSErr, float fltLearnRate,
              BOOL bJitter, int nNotifyMask = AN_NONE, 
              ALNDATAINFO* pData = NULL, void* pvData = NULL);
   
@@ -135,12 +135,12 @@ public:
                       void* pvData = NULL);
 
   // eval
-  BOOL Eval(float* adblResult, int* pnStart = NULL, int* pnEnd = NULL, 
+  BOOL Eval(float* afltResult, int* pnStart = NULL, int* pnEnd = NULL, 
             int nNotifyMask = AN_NONE, ALNDATAINFO* pData = NULL, 
             void* pvData = NULL);
 
   // quick eval
-  float QuickEval(const float* adblX, ALNNODE** ppActiveLFN = NULL);
+  float QuickEval(const float* afltX, ALNNODE** ppActiveLFN = NULL);
   
   // get variable monotonicicty, returns -1 on failure
   int VarMono(int nVar);
@@ -162,10 +162,10 @@ public:
                       ALNDATAINFO* pData = NULL, void* pvData = NULL);
 
   static float ConfidencePLimit(const ALNCONFIDENCE* pConfidence, 
-                                 float dblSignificance);
+                                 float fltSignificance);
 
   static float ConfidenceTLimit(const ALNCONFIDENCE* pConfidence, 
-                                 float dblInterval);
+                                 float fltInterval);
 
   // lfn analysis
   BOOL LFNAnalysis(void*& pvAnalysis,
@@ -223,7 +223,7 @@ public:
   operator ALN*() { return m_pALN; } 
 
   // TRdata buffer
-  void ALNAPI addTRsample(float* adblX, const int nDim);
+  void ALNAPI addTRsample(float* afltX, const int nDim);
   void ALNAPI reduceNoiseVariance();
 
 protected:

@@ -57,20 +57,20 @@ static void DebugValidateALNLFNAnalysis(const ALN* pALN,
 struct LFNSORT
 {
   ALNNODE* pActiveLFN;
-  float* adblInputRow;
-  float* adblOutputRow;
-	float* adblResultRow; //Added August 28, 1999.
+  float* afltInputRow;
+  float* afltOutputRow;
+	float* afltResultRow; //Added August 28, 1999.
 };
 static int __cdecl CompareLFNs(const void* pElem1, const void* pElem2);
 
 // helpers to calc T and F probability functions
-static float CalcProbF(float dblF, float dblV1, float dblV2);
-static float CalcProbT(float dblT, float dblV);
+static float CalcProbF(float fltF, float fltV1, float fltV2);
+static float CalcProbT(float fltT, float fltV);
 
 // helpers to calc error, regression, and total sum of squares
-static void CalcSquares(float* adblDesired, float* adblResult,
+static void CalcSquares(float* afltDesired, float* afltResult,
                         int nStart, int nEnd,
-                        float& dblESS, float& dblRSS, float& dblTSS);
+                        float& fltESS, float& fltRSS, float& fltTSS);
 
 // helpers to allocate / deallocate analysis storage
 struct LFNINFO
@@ -119,22 +119,22 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
   // arrays
 
   // evaltree results
-  float* adblResult = NULL;
+  float* afltResult = NULL;
   ALNNODE** apActiveLFNs = NULL;
-  float* adblInput = NULL;
-  float* adblOutput = NULL;
+  float* afltInput = NULL;
+  float* afltOutput = NULL;
   LFNSORT* aLFNSort = NULL;
 
   // covariance calculation (on single block of inputs and outputs for one LFN)
-  float* adblX = NULL;      // RMA based ALN input vectors (nRows * nCols); nCols = nDim
-  float* adblY = NULL;      // RMA based desired column vector (nRows); nRows = #points this LFN
-  float* adblC = NULL;      // RMA covariance matrix (nCols * nCols)
-  float* adblA = NULL;      // RMA fitted parameter vector (nCols); adblA can be computed by SVD
-  float* adblS = NULL;      // RMA std dev vector (nRows); output of SVD using adblX
-  float* adblU = NULL;      // RMA U matrix (nRows * nCols); output of SVD using adblX
-  float* adblV = NULL;      // RMA V matrix (nCols * nCols); output of SVD using adblX
-  float* adblW = NULL;      // RMA W matrix (nCols); singular values from the SVD of matrix adblX 
-  float* adblALN = NULL;    // RMA based ALN result column vector (nRows); the given fit to the data
+  float* afltX = NULL;      // RMA based ALN input vectors (nRows * nCols); nCols = nDim
+  float* afltY = NULL;      // RMA based desired column vector (nRows); nRows = #points this LFN
+  float* afltC = NULL;      // RMA covariance matrix (nCols * nCols)
+  float* afltA = NULL;      // RMA fitted parameter vector (nCols); afltA can be computed by SVD
+  float* afltS = NULL;      // RMA std dev vector (nRows); output of SVD using afltX
+  float* afltU = NULL;      // RMA U matrix (nRows * nCols); output of SVD using afltX
+  float* afltV = NULL;      // RMA V matrix (nCols * nCols); output of SVD using afltX
+  float* afltW = NULL;      // RMA W matrix (nCols); singular values from the SVD of matrix afltX 
+  float* afltALN = NULL;    // RMA based ALN result column vector (nRows); the given fit to the data
 
 	// idea: Use  std::vector< std::vector<Indices> > indices(layers, std::vector<Indices>(corrections));
 
@@ -158,25 +158,25 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
 		int nOutput = pALN->nOutput;
 
     // allocate arrays
-    adblResult = new float[nTRcurrSamples];
+    afltResult = new float[nTRcurrSamples];
     apActiveLFNs = new ALNNODE*[nTRcurrSamples];
-    adblInput = new float[nTRcurrSamples * nDim];
-    adblOutput = new float[nTRcurrSamples];
+    afltInput = new float[nTRcurrSamples * nDim];
+    afltOutput = new float[nTRcurrSamples];
     aLFNSort = new LFNSORT[nTRcurrSamples];
-    adblX = new float[nTRcurrSamples * nCols];
-		adblY = new float[nTRcurrSamples];
-    adblC = new float[nCols * nCols];
-    adblA = new float[nCols];
-    adblS = new float[nTRcurrSamples];
-    adblU = new float[nTRcurrSamples * nTRcurrSamples];
-    adblV = new float[nCols * nCols];
-    adblW = new float[nCols];
-    adblALN = new float[nTRcurrSamples];
+    afltX = new float[nTRcurrSamples * nCols];
+		afltY = new float[nTRcurrSamples];
+    afltC = new float[nCols * nCols];
+    afltA = new float[nCols];
+    afltS = new float[nTRcurrSamples];
+    afltU = new float[nTRcurrSamples * nTRcurrSamples];
+    afltV = new float[nCols * nCols];
+    afltW = new float[nCols];
+    afltALN = new float[nTRcurrSamples];
 
 
-    if (!(adblResult && apActiveLFNs && adblInput && adblOutput && 
-          aLFNSort && adblX && adblALN && adblC && adblA && adblS &&
-          adblU && adblV && adblW && adblY))
+    if (!(afltResult && apActiveLFNs && afltInput && afltOutput && 
+          aLFNSort && afltX && afltALN && afltC && afltA && afltS &&
+          afltU && afltV && afltW && afltY))
     {
       ThrowALNMemoryException();
     }
@@ -184,14 +184,14 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
     // init S
     for (long i = 0; i < nTRcurrSamples; i++)
     {
-      adblS[i] = 1.0; // start off with std dev 1.0 in each axis
+      afltS[i] = 1.0; // start off with std dev 1.0 in each axis
     }
     
     // evaluate on data
     int nStart, nEnd;
     nReturn = EvalTree(pALN->pTree, pALN, pDataInfo, pCallbackInfo, 
-                       adblResult, &nStart, &nEnd, FALSE,
-                       apActiveLFNs, adblInput, adblOutput);
+                       afltResult, &nStart, &nEnd, FALSE,
+                       apActiveLFNs, afltInput, afltOutput);
     if (nReturn != ALN_NOERROR)
     {
       ThrowALNException();
@@ -199,20 +199,20 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
 
     // sort input/output arrays by responsible LFN
 		// pointers in LFNSORT entries refer to  *unsorted* arrays
-		// In the adblInput array, the nOutput components have been set to 1.0 by EvalTree.
+		// In the afltInput array, the nOutput components have been set to 1.0 by EvalTree.
     for (int i = nStart; i <= nEnd; i++)
     {
       LFNSORT& lfnsort = aLFNSort[i];
       lfnsort.pActiveLFN = apActiveLFNs[i];
-      lfnsort.adblInputRow = adblInput + (i * nDim);
-			// WWA I think it would be better to use adblOutputCol and adblResultCol as names:
+      lfnsort.afltInputRow = afltInput + (i * nDim);
+			// WWA I think it would be better to use afltOutputCol and afltResultCol as names:
 			// The way the SVD is presented as
 			// Matrix of input rows x parameter column = Result column.
 			// The Output column is originally in the matrix of input rows
 			// as the column of desired values (later replaced during evaluation of the DTREE)
-      lfnsort.adblOutputRow = adblOutput+i; // desired
-			adblOutput[i];
-			lfnsort.adblResultRow = adblResult+i; // ALN output
+      lfnsort.afltOutputRow = afltOutput+i; // desired
+			afltOutput[i];
+			lfnsort.afltResultRow = afltResult+i; // ALN output
     }
     // sort the LFN index structure
     qsort(aLFNSort + nStart, nEnd - nStart + 1, sizeof(LFNSORT), CompareLFNs);
@@ -236,14 +236,14 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
         for (int j = 0; j < nBlockPoints; j++)
         {
           // input row (with 1.0 in nOutput component)  WWA we don't copy the 1.0 into X
-          memcpy(adblX + j * nCols,                             
-                 aLFNSort[nBlockStart + j].adblInputRow, 
+          memcpy(afltX + j * nCols,                             
+                 aLFNSort[nBlockStart + j].afltInputRow, 
                  nCols * sizeof(float)); 
           // ALN output
-          adblALN[j] = *(aLFNSort[nBlockStart + j].adblResultRow); //contains ALN output
+          afltALN[j] = *(aLFNSort[nBlockStart + j].afltResultRow); //contains ALN output
 
 				  // desired output
-					adblY[j] = *(aLFNSort[nBlockStart + j].adblOutputRow); // contains desired
+					afltY[j] = *(aLFNSort[nBlockStart + j].afltOutputRow); // contains desired
         }
 				// The result of t4 above is correct
         // calc covariance
@@ -251,58 +251,58 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
 				// NB The actual ALN outputs play no role in the covariance calculation
 				// Y below is the desired output
 				// The ALN outputs could be compared to the outputs using parameter vector A found below
-        float dblChiSq = 0;
+        float fltChiSq = 0;
         BOOL bSuccess = CalcCovariance(nCols,
                                        nBlockPoints, 
-                                       adblX,
-                                       adblY,
-                                       adblC,
-                                       adblA,
-                                       adblS,
-                                       adblU,
-                                       adblV,
-                                       adblW,
-                                       dblChiSq);
+                                       afltX,
+                                       afltY,
+                                       afltC,
+                                       afltA,
+                                       afltS,
+                                       afltU,
+                                       afltV,
+                                       afltW,
+                                       fltChiSq);
         // redo the Y copy,just in case it changed WWA because of a memcpy that had nDim instead of nCols in
 				// some places, the Y values for j = 0 to j = 4 were wrong, both inside and leaving the calc routine.
 				// After correction, this part is no longer necessary.
         // for (int j = 0; j < nBlockPoints; j++)
 				//           
 				  // desired 
-					// 	adblY[j] = *(aLFNSort[nBlockStart + j].adblOutputRow); 
+					// 	afltY[j] = *(aLFNSort[nBlockStart + j].afltOutputRow); 
 
           // ALN output
-					//    adblALN[j] = *(aLFNSort[nBlockStart + j].adblResultRow); 
+					//    afltALN[j] = *(aLFNSort[nBlockStart + j].afltResultRow); 
 					// }
 
         // calc RSS, ESS, TSS
-        float dblRSS, dblESS, dblTSS;
-        CalcSquares(adblY, adblALN, 0, nBlockPoints -1, dblESS, dblRSS, dblTSS);
+        float fltRSS, fltESS, fltTSS;
+        CalcSquares(afltY, afltALN, 0, nBlockPoints -1, fltESS, fltRSS, fltTSS);
         
-        pLFNInfo->LFNStats.dblRSS = dblRSS;
-        pLFNInfo->LFNStats.dblESS = dblESS;
+        pLFNInfo->LFNStats.fltRSS = fltRSS;
+        pLFNInfo->LFNStats.fltESS = fltESS;
         
         // calc R2 for the LFN
-        pLFNInfo->LFNStats.dblR2 = dblRSS / dblTSS;
+        pLFNInfo->LFNStats.fltR2 = fltRSS / fltTSS;
 
         // calc degrees of freedom
-        pLFNInfo->LFNStats.dblDF = nBlockPoints - nDim; 
+        pLFNInfo->LFNStats.fltDF = nBlockPoints - nDim; 
 
-				pLFNInfo->LFNStats.dblSEE = NAN; // set to NAN if we don't have dblDF>0
-        pLFNInfo->LFNStats.dblF   = NAN;
-        pLFNInfo->LFNStats.dblFp  = NAN;
-        if (pLFNInfo->LFNStats.dblDF > 0)
+				pLFNInfo->LFNStats.fltSEE = NAN; // set to NAN if we don't have fltDF>0
+        pLFNInfo->LFNStats.fltF   = NAN;
+        pLFNInfo->LFNStats.fltFp  = NAN;
+        if (pLFNInfo->LFNStats.fltDF > 0)
         {
           ASSERT(nDim >= 1);
-          float dblV1 = nDim - 1;
-          float dblV2 = pLFNInfo->LFNStats.dblDF;
+          float fltV1 = nDim - 1;
+          float fltV2 = pLFNInfo->LFNStats.fltDF;
 
           // calc SEE "standard error of estimate" for the LFN
-					pLFNInfo->LFNStats.dblSEE = sqrt(dblESS / dblV2);
+					pLFNInfo->LFNStats.fltSEE = sqrt(fltESS / fltV2);
 
 					// calc F and corresponding p value for the LFN
-          pLFNInfo->LFNStats.dblF = (dblRSS / dblV1) / (dblESS / dblV2);
-          pLFNInfo->LFNStats.dblFp = CalcProbF(pLFNInfo->LFNStats.dblF, dblV1, dblV2);
+          pLFNInfo->LFNStats.fltF = (fltRSS / fltV1) / (fltESS / fltV2);
+          pLFNInfo->LFNStats.fltFp = CalcProbF(pLFNInfo->LFNStats.fltF, fltV1, fltV2);
         }
               
         // set the node
@@ -312,10 +312,10 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
         pLFNInfo->nWStats = nDim;
 
         // calc T, and corresponding p values for each LFN weight
-        const float* adblLFNW = LFN_W(pBlockLFN);
-        float dblBias = *adblLFNW++;  // skip past bias
-        float dblV = pLFNInfo->LFNStats.dblDF;
-				float dblLFNweight; // used for ALN weights to be compared to SVD result
+        const float* afltLFNW = LFN_W(pBlockLFN);
+        float fltBias = *afltLFNW++;  // skip past bias
+        float fltV = pLFNInfo->LFNStats.fltDF;
+				float fltLFNweight; // used for ALN weights to be compared to SVD result
         for (int k = 0; k < nDim; k++)
 				{
           // get LFNWEIGHTSTATS pointer
@@ -323,30 +323,30 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
 
           // set weights from LFN!!!
           if (k == pALN->nOutput)
-          dblLFNweight = dblBias;		// bias replaces output weight for stats
+          fltLFNweight = fltBias;		// bias replaces output weight for stats
           else
-          dblLFNweight = adblLFNW[k];	// kth input weight
+          fltLFNweight = afltLFNW[k];	// kth input weight
 
-				 // the weights are now obtained from SVD and are in adblA
+				 // the weights are now obtained from SVD and are in afltA
 				 // (as Monroe suggested doing). 
-				 // dblBias should approximate adblA[k]if k = nOutput 
-				 pWStat->dblW = adblA[k];
+				 // fltBias should approximate afltA[k]if k = nOutput 
+				 pWStat->fltW = afltA[k];
 
           // set T stat
-          pWStat->dblSEw = 0;
-          pWStat->dblT = NAN;
-          pWStat->dblTp = 1.0;
-          if (pLFNInfo->LFNStats.dblDF > 0)
+          pWStat->fltSEw = 0;
+          pWStat->fltT = NAN;
+          pWStat->fltTp = 1.0;
+          if (pLFNInfo->LFNStats.fltDF > 0)
           {
             // calc standard error
-            float dblCkk = adblC[k*nDim + k];  // diagonal element Ckk 
+            float fltCkk = afltC[k*nDim + k];  // diagonal element Ckk 
 
-            pWStat->dblSEw = sqrt(dblCkk) * pLFNInfo->LFNStats.dblSEE;
+            pWStat->fltSEw = sqrt(fltCkk) * pLFNInfo->LFNStats.fltSEE;
 
-            if (pWStat->dblSEw != 0.0)
+            if (pWStat->fltSEw != 0.0)
             {
               // calc T, Tp
-							// WWA the following line didn't include the term adblLFNW[k],
+							// WWA the following line didn't include the term afltLFNW[k],
 							// thus making it refer to the k-th weight, not to the
 							// difference of ALN computed and SVD computed weights.
 							// In the original interpretation, that would decide whether
@@ -356,8 +356,8 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
 							// does well, then all of the T's should be less than 2.0 or 3.0 
 							// and the probabilities Tp should be not to far from 1.0.
 							// Is this OK?
-              pWStat->dblT = (dblLFNweight - pWStat->dblW) / pWStat->dblSEw;
-              pWStat->dblTp = CalcProbT(fabs(pWStat->dblT), dblV);
+              pWStat->fltT = (fltLFNweight - pWStat->fltW) / pWStat->fltSEw;
+              pWStat->fltTp = CalcProbT(fabs(pWStat->fltT), fltV);
             }
           }
         }
@@ -392,20 +392,20 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
 		nReturn = ALN_GENERIC;
 	}
 	// deallocate mem
-	delete[] adblALN;
-	delete[] adblW;
-	delete[] adblV;
-	delete[] adblU; // this is where the heap corruption happens
-	delete[] adblS;
-	delete[] adblA;
-	delete[] adblC;
-	delete[] adblY;
-	//delete[] adblX;
+	delete[] afltALN;
+	delete[] afltW;
+	delete[] afltV;
+	delete[] afltU; // this is where the heap corruption happens
+	delete[] afltS;
+	delete[] afltA;
+	delete[] afltC;
+	delete[] afltY;
+	//delete[] afltX;
 	delete[] aLFNSort;
-	delete[] adblOutput;
-	delete[] adblInput;
+	delete[] afltOutput;
+	delete[] afltInput;
 	delete[] apActiveLFNs;
-	delete[] adblResult;
+	delete[] afltResult;
 
   // set the analysis value
   if (nReturn != ALN_NOERROR && pLFNAnalysis != NULL)
@@ -533,58 +533,58 @@ static int __cdecl CompareLFNs(const void* pElem1, const void* pElem2)
 }
 
 // helpers to calc T and F probability functions
-static float CalcProbF(float dblF, float dblV1, float dblV2)
+static float CalcProbF(float fltF, float fltV1, float fltV2)
 {
   // F-Distribution probability function - not two tailed as in
   // Press et al p229, p619.  Here it is used in regression and is 1-tailed.
 	// It is testing H0: all weights = 0 (except for the bias weight).
   
-	return ibeta(dblV2 / 2.0, dblV1 / 2.0, dblV2 / (dblV2 + (dblV1 * dblF))); //ibeta ??
+	return ibeta(fltV2 / 2.0, fltV1 / 2.0, fltV2 / (fltV2 + (fltV1 * fltF))); //ibeta ??
 
 //
 }
 
-static float CalcProbT(float dblT, float dblV)
+static float CalcProbT(float fltT, float fltV)
 {
   // T-Distribution probability function - single tailed
   // see Press et al p228, p616
-  return ibeta(dblV / 2.0, 0.5, dblV / (dblV + (dblT * dblT)));  //ibetac??
+  return ibeta(fltV / 2.0, 0.5, fltV / (fltV + (fltT * fltT)));  //ibetac??
 }
 
 // helpers to calc error, regression, and total sum of squares
-static void CalcSquares(float* adblDesired, float* adblResult,
+static void CalcSquares(float* afltDesired, float* afltResult,
                         int nStart, int nEnd,
-                        float& dblESS, float& dblRSS, float& dblTSS)
+                        float& fltESS, float& fltRSS, float& fltTSS)
 {
-  ASSERT(adblDesired && adblResult);
+  ASSERT(afltDesired && afltResult);
   ASSERT(nStart <= nEnd);
 
-  dblESS = 0;
-  dblTSS = 0;
-  dblRSS = 0;
+  fltESS = 0;
+  fltTSS = 0;
+  fltRSS = 0;
 
-  float dblMeanDes = 0;
+  float fltMeanDes = 0;
   int nElem = nEnd - nStart + 1;
   ASSERT(nElem >= 1);
 
   // calc error sum of squares and average of desired
   for (int i = nStart; i <= nEnd ;i++)
   {
-    dblMeanDes += adblDesired[i];
-    float dblError = adblResult[i] - adblDesired[i];
-    dblESS += dblError * dblError;
+    fltMeanDes += afltDesired[i];
+    float fltError = afltResult[i] - afltDesired[i];
+    fltESS += fltError * fltError;
   }
-  dblMeanDes /= nElem;
+  fltMeanDes /= nElem;
 
   // calc total sum of squares
   for (int i = nStart; i <= nEnd; i++)
   {
-    float dblError = adblDesired[i] - dblMeanDes; // Monroe had adblResult[i] - dblMeanDes;
-    dblTSS += dblError * dblError;
+    float fltError = afltDesired[i] - fltMeanDes; // Monroe had afltResult[i] - fltMeanDes;
+    fltTSS += fltError * fltError;
   }
 
   // calc regression sum of squares
-  dblRSS = dblTSS - dblESS;
+  fltRSS = fltTSS - fltESS;
 }
 
 static LFNANALYSIS* AllocLFNAnalysis(const ALN* pALN)

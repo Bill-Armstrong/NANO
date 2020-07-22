@@ -1,2 +1,4 @@
 C:\Users\arms\Documents\NeuraPop\NeuraPop\libaln\samples\think\x64\Debug\think.exe
 C:\Users\arms\Documents\NeuraPop\NeuraPop\libaln\samples\think\x64\Debug\think.pdb
+C:\Users\arms\Documents\GitHubNANOclone\NANO\libaln\samples\think\x64\Debug\think.exe
+C:\Users\arms\Documents\GitHubNANOclone\NANO\libaln\samples\think\x64\Debug\think.pdb

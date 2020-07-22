@@ -37,13 +37,13 @@ static char THIS_FILE[] = __FILE__;
 ///////////////////////////////////////////////////////////////////////////////
 // LFN specific eval
 //  - returns distance of LFN from point and also sets the 
-//    node's dblDistance member for use by adaptive routines
+//    node's fltDistance member for use by adaptive routines
 
-float ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const float* adblX,
+float ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const float* afltX,
 	ALNNODE** ppActiveLFN)
 
 {
-  ASSERT(adblX != NULL);
+  ASSERT(afltX != NULL);
   ASSERT(pALN != NULL);
   ASSERT(pNode != NULL);
   ASSERT(ppActiveLFN != NULL);
@@ -58,14 +58,14 @@ float ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const float* adblX,
 
   // calc difference: sample value minus LFN value  X - L
   int nDim = pALN->nDim;
-  const float* adblW = LFN_W(pNode);
-  float dblA = *adblW++;                 // skip past bias weight       
+  const float* afltW = LFN_W(pNode);
+  float fltA = *afltW++;                 // skip past bias weight       
   for (int i = 0; i < nDim; i++)     
   {
-    dblA += adblW[i] * adblX[i];
+    fltA += afltW[i] * afltX[i];
   }
   
-  NODE_DISTANCE(pNode) = dblA;
+  NODE_DISTANCE(pNode) = fltA;
   
-  return dblA;
+  return fltA;
 }

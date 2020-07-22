@@ -45,22 +45,22 @@ extern BOOL bDistanceOptimization;
 // NOTE: cutoff always passed on stack!
 
 float ALNAPI CutoffEvalMinMax(const ALNNODE* pNode, const ALN* pALN,
-	const float* adblX, CEvalCutoff cutoff,
+	const float* afltX, CEvalCutoff cutoff,
 	ALNNODE** ppActiveLFN)
 {
 	ASSERT(NODE_ISMINMAX(pNode));
 
 	// We use the sample counts and centroids of the child nodes to generate a hyperplane H roughly separating the child samples.
-	// The branch to take first during an evaluation is the one representing the side of H adblX lies on.
+	// The branch to take first during an evaluation is the one representing the side of H afltX lies on.
 	const ALNNODE* pChild0;
 	const ALNNODE* pChild1;
 	int nDim = pALN->nDim;
-	// We take the dot product of the normal vector, in direction left centroid to right centroid, with adblX - H to find the branch which goes first.
+	// We take the dot product of the normal vector, in direction left centroid to right centroid, with afltX - H to find the branch which goes first.
 	// Note that this handles the case where the normal is zero length as after a split and child centroids are equal.
 	float dotproduct = 0;
 	for (int i = 0; i < nDim - 1; i++)
 	{
-		dotproduct += MINMAX_NORMAL(pNode)[i] * adblX[i];
+		dotproduct += MINMAX_NORMAL(pNode)[i] * afltX[i];
 	}
 	dotproduct += MINMAX_THRESHOLD(pNode); // add constant stored for speed; see split_ops.cpp
 	if (dotproduct > 0)
@@ -89,17 +89,17 @@ float ALNAPI CutoffEvalMinMax(const ALNNODE* pNode, const ALN* pALN,
 	*/
 	// get reference to region for this node
 	const ALNREGION& region = pALN->aRegions[NODE_REGION(pNode)];
-	float dblDist;
+	float fltDist;
 
 	// eval first child
 	ALNNODE* pActiveLFN0;
-	float dbl0 = CutoffEval(pChild0, pALN, adblX, cutoff, &pActiveLFN0);
+	float flt0 = CutoffEval(pChild0, pALN, afltX, cutoff, &pActiveLFN0);
 
 	// see if we can cutoff...
-	if (bAlphaBeta && Cutoff(dbl0, pNode, cutoff))
+	if (bAlphaBeta && Cutoff(flt0, pNode, cutoff))
 	{
 		*ppActiveLFN = pActiveLFN0;
-		return dbl0;
+		return flt0;
 	}
 	// Check if second child is too far from sibling in any axis j; in which case
 	// the tree of the second child is cut off and we return the value from the first child
@@ -109,29 +109,29 @@ float ALNAPI CutoffEvalMinMax(const ALNNODE* pNode, const ALN* pALN,
 	{
 		for (int j = 0; j < nDim - 1; j++)
 		{
-			if (fabs(adblX[j] - MINMAX_CENTROID(pChild1)[j]) >  MINMAX_SIGMA(pChild1)[j]) // Do we need a safety factor?
+			if (fabs(afltX[j] - MINMAX_CENTROID(pChild1)[j]) >  MINMAX_SIGMA(pChild1)[j]) // Do we need a safety factor?
 			{
-				return dbl0;
+				return flt0;
 			}
 		}
 	}
 
 	// eval second child
 	ALNNODE* pActiveLFN1;
-	float dbl1 = CutoffEval(pChild1, pALN, adblX, cutoff, &pActiveLFN1);
+	float flt1 = CutoffEval(pChild1, pALN, afltX, cutoff, &pActiveLFN1);
 
 	// calc active child and distance without using CalcActiveChild()
-	if((MINMAX_ISMAX(pNode) > 0) == (dbl1 > dbl0)) // int MINMAX_ISMAX is used as a bit-vector!
+	if((MINMAX_ISMAX(pNode) > 0) == (flt1 > flt0)) // int MINMAX_ISMAX is used as a bit-vector!
 	{
 		*ppActiveLFN = pActiveLFN1;
-		dblDist = dbl1;
+		fltDist = flt1;
 	}
 	else
 	{
 		*ppActiveLFN = pActiveLFN0;
-		dblDist = dbl0;
+		fltDist = flt0;
 	}
   
-  return dblDist;
+  return fltDist;
 }
 

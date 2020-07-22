@@ -38,7 +38,7 @@ static char THIS_FILE[] = __FILE__;
 #ifdef _DEBUG
 
 float ALNAPI DebugEvalMinMax(const ALNNODE* pNode, const ALN* pALN, 
-                            const float* adblX, ALNNODE** ppActiveLFN)
+                            const float* afltX, ALNNODE** ppActiveLFN)
 {
   ASSERT(NODE_ISMINMAX(pNode));
 
@@ -58,20 +58,20 @@ float ALNAPI DebugEvalMinMax(const ALNNODE* pNode, const ALN* pALN,
 
   // eval first child
   ALNNODE* pActiveLFN0;
-  float dbl0 = DebugEval(pChild0, pALN, adblX, &pActiveLFN0);
+  float flt0 = DebugEval(pChild0, pALN, afltX, &pActiveLFN0);
   
 	// eval second child
   ALNNODE* pActiveLFN1;
-	float dbl1 = DebugEval(pChild1, pALN, adblX, &pActiveLFN1);
+	float flt1 = DebugEval(pChild1, pALN, afltX, &pActiveLFN1);
 
   // get reference to region for this node
   const ALNREGION& region = pALN->aRegions[NODE_REGION(pNode)];
 
   // calc active child, active child response, and distance
-  float dblDist, dblRespActive;
-  int nActive = CalcActiveChild(dblRespActive, 
-                                dblDist, 
-                                dbl0, dbl1, pNode);
+  float fltDist, fltRespActive;
+  int nActive = CalcActiveChild(fltRespActive, 
+                                fltDist, 
+                                flt0, flt1, pNode);
 	
   if (nActive == 0)
   {
@@ -82,7 +82,7 @@ float ALNAPI DebugEvalMinMax(const ALNNODE* pNode, const ALN* pALN,
     *ppActiveLFN = pActiveLFN1;
   }
   
-  return dblDist;
+  return fltDist;
 }
 
 

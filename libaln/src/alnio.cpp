@@ -174,12 +174,12 @@ static int ALNAPI DoALNRead(FILE* pFile, ALN** ppALN)
   if (pALN->nVersion == 0x00030007)
   {
     // P, lower bound, upper bound, Tail05, Interval4P
-    float dbl;
-    if (_READ(pFile, dbl) != 1) return ALN_ERRFILE;
-    if (_READ(pFile, dbl) != 1) return ALN_ERRFILE;
-    if (_READ(pFile, dbl) != 1) return ALN_ERRFILE;
-    if (_READ(pFile, dbl) != 1) return ALN_ERRFILE;
-    if (_READ(pFile, dbl) != 1) return ALN_ERRFILE;
+    float flt;
+    if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
+    if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
+    if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
+    if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
+    if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
   }
   // else confidence info already zeroed out, or not present
   
@@ -235,7 +235,7 @@ static int ALNAPI WriteRegion(FILE* pFile, const ALNREGION* pRegion)
 
   // write parent, learn factor
   if (_WRITE(pFile, pRegion->nParentRegion) != 1) return ALN_ERRFILE;
-  if (_WRITE(pFile, pRegion->dblLearnFactor) != 1) return ALN_ERRFILE;
+  if (_WRITE(pFile, pRegion->fltLearnFactor) != 1) return ALN_ERRFILE;
 
   // don't write var map!
 
@@ -261,9 +261,9 @@ static int ALNAPI ReadRegion(FILE* pFile, ALN* pALN, ALNREGION* pRegion)
 
   // read parent, learn factor
   if (_READ(pFile, pRegion->nParentRegion) != 1) return ALN_ERRFILE;
-  if (_READ(pFile, pRegion->dblLearnFactor) != 1) return ALN_ERRFILE;
+  if (_READ(pFile, pRegion->fltLearnFactor) != 1) return ALN_ERRFILE;
   if (pRegion->nParentRegion < -1 || pRegion->nParentRegion >= pALN->nRegions ||
-      pRegion->dblLearnFactor < 0)
+      pRegion->fltLearnFactor < 0)
     return ALN_BADFILEFORMAT;
 
   // read number of constraints

@@ -35,12 +35,12 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-BOOL ALNAPI Cutoff(float dbl, const ALNNODE* pNode, CEvalCutoff& cutoff)
+BOOL ALNAPI Cutoff(float flt, const ALNNODE* pNode, CEvalCutoff& cutoff)
 {
   if(MINMAX_ISMAX(pNode))  // if pNode is a MAX
 	{   
     // cutoff if we're greater than or equal to existing min
-		if (cutoff.bMin && (dbl >= cutoff.dblMin))
+		if (cutoff.bMin && (flt >= cutoff.fltMin))
 		{ 
 			return TRUE;  // cutoff!
 		}
@@ -48,11 +48,11 @@ BOOL ALNAPI Cutoff(float dbl, const ALNNODE* pNode, CEvalCutoff& cutoff)
 		if (!cutoff.bMax)
 		{
 			cutoff.bMax = TRUE;
-			cutoff.dblMax = dbl;
+			cutoff.fltMax = flt;
 		}
-		else if (dbl > cutoff.dblMax)  // we set a higher lower bound on the value of the current MAX node
+		else if (flt > cutoff.fltMax)  // we set a higher lower bound on the value of the current MAX node
 		{
-			cutoff.dblMax = dbl;
+			cutoff.fltMax = flt;
 		}
 	}
 	else  // pNode is a MIN
@@ -60,7 +60,7 @@ BOOL ALNAPI Cutoff(float dbl, const ALNNODE* pNode, CEvalCutoff& cutoff)
 		ASSERT(MINMAX_ISMIN(pNode));
 
 		// cutoff if we're less than or equal to existing max
-		if (cutoff.bMax && (dbl <= cutoff.dblMax))
+		if (cutoff.bMax && (flt <= cutoff.fltMax))
 		{
 			return TRUE;
 		}
@@ -71,11 +71,11 @@ BOOL ALNAPI Cutoff(float dbl, const ALNNODE* pNode, CEvalCutoff& cutoff)
 		if (!cutoff.bMin)
 		{
 			cutoff.bMin = TRUE;
-			cutoff.dblMin = dbl;
+			cutoff.fltMin = flt;
 		}
-		else if (dbl < cutoff.dblMin)  // we set a lower upper bound on the value of the current MIN node
+		else if (flt < cutoff.fltMin)  // we set a lower upper bound on the value of the current MIN node
 		{
-			cutoff.dblMin = dbl;
+			cutoff.fltMin = flt;
 		}
 	}
   return FALSE; // no cutoff

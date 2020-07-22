@@ -42,32 +42,32 @@ float ALNAPI Noise()
 	return ALNRandFloat() - ALNRandFloat();
 }
 
-void ALNAPI Jitter(ALN* pALN, float* adblX)
+void ALNAPI Jitter(ALN* pALN, float* afltX)
 {
   ASSERT(pALN);
-  ASSERT(adblX);
+  ASSERT(afltX);
 
   int nDim = pALN->nDim;
   int nOutput = pALN->nOutput;
   
   // save output value
-  float dblOutput = adblX[nOutput];
+  float fltOutput = afltX[nOutput];
 
   for (int i = 0; i < nDim; i++)
   {
 #ifdef _DEBUG
-    float dbl = adblX[i];
+    float flt = afltX[i];
 #endif
 		
-    adblX[i] += Noise() * pALN->aRegions[0].aConstr[i].dblEpsilon;
+    afltX[i] += Noise() * pALN->aRegions[0].aConstr[i].fltEpsilon;
 
 #ifdef _DEBUG
-    float dblEps = pALN->aRegions[0].aConstr[i].dblEpsilon;
-    ASSERT(adblX[i] >= dbl - dblEps && 
-           adblX[i] <= dbl + dblEps);
+    float fltEps = pALN->aRegions[0].aConstr[i].fltEpsilon;
+    ASSERT(afltX[i] >= flt - fltEps && 
+           afltX[i] <= flt + fltEps);
 #endif
   }
 
   // restore output value
-  adblX[nOutput] = dblOutput;
+  afltX[nOutput] = fltOutput;
 }
