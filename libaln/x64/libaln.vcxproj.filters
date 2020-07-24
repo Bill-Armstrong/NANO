@@ -182,6 +182,9 @@
     <ClCompile Include="..\src\alnpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\decayweights.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\dtree\DTR_PRIV.H">

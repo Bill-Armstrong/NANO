@@ -17,7 +17,7 @@
 #include <string>
 #include <chrono>  // for high_resolution_clock
 
-long CountLeafevals; // Global to test optimization
+extern long CountLeafevals; // Global to test optimization
 extern BOOL bStopTraining;
 // Switches for turning on/off optimizations
 BOOL bAlphaBeta = FALSE;
@@ -35,9 +35,8 @@ int nNumberLFNs;
 // A negative value causes *much* slower loading of the training buffer.
 auto const MSEORF = -50; // This has to be changed below for non-regression problems
 void setSplitAlpha(ALNDATAINFO* pdata); // This works in the split routine to implement an F-test.
-void DecayWeights(const ALNNODE* pNode, const ALN* pALN, float WeightBound, float WeightDecay);
-float WeightDecay; //  This is a factor like 0.7599. It is used during classification into two classes when lower weights give better generalization.
-float WeightBound;
+extern float WeightDecay; //  This is a factor like 0.7599. It is used during classification into two classes when lower weights give better generalization.
+extern float WeightBound;
 float WeightBoundIncrease = 0.000008; // increase every iteration, e.g. in 1000 iterations it can go from 0.0004 to 0.01
 float targetDigit = 2; //  Here we specify the digit to be recognized. The other digits are all in the second class.
 int iterations = 600; // Initial iterations
@@ -411,8 +410,8 @@ int main(int argc, char* argv[])
 	int nCorrect = 0;
 	int nWrong = 0;
 	std::cout << std::endl << "Starting evaluation" << std::endl;
-	BOOL bAlphaBeta = FALSE; // Optimizations are not done in the interest of accuracy.
-	BOOL bDistanceOptimization = FALSE;
+	bAlphaBeta = FALSE; // Optimizations are not done in the interest of accuracy.
+	bDistanceOptimization = FALSE;
 	float DesiredOutput, ALNoutput;
 	for (long i = 0; i < 10000; i++)
 	{
@@ -440,25 +439,3 @@ int main(int argc, char* argv[])
 	//aln.Destroy(); which one to use?
 }
 
-
-void DecayWeights(const ALNNODE* pNode, const ALN* pALN,float WeightBound, float WeightDecay)
-{
-	if (NODE_ISMINMAX(pNode))
-	{
-		DecayWeights(MINMAX_RIGHT(pNode), pALN, WeightBound, WeightDecay);
-		DecayWeights(MINMAX_LEFT (pNode), pALN, WeightBound, WeightDecay);
-	}
-	else
-	{
-		ASSERT(NODE_ISLFN(pNode));
-		if (NODE_ISCONSTANT(pNode))return;
-		float* pW = LFN_W(pNode);
-		int nDim = pALN->nDim;
-		for (int i = 1; i < nDim - 1; i++)
-		{
-			pW[i] *= WeightDecay;
-			pW[i] = max(min(WeightBound, pW[i]), -WeightBound);
-		}
-	
-	}
-}

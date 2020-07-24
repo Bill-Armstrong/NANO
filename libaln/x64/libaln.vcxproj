@@ -25,7 +25,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug MT DLL|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
@@ -41,7 +41,7 @@
     <UseOfAtl>Static</UseOfAtl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release MT DLL|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
@@ -265,6 +265,7 @@
     <ClCompile Include="..\src\cutoffevalminmax.cpp" />
     <ClCompile Include="..\src\datafile.cpp" />
     <ClCompile Include="..\src\debugevalminmax.cpp" />
+    <ClCompile Include="..\src\decayweights.cpp" />
     <ClCompile Include="..\src\dtree\dtree.c" />
     <ClCompile Include="..\src\dtree\dtr_bio.c" />
     <ClCompile Include="..\src\dtree\dtr_err.c" />

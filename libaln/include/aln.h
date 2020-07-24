@@ -470,6 +470,8 @@ extern "C" {
 		float fltLearnRate,
 		BOOL bJitter);
 
+	ALNIMP void ALNAPI DecayWeights(const ALNNODE* pNode, const ALN* pALN, float WeightBound, float WeightDecay);
+
 	/*
 	// ALNCalcRMSError
 	*/
