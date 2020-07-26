@@ -33,7 +33,8 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-extern long CountLeafevals;
+
+long CountLeafevals;
 
 ///////////////////////////////////////////////////////////////////////////////
 // LFN specific eval - returns distance to surface

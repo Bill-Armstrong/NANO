@@ -130,6 +130,7 @@ public:
   BOOL Train(int nMaxEpochs, float fltMinRMSErr, float fltLearnRate,
              BOOL bJitter, int nNotifyMask = AN_NONE, 
              ALNDATAINFO* pData = NULL, void* pvData = NULL);
+
   
   float CalcRMSError(int nNotifyMask = AN_NONE, ALNDATAINFO* pData = NULL,
                       void* pvData = NULL);

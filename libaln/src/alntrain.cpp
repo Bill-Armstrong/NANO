@@ -46,9 +46,8 @@ void splitControl(ALN*, ALNDATAINFO*); // This does a test to see if a piece fit
 extern BOOL bALNgrowable = TRUE; //If FALSE, no splitting happens, e.g. for linear regression.
 BOOL bStopTraining = FALSE; // This causes training to stop when all leaf nodes have stopped splitting. This means all linear regression resultss will not change.
 extern BOOL bDistanceOptimization; // This prevents considering leaf nodes so far away from the current input sample that they must be cut off in the max-min structure.
-void DecayWeights(const ALNNODE* pNode, const ALN* pALN, float WeightBound, float WeightDecay);
-extern float WeightBound; // This is a maximum and minimum bound on weights.
-extern float WeightDecay; //  This is a factor close to 1.0. It is used during classification into two classes when lower weights give better generalization.
+float WeightBound = FLT_MAX; // This is a maximum and minimum bound on weights.
+float WeightDecay = 1.0; //  This is a factor close to 1.0. It is used during classification into two classes when lower weights give better generalization.
 
 
 // Train calls ALNTrain, which expects data in a monolithic array, row major order, ie,
