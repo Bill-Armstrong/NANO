@@ -46,8 +46,8 @@ void splitControl(ALN*, ALNDATAINFO*); // This does a test to see if a piece fit
 extern BOOL bALNgrowable = TRUE; //If FALSE, no splitting happens, e.g. for linear regression.
 BOOL bStopTraining = FALSE; // This causes training to stop when all leaf nodes have stopped splitting. This means all linear regression resultss will not change.
 extern BOOL bDistanceOptimization; // This prevents considering leaf nodes so far away from the current input sample that they must be cut off in the max-min structure.
-float WeightBound = FLT_MAX; // This is a maximum and minimum bound on weights.
-float WeightDecay = 1.0; //  This is a factor close to 1.0. It is used during classification into two classes when lower weights give better generalization.
+//float WeightBound = FLT_MAX; // This is a maximum and minimum bound on weights.
+//float WeightDecay = 1.0; //  This is a factor close to 1.0. It is used during classification into two classes when lower weights give better generalization.
 
 
 // Train calls ALNTrain, which expects data in a monolithic array, row major order, ie,
@@ -138,7 +138,6 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 	int nDim = pALN->nDim;
 	long nTRcurrSamples = pDataInfo->nTRcurrSamples;
 	ALNNODE* pTree = pALN->pTree;
-	DecayWeights(pTree, pALN, WeightBound, WeightDecay);
 	float* afltX;                    // input vector
 	long* anShuffle = NULL;				    // point index shuffle array
 	CCutoffInfo* aCutoffInfo = NULL;  // eval cutoff speedup
@@ -152,7 +151,7 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 	ALNNOTIFYPROC pfnNotifyProc = (pCallbackInfo == NULL) ? NULL : pCallbackInfo->pfnNotifyProc;
 
 	// init traindata
-	traindata.fltLearnRate = fltLearnRate; // an epoch is 1 pass through the training data
+	traindata.fltLearnRate = fltLearnRate; // an epoch is one  pass through the training data
 	traindata.nNotifyMask = nNotifyMask;
 	traindata.pvData = pvData;
 	traindata.pfnNotifyProc = pfnNotifyProc;
@@ -213,7 +212,6 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 		// We must set nMaxEpochs considering epochsize, learning rate,  prescribed RMS error, etc.
 		for (int nEpoch = 0; nEpoch < nMaxEpochs; nEpoch++)
 		{
-			DecayWeights(pTree, pALN, WeightBound, WeightDecay);  // Test weight decay for classification
 			if (nEpoch == nMaxEpochs / 2) bDistanceOptimization = FALSE; // MYTEST Turn optimization off until the end of the splitting epoch; see if necessary later MYTEST
 			int nCutoffs = 0;
 			// notify beginning of epoch

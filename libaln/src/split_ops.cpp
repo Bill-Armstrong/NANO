@@ -49,6 +49,10 @@ void zeroSplitValues(ALN* pALN, ALNNODE* pNode);
 void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo);
 void doSplits(ALN* pALN, ALNNODE* pNode, float fltLimit);
 int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode);
+extern float WeightDecay;
+extern float WeightBound;
+extern BOOL bClassify2;
+ALNIMP void ALNAPI DecayWeights(const ALNNODE* pNode, const ALN* pALN, float WeightBound, float WeightDecay);
 
 // We use the first three fields in ALNLFNSPLIT (declared in aln.h)
 // in two different ways: for training and between training intervals.
@@ -199,10 +203,12 @@ void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo) // routine
 
 void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
 {
+	int nDim = pALN->nDim;
+	int  CanSplitAbove = bClassify2 ? 1 : (int)(1.2F * (float)nDim + 1.0F);
 	// This routine visits all the leaf nodes and determines whether or not to split.
 	// If fltLimit < 0, it uses an F test with d.o.f. based on the number of samples counted,
 	// but if fltLimit >= 0 it uses the actual fltLimit value to compare to the square training error.
-	int nDim = pALN->nDim;
+
 	long Count;
 	ASSERT(pNode);
 	ALNNODE* pParent = NODE_PARENT(pNode);
@@ -301,99 +307,113 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
 			{
 				MINMAX_CENTROID(pParent)[i] += Count * LFN_C(pNode)[i]; // This is the weighted contribution of this leaf to the centroid of the parent
 																// It has to be divided by the Count of the parent on the way up
-				MINMAX_SIGMA(pParent)[i] += 4.0 * sqrt( LFN_D(pNode)[i]); // We have to add the absolute value of the difference of centroid components on the way up
+				MINMAX_SIGMA(pParent)[i] += 4.0 * sqrt(LFN_D(pNode)[i]); // We have to add the absolute value of the difference of centroid components on the way up
 				// one-sided probabilities at various sigmas: sigma = 2.0 0.0227; 2.5 0.0062; 3.0 0.0013; 3.5 0.0002; 3.88 0.0001 Seelalso alnmem.cpp line 497
 			}
 		}
-		if (LFN_CANSPLIT(pNode))
+		if (Count > CanSplitAbove)  // added July 29,2020 to try for better classification, adapted for regression use August 10, 2020
 		{
-			float fltSplitLimit;
-			float fltPieceSquareTrainError = (pNode->DATA.LFN.pSplit)->fltSqError; // total square error on the piece
-			float fltPieceNoiseVariance = (float)Count; // Used when there is no F-test, that is when fltLimit is <= 0, otherwise it tests training MSE < fltLimit
-			if (fltMSEorF < 0) // if this is TRUE, we do the F test.
+			if (LFN_CANSPLIT(pNode))
 			{
-				fltPieceNoiseVariance = (pNode->DATA.LFN.pSplit)->DBLNOISEVARIANCE; // total of noise variance samples
-				//the average of noise variance samples estimates the actual noise variance.
-				int dofIndex; // get the fltSplitLimit corresponding to the degrees of freedom of the F test
-				dofIndex = Count - 2;
-				if (Count > 10) dofIndex = 8;
-				if (Count > 20) dofIndex = 9;
-				if (Count > 30) dofIndex = 10;
-				if (Count > 40) dofIndex = 11;
-				if (Count > 60) dofIndex = 12; // MYTEST  encourage splitting worked, now it's too much
-				fltSplitLimit = afltF_Alpha[dofIndex]; // One can reject the H0 of a good fit with various percentages
-				// 90, 75, 50, 35, 25. E.g. 90% says that if the training error is greater than the fltSplitLimit prescribes
-				// it is 90% sure that the fit is bad.  A higher percentage needs less training time.
-				// Note that when there are few hits on the piece, the fltSplitLimit is larger and 
-				// the criterion for fitting well enough is easier to satisfy.
-			}
-			else
-			{
-				fltSplitLimit = fltMSEorF;
-			}
-
-			if (fltPieceSquareTrainError > fltPieceNoiseVariance* fltSplitLimit)
-			{
-				// if it has enough samples the piece needs to split
-				// The piece must split if it is overdetermined (Count > nDim) and we want to fit all samples perfectly. Yet
-				// if it splits and points are not shared, there will be an underdetermined piece.
-				// Does this mean sharing samples is obligatory, hence smoothing must be used?
-				if (Count > nDim) // A very easy to satisfy criterion for splitting any over-determined LFN
+				float fltSplitLimit;
+				float fltPieceSquareTrainError = (pNode->DATA.LFN.pSplit)->fltSqError; // total square error on the piece
+				float fltPieceNoiseVariance = (float)Count; // Used when there is no F-test, that is when fltLimit is <= 0, otherwise it tests training MSE < fltLimit
+				if (fltMSEorF < 0) // if this is TRUE, we do the F test.
 				{
-					// The piece doesn't fit and needs to split; then training must continue.
-					// We want to choose the same way of splitting, max or min, as the parent. This may need some experimentation
-					if (fabs(LFN_SPLIT_T(pNode)) * Count * 20 < fltPieceSquareTrainError) LFN_SPLIT_T(pNode) = 0;
-					SplitLFN(pALN, pNode); // We split *every* leaf node that reaches this point.
-					// We start an epoch with bStopTraining == TRUE, but if any leaf node might still split,
-					bStopTraining = FALSE; //  we set it to FALSE and continue to another epoch of training.
+					fltPieceNoiseVariance = (pNode->DATA.LFN.pSplit)->DBLNOISEVARIANCE; // total of noise variance samples
+					//the average of noise variance samples estimates the actual noise variance.
+					int dofIndex; // get the fltSplitLimit corresponding to the degrees of freedom of the F test
+					dofIndex = Count - 2;
+					if (Count > 10) dofIndex = 8;
+					if (Count > 20) dofIndex = 9;
+					if (Count > 30) dofIndex = 10;
+					if (Count > 40) dofIndex = 11;
+					if (Count > 60) dofIndex = 12; // MYTEST  encourage splitting worked, now it's too much
+					fltSplitLimit = afltF_Alpha[dofIndex]; // One can reject the H0 of a good fit with various percentages
+					// 90, 75, 50, 35, 25. E.g. 90% says that if the training error is greater than the fltSplitLimit prescribes
+					// it is 90% sure that the fit is bad.  A higher percentage needs less training time.
+					// Note that when there are few hits on the piece, the fltSplitLimit is larger and 
+					// the criterion for fitting well enough is easier to satisfy.
 				}
-				// else the piece doesn't have enough samples to split, but it doesn't fit well -- continue training
-			}
-			else
-			{
-				// The piece fits well enough and doesn't need to split or train
-				// MYTEST does the following cause more problems than I think???????
-				LFN_FLAGS(pNode) &= ~LF_SPLIT;  // this flag setting prevents further splitting It may be good in high dimensions.
-				LFN_FLAGS(pNode) |= NF_CONSTANT; // Don't train the node any more
-				// Adjoining pieces become responsible for the rest of the fit.
-				// This is a queston of speed, so we can test it without stopping sample presentation
-			}
-		} // end of if LFN_CANSPLIT(pNode)
+				else
+				{
+					fltSplitLimit = fltMSEorF;
+				}
+
+				if (fltPieceSquareTrainError > fltPieceNoiseVariance * fltSplitLimit)
+				{
+					// if it has enough samples the piece needs to split
+					// The piece must split if it is overdetermined (Count > nDim) and we want to fit all samples perfectly. Yet
+					// if it splits and points are not shared, there will be an underdetermined piece.
+					// Does this mean sharing samples is obligatory, hence smoothing must be used?
+
+					if (Count > 2) // A very easy to satisfy criterion for splitting any over-determined LFN // CHANGED for classification MYTEST was nDim
+					{
+						// The piece doesn't fit and needs to split; then training must continue.
+						// We want to choose the same way of splitting, max or min, as the parent. This may need some experimentation
+						if (fabs(LFN_SPLIT_T(pNode)) * Count * 20 < fltPieceSquareTrainError) LFN_SPLIT_T(pNode) = 0;
+						SplitLFN(pALN, pNode); // We split *every* leaf node that reaches this point.
+						// We start an epoch with bStopTraining == TRUE, but if any leaf node might still split,
+						bStopTraining = FALSE; //  we set it to FALSE and continue to another epoch of training.
+					}
+					// else the piece doesn't have enough samples to split, but it doesn't fit well -- continue training
+				}
+				else
+				{
+					// The piece fits well enough and doesn't need to split or train
+					// MYTEST does the following cause more problems than I think???????
+					//Change Aug 7, 2020 LFN_FLAGS(pNode) &= ~LF_SPLIT;  // this flag setting prevents further splitting It may be good in high dimensions.
+					//LFN_FLAGS(pNode) |= NF_CONSTANT; // Don't train the node any more MYTEST For MNIST
+					// Adjoining pieces become responsible for the rest of the fit.
+					// This is a queston of speed, so we can test it without stopping sample presentation
+				}
+			} // end of if LFN_CANSPLIT(pNode)
+		} 
+		if(WeightDecay != 1.0F && Count > 0)
+		{
+			DecayWeights(pNode, pALN, WeightBound, WeightDecay); //We decay weights only when there are a few samples on the piece at the end of training
+		}
 	}
 }
 
 int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode)
 {
-	// We split the same as the parent if LFN_SPLIT_T(pNode) == 0
-	if ((LFN_SPLIT_T(pNode) == 0) && (NODE_PARENT(pNode) != NULL))
-	{ 
+	if (bClassify2)
+	{
+		// This is for convex classification
+		return ALNAddLFNs(pALN, pNode, GF_MIN, 2, NULL);
+	}
+	else
+	{
+		// This is splitting for function approximation, we only get here if LFN_CANSPLIT(pNode) is TRUE
+		// We split the same as the parent if LFN_SPLIT_T(pNode) == 0
+		if ((LFN_SPLIT_T(pNode) == 0) && (NODE_PARENT(pNode) != NULL))
+		{
 
-		if (MINMAX_ISMAX(NODE_PARENT(pNode)))
+			if (MINMAX_ISMAX(NODE_PARENT(pNode)))
+			{
+				return ALNAddLFNs(pALN, pNode, GF_MAX, 2, NULL);
+					// A max is convex down:  \/,  \_/ etc.
+			}
+			else
+			{
+				return ALNAddLFNs(pALN, pNode, GF_MIN, 2, NULL);
+					// A min of several LFNs is like a dome.
+			}
+
+		}
+
+		if (LFN_SPLIT_T(pNode) > 0) // This ">" is TRUE if the values of the samples
+			// in the training data are higher than the LFN surface some distance from the centroid.
+			// This causes the LFN to split into a MAX of two LFNs.
 		{
 			return ALNAddLFNs(pALN, pNode, GF_MAX, 2, NULL);
-				// A max is convex down:  \/,  \_/ etc.
+			// A max is convex down:  \/,  \_/ etc.
 		}
 		else
 		{
 			return ALNAddLFNs(pALN, pNode, GF_MIN, 2, NULL);
-				// A min of several LFNs is like a dome.
+			// A min of several LFNs is like a dome.
 		}
-	
 	}
-
-	if (LFN_SPLIT_T(pNode) > 0) // This ">" is TRUE if the values of the samples
-		// in the training data are higher than the LFN surface some distance from the centroid.
-		// This causes the LFN to split into a MAX of two LFNs.
-	{
-		return ALNAddLFNs(pALN, pNode, GF_MAX, 2, NULL);
-		// A max is convex down:  \/,  \_/ etc.
-	}
-	else
-	{
-		return ALNAddLFNs(pALN, pNode, GF_MIN, 2, NULL);
-		// A min of several LFNs is like a dome.
-	}
-
-	// Try splitting only with minima
-	//return ALNAddLFNs(pALN, pNode, GF_MIN, 2, NULL);
 }

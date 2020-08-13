@@ -17,31 +17,26 @@
 #include <string>
 #include <chrono>  // for high_resolution_clock
 
+static char szInfo[] = "NANO (Noise-Attenuating Neuron Online) program\n"
+"Copyright (C)  2019 William W. Armstrong\n"
+"Licensed under LGPL\n\n";
+// SET TARGET DIGIT HERE !!!!!
+float targetDigit = 7; //  Here we specify the digit to be recognized. The other digits are all in the second class
+
+BOOL bClassify2 = TRUE; // FALSE produces the usual function learning; TRUE is for two-class classification with a target class
 extern long CountLeafevals; // Global to test optimization
 extern BOOL bStopTraining;
 // Switches for turning on/off optimizations
 BOOL bAlphaBeta = FALSE;
 BOOL bDistanceOptimization = FALSE;
-static char szInfo[] = "NANO (Noise-Attenuating Neuron Online) program\n"
-"Copyright (C)  2019 William W. Armstrong\n"
-"Licensed under LGPL\n\n";
 float fltTrainErr;
-int nMaxEpochs;
-int nNumberLFNs;
-// fltMSEorF can be a positive square error limit on training below which pieces won't split, or a negative number calling for an F-test.
-// This is a local stopping criterion comparable to the global stopping criteria for other neural nets using a validation set.
-// Special cases are -25 -50 -75 where the values come from tables; the other values are approximate, calculated by a simple formula.
-// F-tests for -75 and -90 are likelyto stop training before a perfect fit, and -35 and -25 may prolong training and tend to overfit.
-// A negative value causes *much* slower loading of the training buffer.
-auto const MSEORF = -50; // This has to be changed below for non-regression problems
+int nMaxEpochs = 20;
+int nNumberLFNs = 0;
 void setSplitAlpha(ALNDATAINFO* pdata); // This works in the split routine to implement an F-test.
-extern float WeightDecay; //  This is a factor like 0.7599. It is used during classification into two classes when lower weights give better generalization.
-extern float WeightBound;
-float WeightBoundIncrease = 0.000008; // increase every iteration, e.g. in 1000 iterations it can go from 0.0004 to 0.01
-float targetDigit = 2; //  Here we specify the digit to be recognized. The other digits are all in the second class.
-int iterations = 600; // Initial iterations
-BOOL bOneClass = FALSE; // This is for recognizing images of a class when not given and samples not in the set.
-BOOL bClassify2 = TRUE; // FALSE produces the usual function learning; TRUE is for 2 class classification with a target class
+float WeightDecay = 1.0F; //  This is a factor like 0.7599. It is used during classification into two classes when lower weights give better generalization.
+float WeightBound = FLT_MAX;
+float WeightBoundIncrease = 0.000004; // increase every iteration, e.g. in 2000 iterations it can go from 0.0 to 0.008
+int iterations = 2000; // Initial iterations
 
 
 
@@ -77,6 +72,12 @@ int main(int argc, char* argv[])
 	long nTRmaxSamples = file.RowCount(); 
 	int nCols = file.ColumnCount();
 	nMaxEpochs = atoi(argv[3]);
+	// fltRMSEorF (fltMSEorF) can be a positive (root) mean square error limit on training, below which pieces won't split,
+// or a negative number, whose negative is the probability (e.g. -50) as a percent for an F-test.
+// The latter is a local stopping criterion comparable to the global stopping criteria for other neural nets using a validation set.
+// Special cases are -25 -50 -75 where the values come from tables; the other values are approximate, calculated by a simple formula.
+// F-tests for -75 and -90 are likely to stop training before a perfect fit, and -35 and -25 may prolong training and tend to overfit.
+// A negative value causes *much* slower loading of the training buffer.
 	float fltRMSEorF = (float) atof(argv[4]); // a negative value indicates use of an F-test to stop splitting, intuition understands fltRMSEorF, but if >0 we use the square
 	float fltMSEorF = fltRMSEorF > 0 ? pow(fltRMSEorF, 2) : fltRMSEorF;
 	WeightBound = (float) atof(argv[5]); // Plus or minus this value bounds the weights from above and below in cases where all inputs have the same characeristics
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
 	ALNNODE* pTree = pALN->GetTree(); // The tree is initially just one leaf node
 	pALN->SetGrowable(pTree);
 
-	if (bClassify2 && bOneClass)
+	if (bClassify2)
 	{
 		for (int i = 1; i < nDim; i++)
 		{
@@ -114,8 +115,9 @@ int main(int argc, char* argv[])
 	}
 
 
-	if (bClassify2 && !bOneClass)
+	if (bClassify2)
 	{
+		const float ConstLevel = 0.95F;  // This must be > 0, e.g. 0.95, to create an interval around 0 where ALN values will lie.
 		// The following sets up the special ALN structure for pattern classification into two classes denoted by 1.0 and -1.0
 		// Split the root
 		ALNAddLFNs(aln, pTree, GF_MIN, 2, NULL);
@@ -129,43 +131,45 @@ int main(int argc, char* argv[])
 		ALNNODE* pGChildL = MINMAX_LEFT(pChildL);
 		ASSERT(NODE_ISLFN(pGChildR));
 		ASSERT(NODE_ISLFN(pGChildL));
-		// The next few lines set up a minimum with 0.95 and a maximum with -0.95 for the classification problems
+		// The next few lines set up a maximum with 0.95 and a minimum with -0.95 for the classification problems
 		// This assures that all ALN outputs are in the interval [-0.95, 0.95]
-		// Set up pChildR to cut off the ALN values above +1.0 using the minimum		
+		// A constant input to a minimum node means that only values less than or equal to that constant get through, e.g. at 0.95
+		// A constant input to a maximum node means that only values greater than or equal to that constant get through, e.g. at -0.95
+		// Set up pChildR to cut off the ALN values above 0.95 using the maximum		
 		for (int i = 0; i < nDim; i++)
 		{
 			LFN_W(pChildR)[i] = 0;
 			LFN_C(pChildR)[i] = 0;
-			LFN_D(pChildR)[i] = 0.0001; // just not zero and not enough to destroy optimization
+			LFN_D(pChildR)[i] = 0.001; // just not zero and not enough to destroy optimization
 		}
-		LFN_W(pChildR)[0] = 0.95;
+		LFN_W(pChildR)[0] = ConstLevel;
 		LFN_W(pChildR)[nDim] = -1.0; // this is the weight for the output(0 is for the bias weight, there is a shift by one unit)
-		LFN_C(pChildR)[nDim - 1] = 0.95;
+		LFN_C(pChildR)[nDim - 1] = ConstLevel;
 		LFN_FLAGS(pChildR) |= NF_CONSTANT; // Don't allow the LFN to adapt
 		LFN_FLAGS(pChildR) &= ~LF_SPLIT; //Don't allow the new right leaf to split
-		// Set up the right grandchild pGChild to cut off the ALN values below -1.0 using the maximum
+		// Set up the right grandchild pGChild to cut off the ALN values below -0.95 using the minimum
 		for (int i = 0; i < nDim; i++)
 		{
 			LFN_W(pGChildR)[i] = 0;
 			LFN_C(pGChildR)[i] = 0;
-			LFN_D(pGChildR)[i] = 0.0001; // just not zero and not enough to destroy optimization
+			LFN_D(pGChildR)[i] = 0.001; // just not zero and not enough to destroy optimization
 		}
-		LFN_W(pGChildR)[0] = -0.95;
+		LFN_W(pGChildR)[0] = -1.0 * ConstLevel;
 		LFN_W(pGChildR)[nDim] = -1.0; // this is the weight for the output(0 is for the bias weight, there is a shift by one unit)
-		LFN_C(pGChildR)[nDim - 1] = -0.95;
+		LFN_C(pGChildR)[nDim - 1] = -1.0 * ConstLevel;
 		LFN_FLAGS(pGChildR) |= NF_CONSTANT;
 		LFN_FLAGS(pGChildR) &= ~LF_SPLIT; //Don't allow the new right leaf to split
-		// The left grandchild should be growable, non-constant, splittable, we set it to be flat at 1.0
+		// The left grandchild should be growable, non-constant, splittable, we set it to be flat at 0.0
 		for (int i = 0; i < nDim; i++)
 		{
-			LFN_W(pGChildL)[i] = -0;
+			LFN_W(pGChildL)[i] = 0;
 			LFN_C(pGChildL)[i] = 0;
-			LFN_D(pGChildL)[i] = 0.0001; // just not zero and not enough to destroy optimization
+			LFN_D(pGChildL)[i] = 0.001; // just not zero and not enough to destroy optimization
 		}
 		LFN_W(pGChildL)[0] = 0.0;
 		LFN_W(pGChildL)[nDim] = -1.0; // this is the weight for the output(0 is for the bias weight, there is a shift by one unit)
 		LFN_C(pGChildL)[nDim - 1] = 0.0;
-	} // End of special code for one- or two-class pattern classification
+	} // End of special code for two-class pattern classification
 
 	ALNREGION* pRegion = pALN->GetRegion(0);
 	pRegion->fltSmoothEpsilon = 0;
@@ -204,7 +208,8 @@ int main(int argc, char* argv[])
 			temp = afltX[nDim - 1]; // Replace the desired value by +1.0 for the target, -1.0 for the others.
 			afltX[nDim - 1] = (fabs(temp - targetDigit) < 0.1) ? 1.0 : -1.0;
 		}
-		if (!bOneClass || (afltX[nDim - 1] > 0)) pALN->addTRsample(afltX, nDim);  // skip putting all the non-target samples into the buffer if doing OneClass
+		pALN->addTRsample(afltX, nDim);  
+		samplesAdded++;
 	}
 	ASSERT(pdata->nTRcurrSamples == samplesAdded);
 	std::cout << "ALNDATAINFO: " << "TRmaxSamples = " << pdata->nTRmaxSamples << "  "
@@ -237,8 +242,9 @@ int main(int argc, char* argv[])
 	bStopTraining = FALSE;
 	bAlphaBeta = FALSE;
 	bDistanceOptimization = FALSE;
+	BOOL bFirstTime = TRUE;
 	float fltLearnRate = 0.2F;
-	float fltMinRMSE = 0.00000001F;// This is set small and not very useful.  fltMSEorF is used now to stop training.
+	float fltMinRMSE = 0.00000001F;// This is set small and not very useful.  fltRMSEorF is used now to stop training.
 	int nNotifyMask = AN_TRAIN; // required callbacks for information or insertion of data. You can OR them together with |
 	ALNNODE** ppActiveLFN = NULL;
 
@@ -269,12 +275,17 @@ int main(int argc, char* argv[])
 				pALN->SetWeightMin(-WeightBound, m, 0);
 				pALN->SetWeightMax(WeightBound, m, 0);
 			}
-			WeightBound += WeightBoundIncrease;
+			if(WeightBound < 0.006) WeightBound += WeightBoundIncrease; // After this, it's manual.
 
-			if (iteration == 15 ) // Optimization is not needed when there are few leaf nodes, e.g. < 256
+			if ( bFirstTime && iteration == 10 ) // Optimization is not needed when there are few leaf nodes, e.g. < 256
 			{
 				bAlphaBeta = TRUE; // Once these optimizatons are switched on, they stay on. (This is after the first split)  MYTEST
 				bDistanceOptimization = TRUE;
+				fltRMSEorF = 10.0F; // When this is applied, there should be no more splitting!
+				pdata->fltMSEorF = fltMSEorF = fltRMSEorF > 0 ? pow(fltRMSEorF, 2) : fltRMSEorF;
+				//WeightBound = 0.006;
+				//WeightDecay = 1.02;
+				bFirstTime = FALSE;
 			}
 		
 			auto finish_iteration = std::chrono::high_resolution_clock::now();
@@ -286,7 +297,7 @@ int main(int argc, char* argv[])
 				flush(std::cout);
 			}
 		}
-
+		std::cout << "RMSEorF = " << fltRMSEorF << " Weight bound = " << WeightBound << " Weight decay  = " << WeightDecay  << endl;
 		// OUTPUT OF RESULTS
 		std::cout << std::endl << "Writing output file... please wait" << std::endl;
 		CDataFile ExtendTR;
@@ -343,11 +354,12 @@ int main(int argc, char* argv[])
 			std::cout << "The number of errors was " << counterrors << endl;
 		}
 		std::cout << "Continue training?? Enter number of additional iterations (multiple of 10), 0 to quit, 1 to modify." << 
-			"\nModifications: iterations, MSEorF, Weight-bound, WeightDecay" << std::endl;
+			"\nModifications: iterations, RMSEorF, WeightBound, WeightDecay" << std::endl;
 		std::cin >> iterations;
 		if (iterations == 1)
 		{
-			std::cin >> iterations >> fltMSEorF >> WeightBound >> WeightDecay;
+			std::cin >> iterations >> fltRMSEorF >> WeightBound >> WeightDecay;
+			float fltMSEorF = fltRMSEorF > 0 ? pow(fltRMSEorF, 2) : fltRMSEorF;
 			pdata->fltMSEorF = fltMSEorF;
 			for (int m = 0; m < nDim - 1; m++)
 			{

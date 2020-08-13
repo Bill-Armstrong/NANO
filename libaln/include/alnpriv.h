@@ -357,7 +357,6 @@ typedef struct tagTRAINDATA
   void* pvData;
   float fltLearnRate;
   float fltGlobalError;
-  // Potentially add Dmitri's flywheel
 } TRAINDATA;
 
 
