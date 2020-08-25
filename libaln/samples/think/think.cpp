@@ -14,6 +14,7 @@
 #include "cmyaln.h"
 #include "alnpriv.h"
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <chrono>  // for high_resolution_clock
 
@@ -21,9 +22,10 @@ static char szInfo[] = "NANO (Noise-Attenuating Neuron Online) program\n"
 "Copyright (C)  2019 William W. Armstrong\n"
 "Licensed under LGPL\n\n";
 // SET TARGET DIGIT HERE !!!!!
-float targetDigit = 7; //  Here we specify the digit to be recognized. The other digits are all in the second class
+float targetDigit = 6; //  Here we specify the digit to be recognized. The other digits are all in the second class
 
 BOOL bClassify2 = TRUE; // FALSE produces the usual function learning; TRUE is for two-class classification with a target class
+BOOL bConvex = TRUE;  // Used when bClassify2 is TRUE. If bConvex is TRUE, then we do convex classification, i.e. all but one split involves minima.
 extern long CountLeafevals; // Global to test optimization
 extern BOOL bStopTraining;
 // Switches for turning on/off optimizations
@@ -35,10 +37,10 @@ int nNumberLFNs = 0;
 void setSplitAlpha(ALNDATAINFO* pdata); // This works in the split routine to implement an F-test.
 float WeightDecay = 1.0F; //  This is a factor like 0.7599. It is used during classification into two classes when lower weights give better generalization.
 float WeightBound = FLT_MAX;
-float WeightBoundIncrease = 0.000004; // increase every iteration, e.g. in 2000 iterations it can go from 0.0 to 0.008
-int iterations = 2000; // Initial iterations
-
-
+float WeightBoundIncrease = 0.000003; // increase every iteration, e.g. in 200 iterations it can go from 0.0 to 0.006
+int iterations = 1700; // Initial iterations
+int SplitsAllowed = 2; // These are the two splits when the ALN is set up below.
+int SplitCount = 2;
 
 int main(int argc, char* argv[])
 {
@@ -69,6 +71,7 @@ int main(int argc, char* argv[])
 		std::cout << "Reading file failed!" << std::endl;
 		return 1;
 	}
+	cout << "The target for this run is digit " << targetDigit << endl;
 	long nTRmaxSamples = file.RowCount(); 
 	int nCols = file.ColumnCount();
 	nMaxEpochs = atoi(argv[3]);
@@ -247,8 +250,6 @@ int main(int argc, char* argv[])
 	float fltMinRMSE = 0.00000001F;// This is set small and not very useful.  fltRMSEorF is used now to stop training.
 	int nNotifyMask = AN_TRAIN; // required callbacks for information or insertion of data. You can OR them together with |
 	ALNNODE** ppActiveLFN = NULL;
-
-
 	std::cout << std::endl << "Starting training " << std::endl;
 	// Record start time
 	auto start_training = std::chrono::high_resolution_clock::now();
@@ -275,12 +276,14 @@ int main(int argc, char* argv[])
 				pALN->SetWeightMin(-WeightBound, m, 0);
 				pALN->SetWeightMax(WeightBound, m, 0);
 			}
-			if(WeightBound < 0.006) WeightBound += WeightBoundIncrease; // After this, it's manual.
+			if(WeightBound < 0.05) WeightBound += WeightBoundIncrease; // After this, it's manual.
+			if(SplitsAllowed < nDim) SplitsAllowed++;  // TRY THIS MYTEST
+			cout << "/" << SplitsAllowed << " ";
 
-			if ( bFirstTime && iteration == 10 ) // Optimization is not needed when there are few leaf nodes, e.g. < 256
+			if ( bFirstTime && iteration == 200 ) // Optimization is not needed when there are few leaf nodes, e.g. < 256
 			{
-				bAlphaBeta = TRUE; // Once these optimizatons are switched on, they stay on. (This is after the first split)  MYTEST
-				bDistanceOptimization = TRUE;
+				//bAlphaBeta = TRUE; // Once these optimizatons are switched on, they stay on. (This is after the first split)  MYTEST
+				//bDistanceOptimization = TRUE;
 				fltRMSEorF = 10.0F; // When this is applied, there should be no more splitting!
 				pdata->fltMSEorF = fltMSEorF = fltRMSEorF > 0 ? pow(fltRMSEorF, 2) : fltRMSEorF;
 				//WeightBound = 0.006;
@@ -288,6 +291,11 @@ int main(int argc, char* argv[])
 				bFirstTime = FALSE;
 			}
 		
+			// MYTEST
+
+			//if (iteration > 200) bConvex = FALSE;
+
+
 			auto finish_iteration = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<float> elapsed0 = finish_iteration - start_training;
 			std::chrono::duration<float> elapsed1 = finish_iteration - start_iteration;
@@ -300,14 +308,24 @@ int main(int argc, char* argv[])
 		std::cout << "RMSEorF = " << fltRMSEorF << " Weight bound = " << WeightBound << " Weight decay  = " << WeightDecay  << endl;
 		// OUTPUT OF RESULTS
 		std::cout << std::endl << "Writing output file... please wait" << std::endl;
-		CDataFile ExtendTR;
+		CDataFile ExtendTR, ReplaceTR;
+		long countReplace = 0;
+		
 		int colsOut = (bClassify2 ? nCols + 2 : nCols + 1);
 		ExtendTR.Create(file.RowCount(), colsOut); // Create a data file to hold the results
+		ReplaceTR.Create(file.RowCount(), file.ColumnCount());
+		long rowsReplace = file.RowCount() - 1 ;
 		float entry;
 		long countcorrect = 0;
 		long counterrors = 0;
 		float desired;
 		ALNDATAINFO* pdata2 = pALN->GetDataInfo();
+		ofstream outFile("BadTrainImages.txt", ios_base::trunc);
+		if (!outFile.good())
+		{
+			cerr << "File BadTrainImages.txt could not be opened." << endl;
+		}
+		outFile << "The target digit for the following images was " << targetDigit << endl;
 		for (long i = 0; i < nTRmaxSamples; i++)
 		{
 			// Copy the row of the input data file
@@ -316,10 +334,12 @@ int main(int argc, char* argv[])
 				entry = file.GetAt(i, j, 0);
 				ExtendTR.SetAt(i, j, entry, 0);
 			}
+			ReplaceTR.SetAt(i, nCols - 1, -1024, 0); // Every row in the replacement file is first invalidated, some to be over-written later by correct samples
 			// Evaluate the ALN on this row
 			for (int k = 0; k < nDim; k++) // Get the domain coordinates and desired output
 			{
 				afltX[k] = file.GetAt(i, ColumnNumber[k], 0);
+				ReplaceTR.SetAt(countReplace, ColumnNumber[k], afltX[k], 0); // This copies the file, but bad rows will be omitted.
 			}
 			desired = afltX[nDim - 1]; // Store the desired output according to the training file
 			afltX[nDim - 1] = -250; // Be sure the desired output will not help in the computation  MYTEST does this do it????
@@ -333,18 +353,35 @@ int main(int argc, char* argv[])
 				{
 					countcorrect++; // This is for the recognition of a single digit e.g. "9" vs all the others.
 					ExtendTR.SetAt(i, nCols + 1, 0, 0); // the second additional column on the right points out mistakes
+					countReplace++; // If this is not incremented, the row may be over-written by a good sample later.
 				}
 				else
 				{
 					counterrors++;
 					ExtendTR.SetAt(i, nCols + 1, 9999.9F, 0); // the second additional column on the right points out mistakes
+					if (15 * counterrors < file.RowCount())
+					{
+						for (int m = 0; m < nDim; m++)
+						{
+							entry = ExtendTR.GetAt(i, m, 0);
+							outFile << ( entry > 50.0F ? 'm' : ' ');
+							if (m % 14 == 13) outFile << endl;
+						}
+						outFile << "The label on the above digit was " << (int)desired << endl;
+					}
 				}
 			}
 		}
+		outFile.close();
 		if (!ExtendTR.Write("ExtendedTR.txt"))
 		{
 			std::cout << "ExtendedTR.txt was locked, look at ExtendedTR2.txt instead." << std::endl;
 			ExtendTR.Write("ExtendedTR2.txt");
+		}
+		if (!ReplaceTR.Write("ReplaceTR.txt"))
+		{
+			std::cout << "ReplaceTR.txt was locked, look at ReplaceTR2.txt instead." << std::endl;
+			ExtendTR.Write("ReplaceTR2.txt");
 		}
 		//std::cout << "Writing trained aln file... please wait" << std::endl;
 		//pALN->Write("NANOoutput.aln");
@@ -410,6 +447,12 @@ int main(int argc, char* argv[])
 	// For MNIST
 	// Now go on to the recognition phase for testing
 	std::cout << "Starting evaluation on the test file ... please wait." << std::endl;
+	ofstream outFile2("BadTestImages.txt", ios_base::trunc);
+	if (!outFile2.good())
+	{
+		cerr << "File BadTestImages.txt could not be opened." << endl;
+	}
+	outFile2 << "The target digit for the following images was " << targetDigit << endl;
 	CDataFile testfile;
 	if (testfile.Read("MNIST_NANO_TestFile.txt"))
 	{
@@ -424,27 +467,34 @@ int main(int argc, char* argv[])
 	std::cout << std::endl << "Starting evaluation" << std::endl;
 	bAlphaBeta = FALSE; // Optimizations are not done in the interest of accuracy.
 	bDistanceOptimization = FALSE;
-	float DesiredOutput, ALNoutput;
+	float DesiredALNOutput, ALNoutput, label;
 	for (long i = 0; i < 10000; i++)
 	{
 		for (int j = 0; j < nDim; j++) // Get the domain values
 		{
 			afltX[j] = testfile.GetAt(i, j, 0);
 		}
-		DesiredOutput = (fabs(afltX[nDim - 1] - targetDigit) < 0.1 ? 10 : -10); // This is the correct class in the test file MYTEST??????
-		afltX[nDim - 1] = -250.0; // Put in an incorrect value here
+		DesiredALNOutput = (fabs(afltX[nDim - 1] - targetDigit) < 0.1 ? 1 : -1);
+		label = afltX[nDim - 1];
+		afltX[nDim - 1] = -250.0; // Put in an incorrect value here (to show there is no cheating).
 		ALNoutput = pALN->QuickEval(afltX, ppActiveLFN);
-		if (ALNoutput * DesiredOutput > 0) 
+		if (ALNoutput * DesiredALNOutput > 0) 
 		{
 			nCorrect++;
 		}
 		else
 		{
 			nWrong++;
+			for (int j = 0; j < nDim -1; j++) // Get the domain values
+			{
+				outFile2 << ((afltX[j] > 50.0F) ? 'M' : ' ');
+				if (j % 14 == 13) outFile2 << endl;
+			}
+			outFile2 << "The label on the above digit was " << (int)label << endl;
 		}
 	}
 	std::cout << "Correct: " << nCorrect << " Wrong: " << nWrong << endl;
-
+	outFile2.close();
 	free(afltX);
 	free(pdata->afltTRdata);
 	pALN->Destroy();

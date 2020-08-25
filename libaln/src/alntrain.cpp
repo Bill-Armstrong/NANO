@@ -46,8 +46,9 @@ void splitControl(ALN*, ALNDATAINFO*); // This does a test to see if a piece fit
 extern BOOL bALNgrowable = TRUE; //If FALSE, no splitting happens, e.g. for linear regression.
 BOOL bStopTraining = FALSE; // This causes training to stop when all leaf nodes have stopped splitting. This means all linear regression resultss will not change.
 extern BOOL bDistanceOptimization; // This prevents considering leaf nodes so far away from the current input sample that they must be cut off in the max-min structure.
-//float WeightBound = FLT_MAX; // This is a maximum and minimum bound on weights.
-//float WeightDecay = 1.0; //  This is a factor close to 1.0. It is used during classification into two classes when lower weights give better generalization.
+extern BOOL bClassify2; // We don't want to do weight decay if this is not a classification problem
+extern float WeightBound; // This is a maximum and minimum bound on weights.
+extern float WeightDecay; //  This is a factor close to 1.0. It is used during classification into two classes when lower weights give better generalization.
 
 
 // Train calls ALNTrain, which expects data in a monolithic array, row major order, ie,
@@ -288,7 +289,10 @@ static int ALNAPI DoTrainALN(ALN* pALN,
 					Callback(pALN, AN_ADAPTEND, &adaptinfo, pfnNotifyProc, pvData);
 				}
 			}	// end for each point in data set
-
+			if (bClassify2 && WeightDecay != 1.0F)
+			{
+				DecayWeights(pTree, pALN, WeightBound, WeightDecay); //We decay weights only when there are a few samples on the piece at the end of training
+			}
 
 			// estimate RMS error on training set for this epoch
 			epochinfo.fltEstRMSErr = sqrt(fltSqErrorSum / nTRcurrSamples);

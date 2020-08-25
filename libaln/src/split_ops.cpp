@@ -40,7 +40,7 @@ static char THIS_FILE[] = __FILE__;
 #include "aln.h"
 
 // We use fltRespTotal in two ways and the following definition helps.
-#define DBLNOISEVARIANCE fltRespTotal
+#define NOISEVARIANCE fltRespTotal
 
 extern BOOL bStopTraining; // This becomes TRUE and stops training when pieces are no longer splitting.
 void setSplitAlpha(ALNDATAINFO* pDataInfo);
@@ -52,7 +52,10 @@ int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode);
 extern float WeightDecay;
 extern float WeightBound;
 extern BOOL bClassify2;
-ALNIMP void ALNAPI DecayWeights(const ALNNODE* pNode, const ALN* pALN, float WeightBound, float WeightDecay);
+extern BOOL bConvex;
+extern int SplitsAllowed;
+extern int SplitCount;
+
 
 // We use the first three fields in ALNLFNSPLIT (declared in aln.h)
 // in two different ways: for training and between training intervals.
@@ -111,6 +114,7 @@ void setSplitAlpha(ALNDATAINFO* pDataInfo)
 
 void splitControl(ALN* pALN, ALNDATAINFO* pDataInfo)  // routine
 {
+	if (SplitCount >= SplitsAllowed) return; // 
 	float fltLimit = pDataInfo->fltMSEorF;
 	ASSERT(pALN);
 	ASSERT(pALN->pTree);
@@ -141,7 +145,7 @@ void zeroSplitValues(ALN* pALN, ALNNODE* pNode) // routine
 		{
 			(pNode->DATA.LFN.pSplit)->nCount = 0;
 			(pNode->DATA.LFN.pSplit)->fltSqError = 0;
-			(pNode->DATA.LFN.pSplit)->DBLNOISEVARIANCE = 0;
+			(pNode->DATA.LFN.pSplit)->NOISEVARIANCE = 0;
 		}
 	}
 }
@@ -194,7 +198,7 @@ void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo) // routine
 				}
 				// The following should be a sample for the noise variance of the piece
 				// which is paired with data sample i in case fltMSEorF is negative and we are doing an F-test.
-				(pActiveLFN->DATA.LFN.pSplit)->DBLNOISEVARIANCE += 0.5 * noiseSampleTemp * noiseSampleTemp;
+				(pActiveLFN->DATA.LFN.pSplit)->NOISEVARIANCE += 0.5 * noiseSampleTemp * noiseSampleTemp;
 			}
 		}
 	} // end loop over both files
@@ -210,6 +214,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
 	// but if fltLimit >= 0 it uses the actual fltLimit value to compare to the square training error.
 
 	long Count;
+
 	ASSERT(pNode);
 	ALNNODE* pParent = NODE_PARENT(pNode);
 	if (NODE_ISMINMAX(pNode))
@@ -311,7 +316,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
 				// one-sided probabilities at various sigmas: sigma = 2.0 0.0227; 2.5 0.0062; 3.0 0.0013; 3.5 0.0002; 3.88 0.0001 Seelalso alnmem.cpp line 497
 			}
 		}
-		if (Count > CanSplitAbove)  // added July 29,2020 to try for better classification, adapted for regression use August 10, 2020
+		if (Count > CanSplitAbove) // added July 29,2020 to try for better classification, adapted for regression use August 10, 2020
 		{
 			if (LFN_CANSPLIT(pNode))
 			{
@@ -320,7 +325,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
 				float fltPieceNoiseVariance = (float)Count; // Used when there is no F-test, that is when fltLimit is <= 0, otherwise it tests training MSE < fltLimit
 				if (fltMSEorF < 0) // if this is TRUE, we do the F test.
 				{
-					fltPieceNoiseVariance = (pNode->DATA.LFN.pSplit)->DBLNOISEVARIANCE; // total of noise variance samples
+					fltPieceNoiseVariance = (pNode->DATA.LFN.pSplit)->NOISEVARIANCE; // total of noise variance samples
 					//the average of noise variance samples estimates the actual noise variance.
 					int dofIndex; // get the fltSplitLimit corresponding to the degrees of freedom of the F test
 					dofIndex = Count - 2;
@@ -351,8 +356,12 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
 					{
 						// The piece doesn't fit and needs to split; then training must continue.
 						// We want to choose the same way of splitting, max or min, as the parent. This may need some experimentation
-						if (fabs(LFN_SPLIT_T(pNode)) * Count * 20 < fltPieceSquareTrainError) LFN_SPLIT_T(pNode) = 0;
-						SplitLFN(pALN, pNode); // We split *every* leaf node that reaches this point.
+						//if (fabs(LFN_SPLIT_T(pNode)) * Count * 20 < fltPieceSquareTrainError) LFN_SPLIT_T(pNode) = 0; MYTEST fix this!!!!!!!!!!!!!!!!!
+						if (SplitCount < SplitsAllowed)
+						{
+							SplitLFN(pALN, pNode); // We split *every* leaf node that reaches this point.
+							SplitCount++;
+						}
 						// We start an epoch with bStopTraining == TRUE, but if any leaf node might still split,
 						bStopTraining = FALSE; //  we set it to FALSE and continue to another epoch of training.
 					}
@@ -369,16 +378,12 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
 				}
 			} // end of if LFN_CANSPLIT(pNode)
 		} 
-		if(WeightDecay != 1.0F && Count > 0)
-		{
-			DecayWeights(pNode, pALN, WeightBound, WeightDecay); //We decay weights only when there are a few samples on the piece at the end of training
-		}
 	}
 }
 
 int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode)
 {
-	if (bClassify2)
+	if (bClassify2  && bConvex)
 	{
 		// This is for convex classification
 		return ALNAddLFNs(pALN, pNode, GF_MIN, 2, NULL);

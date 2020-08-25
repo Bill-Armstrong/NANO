@@ -11,7 +11,6 @@ extern "C" int _getch();
 
 class CMyAln;
 
-
 class CMyAln : public CAln
 {
   // notification overrides

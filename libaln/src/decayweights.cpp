@@ -22,7 +22,7 @@ ALNIMP void ALNAPI DecayWeights(const ALNNODE* pNode, const ALN* pALN, float Wei
 		{
 			// we rotate the LFN if the output centroid is not too close to samples.
 			float C_output = LFN_C(pNode)[nDim - 1];
-			if (C_output < -0.95 || C_output > 0.95) return;
+			if (C_output < -0.9 || C_output > 0.9) return;
 		}
 		for (int i = 1; i < nDim -1; i++)
 		{
