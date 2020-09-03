@@ -22,10 +22,10 @@ static char szInfo[] = "NANO (Noise-Attenuating Neuron Online) program\n"
 "Copyright (C)  2019 William W. Armstrong\n"
 "Licensed under LGPL\n\n";
 // SET TARGET DIGIT HERE !!!!!
-float targetDigit = 6; //  Here we specify the digit to be recognized. The other digits are all in the second class
+float targetDigit =2; //  Here we specify the digit to be recognized. The other digits are all in the second class
 
 BOOL bClassify2 = TRUE; // FALSE produces the usual function learning; TRUE is for two-class classification with a target class
-BOOL bConvex = TRUE;  // Used when bClassify2 is TRUE. If bConvex is TRUE, then we do convex classification, i.e. all but one split involves minima.
+BOOL bConvex = FALSE;  // Used when bClassify2 is TRUE. If bConvex is TRUE, then we do convex classification, i.e. all but one split involves minima.
 extern long CountLeafevals; // Global to test optimization
 extern BOOL bStopTraining;
 // Switches for turning on/off optimizations
@@ -37,10 +37,10 @@ int nNumberLFNs = 0;
 void setSplitAlpha(ALNDATAINFO* pdata); // This works in the split routine to implement an F-test.
 float WeightDecay = 1.0F; //  This is a factor like 0.7599. It is used during classification into two classes when lower weights give better generalization.
 float WeightBound = FLT_MAX;
-float WeightBoundIncrease = 0.000003; // increase every iteration, e.g. in 200 iterations it can go from 0.0 to 0.006
-int iterations = 1700; // Initial iterations
-int SplitsAllowed = 2; // These are the two splits when the ALN is set up below.
-int SplitCount = 2;
+float WeightBoundIncrease = 0.000003; // increase every iteration, e.g. in 200 iterations it can go from 0.0 to 0.006, in 1800 from 0.0006 to .006
+int iterations =1900; // Initial iterations
+int SplitsAllowed = 75; // These are the two splits when the ALN is set up below, change to 4 if the two extra maxes are used.
+int SplitCount = 0;
 
 int main(int argc, char* argv[])
 {
@@ -71,16 +71,16 @@ int main(int argc, char* argv[])
 		std::cout << "Reading file failed!" << std::endl;
 		return 1;
 	}
-	cout << "The target for this run is digit " << targetDigit << endl;
+	std::cout << "The target for this run is digit " << targetDigit << endl;
 	long nTRmaxSamples = file.RowCount(); 
 	int nCols = file.ColumnCount();
 	nMaxEpochs = atoi(argv[3]);
 	// fltRMSEorF (fltMSEorF) can be a positive (root) mean square error limit on training, below which pieces won't split,
-// or a negative number, whose negative is the probability (e.g. -50) as a percent for an F-test.
-// The latter is a local stopping criterion comparable to the global stopping criteria for other neural nets using a validation set.
-// Special cases are -25 -50 -75 where the values come from tables; the other values are approximate, calculated by a simple formula.
-// F-tests for -75 and -90 are likely to stop training before a perfect fit, and -35 and -25 may prolong training and tend to overfit.
-// A negative value causes *much* slower loading of the training buffer.
+	// or a negative number, whose negative is the probability (e.g. -50) as a percent for an F-test.
+	// The latter is a local stopping criterion comparable to the global stopping criteria for other neural nets using a validation set.
+	// Special cases are -25 -50 -75 where the values come from tables; the other values are approximate, calculated by a simple formula.
+	// F-tests for -75 and -90 are likely to stop training before a perfect fit, and -35 and -25 may prolong training and tend to overfit.
+	// A negative value causes *much* slower loading of the training buffer.
 	float fltRMSEorF = (float) atof(argv[4]); // a negative value indicates use of an F-test to stop splitting, intuition understands fltRMSEorF, but if >0 we use the square
 	float fltMSEorF = fltRMSEorF > 0 ? pow(fltRMSEorF, 2) : fltRMSEorF;
 	WeightBound = (float) atof(argv[5]); // Plus or minus this value bounds the weights from above and below in cases where all inputs have the same characeristics
@@ -172,6 +172,15 @@ int main(int argc, char* argv[])
 		LFN_W(pGChildL)[0] = 0.0;
 		LFN_W(pGChildL)[nDim] = -1.0; // this is the weight for the output(0 is for the bias weight, there is a shift by one unit)
 		LFN_C(pGChildL)[nDim - 1] = 0.0;
+		/*
+		// Option to add one or more maximum nodes to simplify recognition hardware if bConvex is TRUE.
+		// It uses one or several domes each doing convex classification to solve a non-convex problem.
+		// This shouldn't hurt anything and additional maxes can be added following the recipe below
+		ALNAddLFNs(aln, pGChildL, GF_MAX, 2, NULL);
+		ALNNODE* pGGChildL = MINMAX_LEFT(pGChildL);
+		ASSERT(NODE_ISLFN(pGGChildL));
+		ALNAddLFNs(aln, pGGChildL, GF_MAX, 2, NULL);
+		*/
 	} // End of special code for two-class pattern classification
 
 	ALNREGION* pRegion = pALN->GetRegion(0);
@@ -250,6 +259,12 @@ int main(int argc, char* argv[])
 	float fltMinRMSE = 0.00000001F;// This is set small and not very useful.  fltRMSEorF is used now to stop training.
 	int nNotifyMask = AN_TRAIN; // required callbacks for information or insertion of data. You can OR them together with |
 	ALNNODE** ppActiveLFN = NULL;
+	CDataFile ExtendTR, NormalReplaceTR, PurgeReplaceTR;
+	long countReplace = 0;
+	int colsOut = (bClassify2 ? nCols + 2 : nCols + 1);
+	ExtendTR.Create(file.RowCount(), colsOut); // Create a data file to hold the results
+	NormalReplaceTR.Create(file.RowCount(), file.ColumnCount());
+	long rowsReplace = file.RowCount();
 	std::cout << std::endl << "Starting training " << std::endl;
 	// Record start time
 	auto start_training = std::chrono::high_resolution_clock::now();
@@ -277,15 +292,15 @@ int main(int argc, char* argv[])
 				pALN->SetWeightMax(WeightBound, m, 0);
 			}
 			if(WeightBound < 0.05) WeightBound += WeightBoundIncrease; // After this, it's manual.
-			if(SplitsAllowed < nDim) SplitsAllowed++;  // TRY THIS MYTEST
-			cout << "/" << SplitsAllowed << " ";
+			if(SplitsAllowed < nDim || iteration%10 == 1 ) SplitsAllowed++;
+			std::cout << "/" << SplitsAllowed << " ";
 
-			if ( bFirstTime && iteration == 200 ) // Optimization is not needed when there are few leaf nodes, e.g. < 256
+			if ( bFirstTime && iteration == 290 ) // Optimization is not needed when there are few leaf nodes, e.g. < 256
 			{
-				//bAlphaBeta = TRUE; // Once these optimizatons are switched on, they stay on. (This is after the first split)  MYTEST
-				//bDistanceOptimization = TRUE;
-				fltRMSEorF = 10.0F; // When this is applied, there should be no more splitting!
-				pdata->fltMSEorF = fltMSEorF = fltRMSEorF > 0 ? pow(fltRMSEorF, 2) : fltRMSEorF;
+				bAlphaBeta = TRUE; // Once these optimizatons are switched on, they stay on. (This is after the first split)  MYTEST
+				bDistanceOptimization = TRUE;
+				// fltRMSEorF = 10.0F; // When this is applied, there should be no more splitting!
+				//pdata->fltMSEorF = fltMSEorF = fltRMSEorF > 0 ? pow(fltRMSEorF, 2) : fltRMSEorF;
 				//WeightBound = 0.006;
 				//WeightDecay = 1.02;
 				bFirstTime = FALSE;
@@ -306,45 +321,43 @@ int main(int argc, char* argv[])
 			}
 		}
 		std::cout << "RMSEorF = " << fltRMSEorF << " Weight bound = " << WeightBound << " Weight decay  = " << WeightDecay  << endl;
-		// OUTPUT OF RESULTS
-		std::cout << std::endl << "Writing output file... please wait" << std::endl;
-		CDataFile ExtendTR, ReplaceTR;
-		long countReplace = 0;
-		
-		int colsOut = (bClassify2 ? nCols + 2 : nCols + 1);
-		ExtendTR.Create(file.RowCount(), colsOut); // Create a data file to hold the results
-		ReplaceTR.Create(file.RowCount(), file.ColumnCount());
-		long rowsReplace = file.RowCount() - 1 ;
+
 		float entry;
 		long countcorrect = 0;
 		long counterrors = 0;
+		countReplace = 0;
 		float desired;
 		ALNDATAINFO* pdata2 = pALN->GetDataInfo();
-		ofstream outFile("BadTrainImages.txt", ios_base::trunc);
-		if (!outFile.good())
+		ofstream BadTrainImages("BadTrainImages.txt", ios_base::trunc);
+		if (!BadTrainImages.good())
 		{
 			cerr << "File BadTrainImages.txt could not be opened." << endl;
 		}
-		outFile << "The target digit for the following images was " << targetDigit << endl;
+		BadTrainImages << "The target digit for the following images was " << targetDigit << endl;
 		for (long i = 0; i < nTRmaxSamples; i++)
 		{
+			float totalIntensity = 0;;
 			// Copy the row of the input data file
-			for (int j = 0; j < nCols; j++) // we include all columns
+			for (int j = 0; j < nDim; j++) // we include all columns
 			{
 				entry = file.GetAt(i, j, 0);
 				ExtendTR.SetAt(i, j, entry, 0);
+				totalIntensity += entry;
 			}
-			ReplaceTR.SetAt(i, nCols - 1, -1024, 0); // Every row in the replacement file is first invalidated, some to be over-written later by correct samples
+			if (totalIntensity < 1) totalIntensity = 1;
+			NormalReplaceTR.SetAt(i, nDim - 1, -1024, 0); // Every row in the replacement file is first invalidated in the desired output column, some to be over-written later by correct samples
 			// Evaluate the ALN on this row
-			for (int k = 0; k < nDim; k++) // Get the domain coordinates and desired output
+			for (int k = 0; k < nDim - 1; k++) // Get the domain coordinates
 			{
-				afltX[k] = file.GetAt(i, ColumnNumber[k], 0);
-				ReplaceTR.SetAt(countReplace, ColumnNumber[k], afltX[k], 0); // This copies the file, but bad rows will be omitted.
+				afltX[k] = file.GetAt(i, k, 0);
+				NormalReplaceTR.SetAt(countReplace, k, afltX[k] *98000.0F / (totalIntensity + .001), 0); // This copies the file with normalized intensities, but bad rows will be omitted.
 			}
+			afltX[nDim - 1] = file.GetAt(i, nDim - 1, 0);
+			NormalReplaceTR.SetAt(countReplace, nDim -1, afltX[nDim - 1], 0); //fix the label entry
 			desired = afltX[nDim - 1]; // Store the desired output according to the training file
-			afltX[nDim - 1] = -250; // Be sure the desired output will not help in the computation  MYTEST does this do it????
+			afltX[nDim - 1] = -250; // Be sure the desired output will not help in the computation
 			entry = pALN->QuickEval(afltX, ppActiveLFN); // get the ALN-computed value for entry into the output file
-			ExtendTR.SetAt(i, nCols, entry, 0); // the first additional column on the right is the ALN output
+			ExtendTR.SetAt(i, nDim, entry, 0); // the first additional column on the right is the ALN output
 			float correctClass;
 			if(bClassify2)
 			{
@@ -359,36 +372,38 @@ int main(int argc, char* argv[])
 				{
 					counterrors++;
 					ExtendTR.SetAt(i, nCols + 1, 9999.9F, 0); // the second additional column on the right points out mistakes
-					if (15 * counterrors < file.RowCount())
+					for (int m = 0; m < nDim -1; m++)
 					{
-						for (int m = 0; m < nDim; m++)
-						{
-							entry = ExtendTR.GetAt(i, m, 0);
-							outFile << ( entry > 50.0F ? 'm' : ' ');
-							if (m % 14 == 13) outFile << endl;
-						}
-						outFile << "The label on the above digit was " << (int)desired << endl;
+						entry = ExtendTR.GetAt(i, m, 0); // get the domain values
+						BadTrainImages << ( entry > 50.0F ? 'm' : ' ');
+						if (m % 14 == 13) BadTrainImages << endl;
 					}
+					BadTrainImages << "The label on the above digit was " << (int)desired << endl;
+					countReplace++; // Incrementing this gives the normalized version of the whole training file
 				}
 			}
 		}
-		outFile.close();
+		// OUTPUT OF RESULTS
+		std::cout << std::endl << "Closing BadTrainImages file with " << counterrors << " images " << std::endl;
+		BadTrainImages.close();
+		std::cout << std::endl << "Writing ExtendedTR.txt file " << std::endl;
 		if (!ExtendTR.Write("ExtendedTR.txt"))
 		{
 			std::cout << "ExtendedTR.txt was locked, look at ExtendedTR2.txt instead." << std::endl;
 			ExtendTR.Write("ExtendedTR2.txt");
 		}
-		if (!ReplaceTR.Write("ReplaceTR.txt"))
+		std::cout << std::endl << "Writing NormalReplaceTR.txt file " << std::endl;
+		if (!NormalReplaceTR.Write("NormalReplaceTR.txt"))
 		{
-			std::cout << "ReplaceTR.txt was locked, look at ReplaceTR2.txt instead." << std::endl;
-			ExtendTR.Write("ReplaceTR2.txt");
+			std::cout << "NormalReplaceTR.txt was locked, look at NormalReplaceTR2.txt instead." << std::endl;
+			ExtendTR.Write("NormalReplaceTR2.txt");
 		}
 		//std::cout << "Writing trained aln file... please wait" << std::endl;
 		//pALN->Write("NANOoutput.aln");
 		if (bClassify2)
 		{
 			std::cout << "The number of correct classifications was " << countcorrect << " or " << 100.0 * countcorrect / file.RowCount() << " percent " << std::endl;
-			std::cout << "The number of errors was " << counterrors << endl;
+			std::cout << "The number of errors was " << counterrors << std::endl;
 		}
 		std::cout << "Continue training?? Enter number of additional iterations (multiple of 10), 0 to quit, 1 to modify." << 
 			"\nModifications: iterations, RMSEorF, WeightBound, WeightDecay" << std::endl;
@@ -405,7 +420,59 @@ int main(int argc, char* argv[])
 			}
 		}
 	} while (iterations > 0);
+	std::cout << "Do you want to replace incorrect or incorrectly labeled images? (y or n)" << std::endl;
+	char dummy;
+	std::cin >> dummy;
+	float entry;
+	long replaceCount = 0;
+	float totalIntensity = 0;
+	// The PurgeReplacementTR file will not be normalized, just purged of dubious training samples.
+	PurgeReplaceTR.Create(file.RowCount(), file.ColumnCount());
+	if (dummy == 'y'|| dummy == 'Y')
+	{
+		for (long i = 0; i < nTRmaxSamples; i++)
+		{
+			if (ExtendTR.GetAt(i, nDim + 1, 0) < 9999.9F)
+			{
+				for (int m = 0; m < nDim; m++)
+				{
+					entry = ExtendTR.GetAt(i, m, 0);
+					PurgeReplaceTR.SetAt(replaceCount, m, entry, 0);
+				}
+				replaceCount++;
+			}
+			else
+			{
+				totalIntensity = 0;
+				for (int m = 0; m < nDim; m++)
+				{
+					entry = ExtendTR.GetAt(i, m, 0);
+					totalIntensity += entry;
+					std::cout << (entry > 50.0F ? 'm' : ' ');
+					if (m % 14 == 13) std::cout << endl;
+				}
+				std::cout << "The label on the above digit was " << (int) entry << " Average intensity = " << totalIntensity/196.0 << std::endl;
+				std::cout << "Should this image and label be kept?  (y or n)" << std::endl;
+				std::cin >> dummy;
+				if (dummy == 'y' || dummy == 'Y')
+				{
+					for (int m = 0; m < nDim; m++)
+					{
+						entry = ExtendTR.GetAt(i, m, 0);
+						PurgeReplaceTR.SetAt(replaceCount, m, entry, 0);
+					}
+					replaceCount++;
+				}
+			}
+		}
+		std::cout << "The number of rows in the replacement file is " << replaceCount << endl;
+		if (!PurgeReplaceTR.Write("PurgeReplaceTR.txt"))
+		{
+			std::cout << "PurgeReplaceTR.txt was locked, look at PurgeReplaceTR2.txt instead." << std::endl;
+			ExtendTR.Write("PurgeReplaceTR2.txt");
+		}
 
+	}
 	/*
 	// Speed test
 	std::cout << std::endl << "Starting speed test... please wait" << std::endl;
@@ -447,14 +514,14 @@ int main(int argc, char* argv[])
 	// For MNIST
 	// Now go on to the recognition phase for testing
 	std::cout << "Starting evaluation on the test file ... please wait." << std::endl;
-	ofstream outFile2("BadTestImages.txt", ios_base::trunc);
-	if (!outFile2.good())
+	ofstream BadTestImages("BadTestImages.txt", ios_base::trunc);
+	if (!BadTestImages.good())
 	{
 		cerr << "File BadTestImages.txt could not be opened." << endl;
 	}
-	outFile2 << "The target digit for the following images was " << targetDigit << endl;
+	BadTestImages << "The target digit for the following images was " << targetDigit << endl;
 	CDataFile testfile;
-	if (testfile.Read("MNIST_NANO_TestFile.txt"))
+	if (testfile.Read("NormalizedMNIST_NANO_TestFile.txt"))
 	{
 		std::cout << "Reading file succeeded!" << std::endl;
 	}
@@ -487,14 +554,14 @@ int main(int argc, char* argv[])
 			nWrong++;
 			for (int j = 0; j < nDim -1; j++) // Get the domain values
 			{
-				outFile2 << ((afltX[j] > 50.0F) ? 'M' : ' ');
-				if (j % 14 == 13) outFile2 << endl;
+				BadTestImages << ((afltX[j] > 50.0F) ? 'M' : ' ');
+				if (j % 14 == 13) BadTestImages << endl;
 			}
-			outFile2 << "The label on the above digit was " << (int)label << endl;
+			BadTestImages << "The label on the above digit was " << (int)label << endl;
 		}
 	}
 	std::cout << "Correct: " << nCorrect << " Wrong: " << nWrong << endl;
-	outFile2.close();
+	BadTestImages.close();
 	free(afltX);
 	free(pdata->afltTRdata);
 	pALN->Destroy();
