@@ -521,7 +521,7 @@ int main(int argc, char* argv[])
 	}
 	BadTestImages << "The target digit for the following images was " << targetDigit << endl;
 	CDataFile testfile;
-	if (testfile.Read("NormalizedMNIST_NANO_TestFile.txt"))
+	if (testfile.Read("Normalized500MNIST_NANO_TestFile.txt"))
 	{
 		std::cout << "Reading file succeeded!" << std::endl;
 	}
