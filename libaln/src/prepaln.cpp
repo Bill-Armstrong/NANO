@@ -100,7 +100,7 @@ BOOL ALNAPI DoPrepNode(ALN* pALN, ALNNODE* pNode)
   else
   {
     ASSERT(NODE_ISMINMAX(pNode));
-		DoPrepNode(MINMAX_LEFT(pNode));
+        DoPrepNode(MINMAX_LEFT(pNode));
     DoPrepNode(MINMAX_RIGHT(pNode));
   }
 

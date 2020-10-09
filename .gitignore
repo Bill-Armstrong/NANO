@@ -54,3 +54,4 @@ BuildLog.txt
 **/packages/
 /libaln/build/x64/think/x64
 /libaln/build/x64/libaln/x64
+/Working
