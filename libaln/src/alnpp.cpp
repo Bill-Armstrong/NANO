@@ -221,7 +221,7 @@ void ALNAPI CAln::reduceNoiseVariance()
 	for (long i = 0; i < nTRcurrSamples; i++)
 	{
 		value = afltTRdata[nTRcols * i + nDimm1 ];
-		value -= 0.5 * afltTRdata[nTRcols * i + nDimt2m1];
+		value -= 0.5f * afltTRdata[nTRcols * i + nDimt2m1];
 		afltTRdata[nTRcols * i + nDimm1] = value;
 	}
 }

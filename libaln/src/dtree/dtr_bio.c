@@ -38,7 +38,9 @@
 #include "dtr_priv.h"
 
 // Intel X64 is little endian
+#ifndef LITTLE_ENDIAN
 #define LITTLE_ENDIAN
+#endif
 
 /* make sure we know the "endian"-ness of the target platform */
 /* ... needed for binary file ops */
@@ -308,7 +310,7 @@ int WriteBinDtreeFile(FILE* pFile, DTREE* pDtree)
   {
     int nLen = 0;
     if (pDtree->aVarDefs[i].pszName != NULL)
-      nLen = strlen(pDtree->aVarDefs[i].pszName);
+      nLen = (int)strlen(pDtree->aVarDefs[i].pszName);
    
     WRITE_OBJ(nLen);
     if (nLen > 0)

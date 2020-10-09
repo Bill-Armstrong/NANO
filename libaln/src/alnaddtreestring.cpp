@@ -122,7 +122,7 @@ ALNIMP int ALNAPI ALNAddTreeString(ALN* pALN, ALNNODE* pParent,
 
   // count number of chars parsed
   if (pnParsed != NULL)
-    *pnParsed = psz - pszTreeString;
+    *pnParsed = (int)(psz - pszTreeString);
 
   // check final state
   int nReturn = ALN_GENERIC;

@@ -27,6 +27,10 @@
 #define ALNIMP __declspec(dllexport)
 #endif
 
+#ifdef _MSC_VER 
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <aln.h>
 #include "alnpriv.h"
 
@@ -134,24 +138,24 @@ DTREE* ALNAPI BuildDtree(const ALN* pALN, int nMaxDepth)
   
   // now optimize when nMaxDepth is >1... set dtree_errno if any problems
   DTREE* pDest = NULL;
-	if(nMaxDepth > 1)
-	{
-		// this does a lot of work
-		dtree_errno = SplitDtree(&pDest, pSrc, nMaxDepth);
-		if (dtree_errno != DTR_NOERROR) 
-		{
-			DestroyDtree(pDest);
-			pDest = NULL;
-		}
-	  DestroyDtree(pSrc);
-	}
-	else
-	{
-		// this avoids work, and also the question of
-		// whether the DTREE constructed directly from
-		// the ALN is optimal.
-		pDest = pSrc;
-	}
+    if(nMaxDepth > 1)
+    {
+        // this does a lot of work
+        dtree_errno = SplitDtree(&pDest, pSrc, nMaxDepth);
+        if (dtree_errno != DTR_NOERROR) 
+        {
+            DestroyDtree(pDest);
+            pDest = NULL;
+        }
+      DestroyDtree(pSrc);
+    }
+    else
+    {
+        // this avoids work, and also the question of
+        // whether the DTREE constructed directly from
+        // the ALN is optimal.
+        pDest = pSrc;
+    }
   return pDest;  
 }
 
@@ -382,9 +386,9 @@ int ALNAPI SplitDtree(DTREE** ppDest, DTREE* pSrc, int nMaxDepth)
 {
   // This is the main routine for creating an optimized, multilevel DTREE.
   // pSrc points to a source DTREE with only one block and one DTREE node.
-	// A DTREE node indicates a split of the input space where one DTREE on a block 
-	// has been replaced by two or more DTREEs on several blocks partitioning the original one.
-	//(i.e. a DTREE node is not a MINMAX node, of which the DTREE on a block can have many!).
+    // A DTREE node indicates a split of the input space where one DTREE on a block 
+    // has been replaced by two or more DTREEs on several blocks partitioning the original one.
+    //(i.e. a DTREE node is not a MINMAX node, of which the DTREE on a block can have many!).
   // The returned ppDest will point to a pointer to the new, optimized, DTREE. 
   int i;
   int nDim;
@@ -498,9 +502,9 @@ int ALNAPI SplitDtree(DTREE** ppDest, DTREE* pSrc, int nMaxDepth)
   
   // blocks -- the greatest number of blocks for a DTREE of depth nMaxDepth is
   nMaxBlocks = (int)pow((float)2.0, (float)(nMaxDepth - 1)); // DTREE depth 1 gives one block.
-	// However, since the splitting of the input space goes to depths that
-	// vary with the complexity of the function on a block being split,
-	// this balanced tree model is poor.  
+    // However, since the splitting of the input space goes to depths that
+    // vary with the complexity of the function on a block being split,
+    // this balanced tree model is poor.  
   aBlocks = CreateBlockArray(nMaxBlocks);
   if (aBlocks == NULL)
   {
@@ -509,14 +513,14 @@ int ALNAPI SplitDtree(DTREE** ppDest, DTREE* pSrc, int nMaxDepth)
   }
   
   // DTREE nodes -- the number of DTREE nodes is limited by the number of blocks.
-	// Here is the reasoning: we allow nMaxBlocks from splitting the original
-	// single DTREE block.  Each time we split a block (a leaf node), we remove it and add
-	// one DTREE non-leaf node and two blocks (leaf nodes). In sum we add two new nodes.
-	// Starting at one node and one block and splitting k times we get
-	// k+1 blocks (leaf nodes)and k non-leaf nodes for a total of 2*k +1 nodes.
-	// Since we don't know how many times optimization will split blocks, we have
-	// to allocate the maximum number of blocks at the start of splitting.
-	nMaxNodes = 2* nMaxBlocks - 1; 
+    // Here is the reasoning: we allow nMaxBlocks from splitting the original
+    // single DTREE block.  Each time we split a block (a leaf node), we remove it and add
+    // one DTREE non-leaf node and two blocks (leaf nodes). In sum we add two new nodes.
+    // Starting at one node and one block and splitting k times we get
+    // k+1 blocks (leaf nodes)and k non-leaf nodes for a total of 2*k +1 nodes.
+    // Since we don't know how many times optimization will split blocks, we have
+    // to allocate the maximum number of blocks at the start of splitting.
+    nMaxNodes = 2* nMaxBlocks - 1; 
   aNodes = CreateDtreeNodeArray(nMaxNodes);
   if (aNodes == NULL)
   {        
@@ -587,9 +591,9 @@ int ALNAPI SplitDtree(DTREE** ppDest, DTREE* pSrc, int nMaxDepth)
   } 
   
   // split at node 0
-	// note that this gives us the new indexing of linear forms in
-	// aNewIndex and the count nNewLFCount of the linear forms needed after
-	// optimization
+    // note that this gives us the new indexing of linear forms in
+    // aNewIndex and the count nNewLFCount of the linear forms needed after
+    // optimization
   if ((nErr = Split(0, nMaxNodes, aNodes, &nNodes, aBlocks, &nBlocks, 
                     (*ppDest)->aLinearForms, (*ppDest)->nLinearForms,
                     afltMin, afltMax, afltX, 
@@ -620,7 +624,7 @@ int ALNAPI SplitDtree(DTREE** ppDest, DTREE* pSrc, int nMaxDepth)
   free(afltRespMax);
   free(afltX);
   free(afltWBound);
-	ASSERT(nNodes == 2 * nBlocks - 1);
+    ASSERT(nNodes == 2 * nBlocks - 1);
     // allocate new space for actual number of blocks
   (*ppDest)->aBlocks = CreateBlockArray(nBlocks);
   if ((*ppDest)->aBlocks == NULL)
@@ -651,11 +655,11 @@ int ALNAPI SplitDtree(DTREE** ppDest, DTREE* pSrc, int nMaxDepth)
     (*ppDest)->aBlocks[i] = aBlocks[i];
     aBlocks[i].pMinMaxTree = NULL; // mark as empty
   }
-	DestroyBlockArray(aBlocks, nMaxBlocks);// aBlocks from Split(0,...) could be large, so get rid of it early
+    DestroyBlockArray(aBlocks, nMaxBlocks);// aBlocks from Split(0,...) could be large, so get rid of it early
   // copy nodes
   for (i = 0; i < nNodes; i++)
     (*ppDest)->aNodes[i] = aNodes[i];
-	DestroyDtreeNodeArray(aNodes); // aNodes could be large, so get rid of it early
+    DestroyDtreeNodeArray(aNodes); // aNodes could be large, so get rid of it early
         
   // create a downsized array of linear forms that will be needed
   // on the blocks of the optimized multilevel DTREE produced by Split(0,...)
@@ -682,10 +686,10 @@ int ALNAPI SplitDtree(DTREE** ppDest, DTREE* pSrc, int nMaxDepth)
     }
   }
   // get rid of the old array
-	DestroyLinearFormArray((*ppDest)->aLinearForms,(*ppDest)->nLinearForms);
-	// make the old pointer point to the new array
-	(*ppDest)->aLinearForms = aNewLFArray;
-	(*ppDest)->nLinearForms = nNewLFCount; // above changes made on Aug 27, 2007
+    DestroyLinearFormArray((*ppDest)->aLinearForms,(*ppDest)->nLinearForms);
+    // make the old pointer point to the new array
+    (*ppDest)->aLinearForms = aNewLFArray;
+    (*ppDest)->nLinearForms = nNewLFCount; // above changes made on Aug 27, 2007
   // clean up the remaining arrays
   free(aNewIndex);
   return DTR_NOERROR;
@@ -717,8 +721,8 @@ int Split(int nNode, int nMaxNodes, DTREENODE* aNodes, int* pnNodes,
   
   nBlockIndex = DNODE_BLOCKINDEX((aNodes + nNode)); // cache block index
   
-  afltMax[nOutput] = 1e38;
-  afltMin[nOutput] = -1e38;
+  afltMax[nOutput] = 1e38f;
+  afltMin[nOutput] = -1e38f;
   // optimize tree                     
   do
   {
@@ -866,7 +870,7 @@ void FindBestSplit(int* pnVarIndex, float* pfltT,
       *pnVarIndex = i;
       ASSERT((0 <= i) && (i <= nDim -1) && (i != nOutput));
       // split in the middle
-      *pfltT = 0.5 * (afltMin[i] + afltMax[i]);
+      *pfltT = 0.5f * (afltMin[i] + afltMax[i]);
     }
     else
     {
@@ -896,7 +900,7 @@ void FindBestT(int nVarIndex, float* pfltT,
   int nStep = 0;                // current step
   do
   {
-    *pfltT = 0.5 * (fltSplitMax + fltSplitMin);
+    *pfltT = 0.5f * (fltSplitMax + fltSplitMin);
     // count lines to left and right
     CountLeftRightResp(*pfltT, pnLeft, pnRight, aRespLF, afltRespMin, afltRespMax, 
                        nVarIndex, nDim, nLF);
@@ -910,7 +914,7 @@ void FindBestT(int nVarIndex, float* pfltT,
     
     nStep++;
   } while((nLO != nRO) && (nStep < nMaxSteps));
-  *pfltT = 0.5 *(fltSplitMax + fltSplitMin);
+  *pfltT = 0.5f *(fltSplitMax + fltSplitMin);
   // count lines to left and right
   CountLeftRightResp(*pfltT, pnLeft, pnRight, aRespLF, 
                      afltRespMin, afltRespMax, nVarIndex, nDim, nLF);
@@ -929,7 +933,7 @@ void SetResp(MINMAXNODE* pMMN, LINEARFORM* aLF, int nLF,
     
   // sample space and set up responsibility
   // nTRcurrSamples = __min(5 * nDim * nLines, 500); changed Nov. 4, 2004 (see notes)
-  float fltPoints = pow((float)4, (float) nDim) * (float) nLines;
+  float fltPoints = (float)pow((float)4, (float) nDim) * (float) nLines;
   nTRcurrSamples = (fltPoints > 8192)?8192:(long) fltPoints;
   for (i = 0; i < nTRcurrSamples; i++)
   {
@@ -983,7 +987,7 @@ void CountLeftRightResp(float fltT, int* pnLeft, int* pnRight, char* aRespLF,
     // hoping to cover the entire set where the linear piece is active.
     // This is too small for nDim large, but not enlarging is surely
     // an error, since the limits of the piece are not at random sample points
-    fltMargin = 0.1 * (afltRespMax[nIndex] - afltRespMin[nIndex]);
+    fltMargin = 0.1f * (afltRespMax[nIndex] - afltRespMin[nIndex]);
     ASSERT(fltMargin >=0);
     if (afltRespMax[nIndex] + fltMargin < fltT)
       *pnLeft += 1;
@@ -1108,25 +1112,25 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
   float* afltChildBiasBound;
   float* afltChildWBound;
   float* afltChildHalfWidth;
-	// count the children of node pMMN
+    // count the children of node pMMN
   MINMAXNODE* pList = MMN_CHILDLIST(pMMN);
-	int numChild = 0;
-	while(pList != NULL)
-	{
-		pList = pList->pNext;
-		numChild++;
-	}
+    int numChild = 0;
+    while(pList != NULL)
+    {
+        pList = pList->pNext;
+        numChild++;
+    }
   // fprintf(2,"Min/max node reached with %d children\n",numChild);
   // initialize the best bounds achieved so far for this min/max node
-  fltMin = -1e38;
-  fltMax = 1e38;
+  fltMin = -1e38f;
+  fltMax = 1e38f;
   fltBestBiasBound = 0;
   fltBestHalfWidth = 0;
   // allocate array which accumulates W for the best linear bound
   afltBestWBound = (float*) malloc(nDim * sizeof(float));
   // allocate two arrays which will store min and max bounds on child values
-	afltChildMin = (float*) malloc(numChild * sizeof(float));
-	afltChildMax = (float*) malloc(numChild * sizeof(float));
+    afltChildMin = (float*) malloc(numChild * sizeof(float));
+    afltChildMax = (float*) malloc(numChild * sizeof(float));
   // allocate three arrays which store linear function bounds on chilren
   afltChildBiasBound = (float*) malloc(numChild * sizeof(float));
   afltChildWBound = (float*) malloc(numChild * nDim * sizeof(float));
@@ -1139,7 +1143,7 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
   {
     free(afltBestWBound);
     free(afltChildMin);
-	  free(afltChildMax);
+      free(afltChildMax);
     free(afltChildWBound);
     free(afltChildBiasBound);
     free(afltChildWBound);
@@ -1148,9 +1152,9 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
   // LOOP 1 of 2
   // fprintf(2,"Starting loop 1 of 2 with %d children\n", numChild);
   // fflush(2);
-	// set up a counter for traversing the children
-	int counter = 0;
-	// reinitialize the pointer to the first child
+    // set up a counter for traversing the children
+    int counter = 0;
+    // reinitialize the pointer to the first child
   pList = MMN_CHILDLIST(pMMN);
   while(pList != NULL)
   {
@@ -1214,7 +1218,7 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
       }
     }
     pList = pList->pNext;
-		counter++;
+        counter++;
   }
   // Up to now we have found global max and min bounds which must bound
   // any values produced by this node, and we have a good starting point
@@ -1224,26 +1228,26 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
   // fflush(2);
   // now we go through the children again, eliminating some using
   // both the global min and max bounds and the global linear bounds obtained in loop 1
-	// reinitialize the pointer to the first child and the counter to 0
+    // reinitialize the pointer to the first child and the counter to 0
   // now we need a prior pointer so we can manipulate the tree structure
   // we keep track of whether the tree got smaller so we can then repeat MinMaxNodeBoundCylinder
   pList = MMN_CHILDLIST(pMMN);
   MINMAXNODE* pPrior = pList;
-	counter = 0;
+    counter = 0;
   while(pList != NULL)
   {
-		if(pList == MMN_CHILDLIST(pMMN)) // if this is the first on the list
-		{
+        if(pList == MMN_CHILDLIST(pMMN)) // if this is the first on the list
+        {
       if(((pMMN->nType == DTREE_MIN) && (afltChildMin[counter] > fltMax))
-			|| ((pMMN->nType == DTREE_MAX) && (afltChildMax[counter] < fltMin)))
-			{
-				// delete this child
-			  MMN_CHILDLIST(pMMN) = pList->pNext;
-				DestroyMinMaxNode(pList);
-				pPrior = pList = MMN_CHILDLIST(pMMN);
+            || ((pMMN->nType == DTREE_MAX) && (afltChildMax[counter] < fltMin)))
+            {
+                // delete this child
+              MMN_CHILDLIST(pMMN) = pList->pNext;
+                DestroyMinMaxNode(pList);
+                pPrior = pList = MMN_CHILDLIST(pMMN);
         bSmaller = TRUE;
-			}
-			else // check the linear bounds
+            }
+            else // check the linear bounds
       {
         if(pMMN->nType == DTREE_MIN)
         {
@@ -1253,10 +1257,10 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
                afltChildBiasBound[counter], afltChildWBound + counter * nDim, afltChildHalfWidth[counter],
                nDim,nOutput, DTREE_MIN) == CHILDABOVEBESTBOUND) // the child is too great to be active
           {
-	          // delete this child
-	          MMN_CHILDLIST(pMMN) = pList->pNext;
-				    DestroyMinMaxNode(pList);
-				    pPrior = pList = MMN_CHILDLIST(pMMN);
+              // delete this child
+              MMN_CHILDLIST(pMMN) = pList->pNext;
+                    DestroyMinMaxNode(pList);
+                    pPrior = pList = MMN_CHILDLIST(pMMN);
             bSmaller = TRUE;
           }
           else
@@ -1274,17 +1278,17 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
                afltChildBiasBound[counter], afltChildWBound + counter * nDim, afltChildHalfWidth[counter],
                nDim,nOutput,DTREE_MAX) == CHILDBELOWBESTBOUND)
           {
-	          // delete this child
-	          MMN_CHILDLIST(pMMN) = pList->pNext;
-				    DestroyMinMaxNode(pList);
-				    pPrior = pList = MMN_CHILDLIST(pMMN);         
+              // delete this child
+              MMN_CHILDLIST(pMMN) = pList->pNext;
+                    DestroyMinMaxNode(pList);
+                    pPrior = pList = MMN_CHILDLIST(pMMN);         
             bSmaller = TRUE;
           }
           else
           {
-	          //  move on
-	          pPrior = pList;
-	          pList = pList->pNext;
+              //  move on
+              pPrior = pList;
+              pList = pList->pNext;
           }
         }
       } // end of checking linear bounds
@@ -1292,15 +1296,15 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
     else // this is not the first on the list
     {
       if(((pMMN->nType == DTREE_MIN) && (afltChildMin[counter] > fltMax))
-			|| ((pMMN->nType == DTREE_MAX) && (afltChildMax[counter] < fltMin)))
-			{
-				// delete this child
-				pPrior->pNext = pList->pNext;
-				DestroyMinMaxNode(pList);
-				pList = pPrior->pNext;        
+            || ((pMMN->nType == DTREE_MAX) && (afltChildMax[counter] < fltMin)))
+            {
+                // delete this child
+                pPrior->pNext = pList->pNext;
+                DestroyMinMaxNode(pList);
+                pList = pPrior->pNext;        
         bSmaller = TRUE;
-			}
-			else // check the linear bounds
+            }
+            else // check the linear bounds
       {
         if(pMMN->nType == DTREE_MIN)
         {
@@ -1310,10 +1314,10 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
                afltChildBiasBound[counter], afltChildWBound + counter * nDim, afltChildHalfWidth[counter],
                nDim,nOutput, DTREE_MIN) == CHILDABOVEBESTBOUND) // the child is too great to be active
           {
-	          // delete this child
-	          pPrior->pNext = pList->pNext;
-	          DestroyMinMaxNode(pList);
-	          pList = pPrior->pNext;     
+              // delete this child
+              pPrior->pNext = pList->pNext;
+              DestroyMinMaxNode(pList);
+              pList = pPrior->pNext;     
             bSmaller = TRUE;
           }
           else
@@ -1332,34 +1336,34 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
                nDim,nOutput,DTREE_MAX) == CHILDBELOWBESTBOUND)
           {
             // delete this child
-	          pPrior->pNext = pList->pNext;
-	          DestroyMinMaxNode(pList);
-	          pList = pPrior->pNext;              
+              pPrior->pNext = pList->pNext;
+              DestroyMinMaxNode(pList);
+              pList = pPrior->pNext;              
             bSmaller = TRUE;
           }
           else
           {
-	          //  move on
-	          pPrior = pList;
-	          pList = pList->pNext;
+              //  move on
+              pPrior = pList;
+              pList = pList->pNext;
           }
         }
       } // end of checking linear bounds
     } // end of processing when this is not the first on the list
-  	counter++;
+    counter++;
   } 
-	// if pMMN has only one child left, it becomes the child
-	while(pMMN->nType != DTREE_LINEAR && MMN_CHILDLIST(pMMN)->pNext == NULL)
-	{   
+    // if pMMN has only one child left, it becomes the child
+    while(pMMN->nType != DTREE_LINEAR && MMN_CHILDLIST(pMMN)->pNext == NULL)
+    {   
     ASSERT(bSmaller == TRUE); // the only way to get here is to have eliminated a child
-		MINMAXNODE* pChild = MMN_CHILDLIST(pMMN);     // save pointer to (singular) child list
-		MINMAXNODE* pNext = pMMN->pNext;              // save pointer to sibling
-		memcpy(pMMN, pChild, sizeof(MINMAXNODE));     // copy child info into this
-		pMMN->pNext = pNext;                          // restore sibling
-		MMN_CHILDLIST(pChild) = NULL;                 // mark child's child list as empty before destroy
+        MINMAXNODE* pChild = MMN_CHILDLIST(pMMN);     // save pointer to (singular) child list
+        MINMAXNODE* pNext = pMMN->pNext;              // save pointer to sibling
+        memcpy(pMMN, pChild, sizeof(MINMAXNODE));     // copy child info into this
+        pMMN->pNext = pNext;                          // restore sibling
+        MMN_CHILDLIST(pChild) = NULL;                 // mark child's child list as empty before destroy
     ASSERT(pChild != NULL);
-		DestroyMinMaxNode(pChild);
-	}
+        DestroyMinMaxNode(pChild);
+    }
   // return the best minimum and maximum bounds on this node
   afltMin[nOutput] = fltMin;
   afltMax[nOutput] = fltMax;
@@ -1374,8 +1378,8 @@ void MinMaxNodeBoundCylinder(MINMAXNODE* pMMN, LINEARFORM* aLF,
   fltHalfWidth = fltBestHalfWidth;
 
   //fprintf(2,"Freeing arrays for MinMaxNodeBoundCylinder\n");
-	free(afltChildMin);
-	free(afltChildMax);
+    free(afltChildMin);
+    free(afltChildMax);
   free(afltChildBiasBound);
   free(afltChildWBound);
   free(afltChildHalfWidth);
@@ -1407,7 +1411,7 @@ void LinearFormBoundCylinder(LINEARFORM* pLF,
   {
     if (i == nOutput) continue;
     afltWBound[i] = pLF->afltW[i];
-    fltCentroidThisDim = 0.5 * (afltMin[i] + afltMax[i]);
+    fltCentroidThisDim = 0.5f * (afltMin[i] + afltMax[i]);
     fltChange += afltWBound[i] * (fltCentroidThisDim - pLF->afltC[i]); // change due to changed centroid
     fltMin += afltWBound[i] * (((afltWBound[i] > 0) ? afltMin[i] : afltMax[i]) - fltCentroidThisDim);
     fltMax += afltWBound[i] * (((afltWBound[i] > 0) ? afltMax[i] : afltMin[i]) - fltCentroidThisDim);
@@ -1538,7 +1542,7 @@ int aboveORbelow(float* afltMin, float* afltMax,
   for(int ii = 0; ii < nDim; ii++)
   {
     if(ii == nOutput)continue;
-    fltCentroidThisDim = 0.5 * (afltMin[ii] + afltMax[ii]);
+    fltCentroidThisDim = 0.5f * (afltMin[ii] + afltMax[ii]);
     if(afltXW1[ii] - afltXW2[ii] > 0)
     {
       afltC1[ii] = afltMax[ii] - fltCentroidThisDim;
@@ -1554,7 +1558,7 @@ int aboveORbelow(float* afltMin, float* afltMax,
     fltB2C1 += afltXW2[ii] * afltC1[ii];
     fltB2C2 += afltXW2[ii] * afltC2[ii];
   }
-  afltC1[nOutput] = afltC2[nOutput] = 1e38;  // just for safety; value, if used, causes havoc
+  afltC1[nOutput] = afltC2[nOutput] = 1e38f;  // just for safety; value, if used, causes havoc
   // now we analyse which linear bound is bound is better: the current best (1) or the child bound (2)
   if((fltB1C2 - 2 * (1 + 1e-12) * fltXHalfWidth1) > fltB2C2 )  // lower the best bound minimium for this test
   {
@@ -1595,7 +1599,7 @@ int aboveORbelow(float* afltMin, float* afltMax,
         // nSection = 3;
         // fprintf(2,"Bounds overlap; child upper linear bound is below best upper linear bound (for a MIN)\n"); 
         // in this case bound 2 is everywhere the lesser upper bound and should be used as the best
-        fltTempHalfWidth = 0.5 * (fltB2C2 - fltB1C2) + fltXHalfWidth1;
+        fltTempHalfWidth = 0.5f * (fltB2C2 - fltB1C2) + fltXHalfWidth1;
         // return the new best bound after gathering info for check
         fltXHalfWidth1 = __max(fltTempHalfWidth, fltXHalfWidth2);
         fltXBias1 = fltXBias2 + fltXHalfWidth2 - fltXHalfWidth1;
@@ -1605,7 +1609,7 @@ int aboveORbelow(float* afltMin, float* afltMax,
           afltXW1[ii] = afltXW2[ii];
         }
         // expand the best bound just to make sure numerical errors don't lead to a bad bound
-        fltXHalfWidth1 *= (1 + 1e-12);
+        fltXHalfWidth1 *= (1 + 1e-12f);
       }
       else
       {
@@ -1614,13 +1618,13 @@ int aboveORbelow(float* afltMin, float* afltMax,
           // nSection = 4;
           // fprintf(2,"Bounds overlap, child upper linear bound is above best linear upper bound (for a MIN)\n"); 
           // in this case bound 1 is the lesser upper bound and should be used as the best
-          fltTempHalfWidth = 0.5 * (fltB1C1 - fltB2C1) + fltXHalfWidth2;
+          fltTempHalfWidth = 0.5f * (fltB1C1 - fltB2C1) + fltXHalfWidth2;
           // return the new best bound
           fltXBias1 += fltXHalfWidth1; // old fltXHalfWidth1
           fltXHalfWidth1 = __max(fltTempHalfWidth, fltXHalfWidth1);
           fltXBias1 -= fltXHalfWidth1; // new fltXHalfWidth1
           // expand the best bound just to make sure numerical errors don't lead to a bad bound
-          fltXHalfWidth1 *= (1 + 1e-12);
+          fltXHalfWidth1 *= (1 + 1e-12f);
           // the weights returned for W1 are unchanged
           // however the half-width changes possibly and so do the min and max
         }
@@ -1642,7 +1646,7 @@ int aboveORbelow(float* afltMin, float* afltMax,
             {
               // choose 2 since it has the lesser 
               fltTempBias = fltXBias2 + fltXHalfWidth2;
-              fltXHalfWidth1 = 0.5 * __max(fltB2C2 - fltV2, fltB2C1 - fltV1);
+              fltXHalfWidth1 = 0.5f * __max(fltB2C2 - fltV2, fltB2C1 - fltV1);
               fltXBias1 = fltTempBias - fltXHalfWidth1;
               for(int ii = 0; ii < nDim; ii++)
               {
@@ -1654,11 +1658,11 @@ int aboveORbelow(float* afltMin, float* afltMax,
             {
               // we keep the weights of B1 but change the bias and half-width
               fltTempBias = fltXBias1 + fltXHalfWidth1;
-              fltXHalfWidth1 = 0.5 * __max(fltB1C2 - fltV2, fltB1C1 - fltV1);
+              fltXHalfWidth1 = 0.5f * __max(fltB1C2 - fltV2, fltB1C1 - fltV1);
               fltXBias1 = fltTempBias - fltXHalfWidth1;
             }
             // expand the best bound just to make sure numerical errors don't lead to a bad bound
-            fltXHalfWidth1 *= (1 + 1e-12);
+            fltXHalfWidth1 *= (1 + 1e-12f);
           }
           else
           {
@@ -1666,8 +1670,8 @@ int aboveORbelow(float* afltMin, float* afltMax,
             // Compute a new maximum using the linear bounds
             //  nSection = 6;
             float fltMaxVal, fltMinVal, fltMaxValTemp, fltMinValTemp, fltAvgWt;
-            fltMaxVal = 1e38;
-            fltMinVal = -1e38;
+            fltMaxVal = 1e38f;
+            fltMinVal = -1e38f;
             // try tilting to equalize heights of upper bound along various axes
             for(int ii = 0; ii < nDim; ii++)
             {
@@ -1686,14 +1690,14 @@ int aboveORbelow(float* afltMin, float* afltMax,
               if(fltAlphaTilde < 0) fltAlphaTilde = 0;
               // but we might at least get an improvement
               fltTempBiasTilde = fltAlphaTilde * (fltXBias1 + fltXHalfWidth1) +
-                                 (1.0 - fltAlphaTilde) * (fltXBias2 + fltXHalfWidth2);
+                                 (1.0f - fltAlphaTilde) * (fltXBias2 + fltXHalfWidth2);
               fltMaxValTemp = fltMinValTemp = fltTempBiasTilde;
               
               for(int jj = 0; jj < nDim; jj++)
               {
                 if(jj == nOutput) continue; // in direction ii the slope of the bound is 0, so use the centroid
-                fltCentroidThisDim = 0.5 * (afltMax[jj] + afltMin[jj]);
-                fltAvgWt = fltAlphaTilde * afltXW1[jj] + (1.0 - fltAlphaTilde) * afltXW2[jj];
+                fltCentroidThisDim = 0.5f * (afltMax[jj] + afltMin[jj]);
+                fltAvgWt = fltAlphaTilde * afltXW1[jj] + (1.0f - fltAlphaTilde) * afltXW2[jj];
                 if(fltAvgWt > 0)
                 {
                   fltMaxValTemp += fltAvgWt * (afltMax[jj] - fltCentroidThisDim); 
@@ -1726,17 +1730,17 @@ int aboveORbelow(float* afltMin, float* afltMax,
             for(int ii = 0; ii < nDim; ii++)
             {
                if(ii == nOutput)continue;
-               afltXW1[ii] = fltAlpha * afltXW1[ii] + (1.0 - fltAlpha) * afltXW2[ii]; 
+               afltXW1[ii] = fltAlpha * afltXW1[ii] + (1.0f - fltAlpha) * afltXW2[ii]; 
             }
             // this is the only case where we can possibly improve the upper bound on the DTREE_MIN node
             // now we look at all the axes, and get upper bounds using fltAlphaTilde which depends on ii
             // make sure the equation is solved
-            fltQ1 = fltAlpha * fltB1C1 + (1.0 - fltAlpha) * fltB2C1;
-            fltQ2 = fltAlpha * fltB1C2 + (1.0 - fltAlpha) * fltB2C2;
-            fltXHalfWidth1 = 0.5 * __max(fltQ1 - fltV1,fltQ2 - fltV2);
+            fltQ1 = fltAlpha * fltB1C1 + (1.0f - fltAlpha) * fltB2C1;
+            fltQ2 = fltAlpha * fltB1C2 + (1.0f - fltAlpha) * fltB2C2;
+            fltXHalfWidth1 = 0.5f * __max(fltQ1 - fltV1,fltQ2 - fltV2);
             fltXBias1 = fltTempBias - fltXHalfWidth1;
             // expand the best bound just to make sure numerical errors don't lead to a bad bound
-            fltXHalfWidth1 *= (1 + 1e-12);
+            fltXHalfWidth1 *= (1 + 1e-12f);
             if(fltMinVal - 2 * fltXHalfWidth1 > fltXMin1) fltXMin1 = fltMinVal - 2 * fltXHalfWidth1;
           } // ends the block where there is a peak
         } // ends the else where the upper bounds intersect in the box

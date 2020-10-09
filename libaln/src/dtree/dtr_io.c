@@ -27,6 +27,10 @@
 #define DTRIMP __declspec(dllexport)
 #endif
 
+#ifdef _MSC_VER 
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -593,7 +597,7 @@ int GetLinearForm(FILE* pFile, int nDim, int nOutput, LINEARFORM* pLF,
     /* get weight */   
     if (nType == L_INT)
     {
-      tok.value.flt = tok.value.l;
+      tok.value.flt = (float)tok.value.l;
       nType = L_DBL;
     }
     if (nType != L_DBL)
@@ -936,7 +940,7 @@ int GetDoubleToken(FILE* pFile, TOKEN* pTok)
   int nType = GetToken(pFile, pTok);
   if (nType == L_INT)
   {
-    pTok->value.flt = pTok->value.l;  /* convert int to float */
+    pTok->value.flt = (float)pTok->value.l;  /* convert int to float */
     nType = L_DBL;
   }
   return nType;
@@ -1010,7 +1014,7 @@ int GetNumber(FILE* pFile, TOKEN* pTok)
 
   if (nDots > 0 || nE > 0)
   {           
-    pTok->value.flt = atof(szTok);
+    pTok->value.flt = (float)atof(szTok);
     nType = L_DBL;
   }
   else

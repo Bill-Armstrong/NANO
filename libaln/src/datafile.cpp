@@ -28,6 +28,10 @@
 #include <typeinfo>
 #endif
 
+#ifdef _MSC_VER 
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -213,7 +217,7 @@ static BOOL SimpleFloatParse(char* pszText, float& d)
 		pszText++;
 
 	char chFirst = pszText[0];
-	d = strtod(pszText, &pszText);
+    d = (float) strtod(pszText, &pszText);
 	if (d == 0.0 && chFirst != '0')
 		return FALSE;   // could not convert
 	while (*pszText == ' ' || *pszText == '\t')

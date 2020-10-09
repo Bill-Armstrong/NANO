@@ -90,7 +90,7 @@ void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const float* afltX,
 	// We need two learning rates.  The first is for the centroids and weights, which divides by 2*nDim -1, thus
 	// putting them on an equal footing with respect to correcting a share of the error.
 	float fltLearnRate = ptdata->fltLearnRate;
-	float fltLearnRespParam = learnBoost * fltLearnRate * region.fltLearnFactor / (double)(2 * nDim - 1); // The region factor should be optimized out
+	float fltLearnRespParam = learnBoost * fltLearnRate * region.fltLearnFactor / (float)(2 * nDim - 1); // The region factor should be optimized out
 
 	// ADAPT THE CENTROID FOR OUTPUT BY EXPONENTIAL SMOOTHING
 	// L is the value of the affine function of the linear piece at the input components of X
@@ -115,7 +115,7 @@ void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const float* afltX,
 		ASSERT(afltD[i] >= 0);
 		afltD[i] += (fltXmC * fltXmC - afltD[i]) * fltLearnRate; // This learning rate is not involved in correcting fltError
 		// afltD[i] is not allowed to go to 0.
-		if (afltD[i] < 0.0000001)afltD[i] = 0.0000001; // It could happen for an under-determined LFN with one sample on it.
+		if (afltD[i] < 0.0000001f)afltD[i] = 0.0000001f; // It could happen for an under-determined LFN with one sample on it.
 
 		// UPDATE THE CENTROID BY EXPONENTIAL SMOOTHING
 		afltC[i] += fltXmC * fltLearnRespParam; // the centroid is moved part way to X

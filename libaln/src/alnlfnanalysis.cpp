@@ -286,7 +286,7 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
         pLFNInfo->LFNStats.fltR2 = fltRSS / fltTSS;
 
         // calc degrees of freedom
-        pLFNInfo->LFNStats.fltDF = nBlockPoints - nDim; 
+        pLFNInfo->LFNStats.fltDF = (float)(nBlockPoints - nDim); 
 
 				pLFNInfo->LFNStats.fltSEE = NAN; // set to NAN if we don't have fltDF>0
         pLFNInfo->LFNStats.fltF   = NAN;
@@ -294,7 +294,7 @@ ALNIMP int ALNAPI ALNLFNAnalysis(const ALN* pALN,
         if (pLFNInfo->LFNStats.fltDF > 0)
         {
           ASSERT(nDim >= 1);
-          float fltV1 = nDim - 1;
+          float fltV1 = (float)(nDim - 1);
           float fltV2 = pLFNInfo->LFNStats.fltDF;
 
           // calc SEE "standard error of estimate" for the LFN
@@ -539,7 +539,7 @@ static float CalcProbF(float fltF, float fltV1, float fltV2)
   // Press et al p229, p619.  Here it is used in regression and is 1-tailed.
 	// It is testing H0: all weights = 0 (except for the bias weight).
   
-	return ibeta(fltV2 / 2.0, fltV1 / 2.0, fltV2 / (fltV2 + (fltV1 * fltF))); //ibeta ??
+	return (float)ibeta(fltV2 / 2.0, fltV1 / 2.0, fltV2 / (fltV2 + (fltV1 * fltF))); //ibeta ??
 
 //
 }
@@ -548,7 +548,7 @@ static float CalcProbT(float fltT, float fltV)
 {
   // T-Distribution probability function - single tailed
   // see Press et al p228, p616
-  return ibeta(fltV / 2.0, 0.5, fltV / (fltV + (fltT * fltT)));  //ibetac??
+  return (float)ibeta(fltV / 2.0, 0.5, fltV / (fltV + (fltT * fltT)));  //ibetac??
 }
 
 // helpers to calc error, regression, and total sum of squares

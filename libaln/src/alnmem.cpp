@@ -86,17 +86,17 @@ ALNIMP ALN* ALNAPI ALNCreateALN(int nDim, int nOutput)
     pALN->aRegions->aConstr[i].nVarIndex = i;
     pALN->aRegions->aConstr[i].fltMin = FLT_MIN;
     pALN->aRegions->aConstr[i].fltMax = FLT_MAX;
-    pALN->aRegions->aConstr[i].fltEpsilon = 0.0001;
+    pALN->aRegions->aConstr[i].fltEpsilon = 0.0001f;
     
     if (i != nOutput)
     {
-      pALN->aRegions->aConstr[i].fltWMin = -1000000.0;
-      pALN->aRegions->aConstr[i].fltWMax = 1000000.0;
+      pALN->aRegions->aConstr[i].fltWMin = -1000000.0f;
+      pALN->aRegions->aConstr[i].fltWMax = 1000000.0f;
     }
     else
     {
-      pALN->aRegions->aConstr[i].fltWMin = -1.0;
-      pALN->aRegions->aConstr[i].fltWMax = -1.0;
+      pALN->aRegions->aConstr[i].fltWMin = -1.0f;
+      pALN->aRegions->aConstr[i].fltWMax = -1.0f;
     }
   }
 
@@ -495,7 +495,7 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
   {
 	  pCentroidTemp[i] = LFN_C(pParent)[i];
 	  pNormalTemp[i] = 0;  // since the child centroids are equal
-	  pSigmaTemp[i] = 4.0 * sqrt(LFN_D(pParent)[i]);  // Larger values help to prevent optimization failures. See also split-ops.cpp line 304
+	  pSigmaTemp[i] = 4.0f * (float)sqrt(LFN_D(pParent)[i]);  // Larger values help to prevent optimization failures. See also split-ops.cpp line 304
   }
   pCentroidTemp[nDim - 1] = LFN_C(pParent)[nDim - 1]; // Probably useless
   pNormalTemp[nDim - 1] = 0;

@@ -162,7 +162,7 @@ void InvertLFN(ALNNODE* pTree, ALN* pALN, int nVar, int nMono)
   ASSERT(fltWOutput != 0); // must not have a zero weight!
 
   // re-normalize weights so new output var is -1
-  float fltFactor = -1.0 / fltWOutput;
+  float fltFactor = -1.0f / fltWOutput;
 
 #ifdef _DEBUG
   if (nMono == MONO_STRONGDEC || nMono == MONO_WEAKDEC || nMono == MONO_CONSTANT)

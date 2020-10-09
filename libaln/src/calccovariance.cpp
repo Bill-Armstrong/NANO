@@ -35,7 +35,7 @@
 using namespace std;
 using namespace Eigen;
 
-#define TOL 1.0e-12
+#define TOL 1.0e-12f
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -50,7 +50,7 @@ static char THIS_FILE[] = __FILE__;
 void fillRMA(MatrixXd &X, float* afltX)
 {
 	// The array afltX is organized in row-major order
-	unsigned int nRows, nr, nCols, nc;
+	Index nRows, nr, nCols, nc;
 	nRows = X.rows();
 	nCols = X.cols();
 	for(nr = 0; nr < nRows; ++nr)
@@ -65,14 +65,14 @@ void fillRMA(MatrixXd &X, float* afltX)
 void ALNAPI dumpRMA(const MatrixXd &X, float* afltX)
 {
 	// The array afltX is organized in row-major order
-	int nRows, sr, nCols, sc;
+	Index nRows, sr, nCols, sc;
 	nRows = X.rows();
 	nCols = X.cols();
 	for(sr = 0; sr < nRows; ++sr)
 	{
 		for(sc = 0; sc < nCols; ++sc)
 		{
-			afltX[sr*nCols + sc] = X(sr,sc) ;
+			afltX[sr*nCols + sc] = (float)X(sr,sc) ;
 		}
 	}
 }
@@ -80,7 +80,7 @@ void ALNAPI dumpRMA(const MatrixXd &X, float* afltX)
 void ALNAPI fillCMA(MatrixXd& X, float* afltX)
 {
 	// The array afltX is organized in column-major order
-	int nRows, nr, nCols, nc;
+	Index nRows, nr, nCols, nc;
 	nRows = X.rows();
 	nCols = X.cols();
 	for(nc = 0; nc < nCols; ++nc)
@@ -95,14 +95,14 @@ void ALNAPI fillCMA(MatrixXd& X, float* afltX)
 void ALNAPI dumpCMA(const MatrixXd &X, float* afltX)
 {
 	// The array afltX is organized in column-major order
-	int nRows, nr, nCols, nc;
+	Index nRows, nr, nCols, nc;
 	nRows = X.rows();
 	nCols = X.cols();
 	for(nc = 0; nc < nCols; ++nc)
 	{
 		for(nr = 0; nr < nRows; ++nr)
 		{
-			afltX[nc*nRows + nr] = X(nr, nc);
+			afltX[nc*nRows + nr] = (float)X(nr, nc);
 		}
 	}
 }
@@ -149,15 +149,15 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 		dumpRMA(U, afltU);
 		dumpRMA(V, afltV);
 		// find the maximal singular value
-		smax = 0.0;
+		smax = 0.0f;
 		for (int j = 0; j < singvals; j++) {
-			if (s(j) > smax) smax = s(j);
+			if (s(j) > smax) smax = (float)s(j);
 		}
 		// if any (non-negative) singular value is less than a threshold, set it to zero
 		thresh = TOL*smax;
 		for (int j = 0; j < singvals; j++){
 				if (s(j) < thresh)	s(j) = 0.0;
-				afltW[j] = s(j);
+				afltW[j] = (float)s(j);
 		}
 		// Create the inverses, extended by 0 where necessary to make nCols
 		for (int j = 0; j < nCols; j++) {
@@ -196,7 +196,7 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 		// return the values in A to the pointer structure
 		for (int i = 0; i < nCols; i++)
 		{
-			afltA[i] = A(i);
+			afltA[i] = (float)A(i);
 		}
 		// finding the measure of error of the fit by chi-squared 
 		float fltChiSq=0.0;
@@ -205,9 +205,9 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 			float sum = 0.0;
 			for (int j = 0; j < nCols; j++)
 			{
-				sum += X(i,j)* A(j);
+				sum += (float)(X(i,j)* A(j));
 			}
-			tmp=(Y(i) - sum)/afltS[i]; // afltS[i] is a weight on input vector i, usually 1.0
+			tmp=(float)((Y(i) - sum)/afltS[i]); // afltS[i] is a weight on input vector i, usually 1.0
 			fltChiSq += tmp*tmp;
 		}
 
@@ -219,7 +219,7 @@ BOOL ALNAPI CalcCovariance(int nCols, // number of input vars = number of ALN in
 				float sum = 0.0;
 				for(int j = 0; j < nCols; j++)
 				{
-					sum += V(k,j) * V(i,j) * sinv(j) * sinv(j);
+					sum += (float)(V(k,j) * V(i,j) * sinv(j) * sinv(j));
 				}
 				afltC[i*nCols+k] = afltC[k*nCols+i] = sum; 
 			}

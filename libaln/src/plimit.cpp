@@ -49,8 +49,8 @@ static char THIS_FILE[] = __FILE__;
 
 float ALNAPI PLimit(int n, int m, float fltX)
 {
-  static const float fltInc = 0.1;     // coarse increment
-  static const float fltAcc = 1.0e-7;  // maximum accuracy
+  static const float fltInc = 0.1f;     // coarse increment
+  static const float fltAcc = 1.0e-7f;  // maximum accuracy
 
   if (fltX < 0.0 || fltX > 1.0 || n < 0)
   {
@@ -70,17 +70,17 @@ float ALNAPI PLimit(int n, int m, float fltX)
   // therfore, Y goes to 0 as P approaches desired value
 
   // lower bound
-  float fltP1 = 0.0;
-  float fltY1 = fltX - 1.0;
-  ASSERT(fltY1 <= 0.0);
+  float fltP1 = 0.0f;
+  float fltY1 = fltX - 1.0f;
+  ASSERT(fltY1 <= 0.0f);
 
   // begin coarse approximation of P
   
   // scan upward until Y3 is +ve
   float fltP3, fltY3;
-  for (fltP3 = fltInc; fltP3 < 1.0; fltP3 += fltInc)
+  for (fltP3 = fltInc; fltP3 < 1.0f; fltP3 += fltInc)
   {
-    fltY3 = fltX - (1.0 - ibeta(m + 1, n - m, fltP3));  //ibet??
+    fltY3 = fltX - (float)(1.0 - ibeta(m + 1, n - m, fltP3));  //ibet??
                    // cumulative binomial dist 0 to m events in n trials, 
                    // see Press et al p229
 
@@ -103,11 +103,11 @@ float ALNAPI PLimit(int n, int m, float fltX)
   for (int i = 0; i < nMaxIt; i++)
   {
     // get mid-values
-    float fltP2 = 0.5 * (fltP1 + fltP3);
+    float fltP2 = 0.5f * (fltP1 + fltP3);
     if ((fltP3 - fltP1) < fltAcc)   // convergence test
       return fltP2;
     
-    float fltY2 = fltX - (1.0 - ibeta(m + 1, n - m, fltP2)); //ibeta??
+    float fltY2 = fltX - (float)(1.0 - ibeta(m + 1, n - m, fltP2)); //ibeta??
 
     // convergence test
     if (fabs(fltY2) < fltAcc)
@@ -116,7 +116,7 @@ float ALNAPI PLimit(int n, int m, float fltX)
     float fltDenom = sqrt(fltY2 * fltY2 - fltY1 * fltY3);  // y1, y3 opposite sign
     float fltTrial = fltP2 + (fltP1 - fltP2) * fltY2 / fltDenom;
 
-    float fltY = fltX - (1.0 - ibeta(m + 1, n - m, fltTrial));  //ibeta
+    float fltY = fltX - (float)(1.0 - ibeta(m + 1, n - m, fltTrial));  //ibeta
 
     // convergence test
     if (fabs(fltY) < fltAcc)
@@ -150,5 +150,5 @@ float ALNAPI PLimit(int n, int m, float fltX)
   }
 
   // convergence failed... return best guess?
-  return 0.5 * (fltP1 + fltP3); 
+  return 0.5f * (fltP1 + fltP3); 
 }

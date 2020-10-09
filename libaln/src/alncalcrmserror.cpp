@@ -127,7 +127,7 @@ float ALNAPI DoCalcRMSError(const ALN* pALN,
 		  fltSqErrorSum += flt * flt;
 	  }	// end for each point
 
-	  fltRMSError = sqrt(fltSqErrorSum / (nEnd - nStart + 1));
+	  fltRMSError = (float)sqrt(fltSqErrorSum / (nEnd - nStart + 1));
   }
   catch(...)
   {

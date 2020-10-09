@@ -28,6 +28,10 @@
 #define ALNIMP __declspec(dllexport)
 #endif
 
+#ifdef _MSC_VER 
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <aln.h>
 #include "alnpriv.h"
 

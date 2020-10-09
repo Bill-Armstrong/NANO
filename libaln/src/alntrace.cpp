@@ -27,6 +27,8 @@
 #define ALNIMP __declspec(dllexport)
 #endif
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <aln.h>
 #include "alnpriv.h"
 #include <stdarg.h>
@@ -63,7 +65,7 @@ void __cdecl ALNTrace(const char* pszFormat, ...)
 	va_end(args);
 
   #ifdef _WIN32
-  OutputDebugString(szBuffer);
+  OutputDebugStringA(szBuffer);
   #else
   perror(szBuffer);
   #endif

@@ -32,12 +32,21 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 // include files
-#include <stdafx.h>
 #include <alnpp.h>
 
 // include classes
 #include ".\cmyaln.h"
 #include "aln.h"
+
+#ifndef ASSERT
+
+#ifndef NDEBUG
+#define ASSERT(x) assert(x)
+#else
+#define ASSERT(x)
+#endif // !NDEBUG
+
+#endif !ASSERT
 
 // We use fltRespTotal in two ways and the following definition helps.
 #define NOISEVARIANCE fltRespTotal
@@ -82,13 +91,13 @@ extern int SplitCount;
 // The values below for afltFconstant35 are interpolated and may not be accurate.
 // The values for 25 are the reciprocals of those for 75.
 
-static const float afltFconstant90[13]{ 9.00, 5.39, 4.11, 3.45, 3.05, 2.78, 2.59, 2.44, 2.32, 1.79, 1.61, 1.51, 1.40 };
-static const float afltFconstant75[13]{ 3.00, 2.36, 2.06, 1.89, 1.78, 1.70, 1.64, 1.59, 1.55, 1.36, 1.28, 1.24, 1.19 };
+static const float afltFconstant90[13]{ 9.00f, 5.39f, 4.11f, 3.45f, 3.05f, 2.78f, 2.59f, 2.44f, 2.32f, 1.79f, 1.61f, 1.51f, 1.40f };
+static const float afltFconstant75[13]{ 3.00f, 2.36f, 2.06f, 1.89f, 1.78f, 1.70f, 1.64f, 1.59f, 1.55f, 1.36f, 1.28f, 1.24f, 1.19f };
 static const float afltFconstant50[13]{ 1,1,1,1,1,1,1,1,1,1,1,1,1 };
 // The following two have not had any beneficial effect. Who knows when they might be useful?
 // static const float afltFconstant35[13]{ 0.58, 0.65, 0.70, 0.73, 0.75, 0.77, 0.78, 0.79, 0.80, 0.86, 0.88, 0.90, 0.92 };
-static const float afltFconstant25[13]{ 0.333, 0.424, 0.485, 0.529, 0.562, 0.588, 0.610, 0.629, 0.645, 0.735, 0.781, 0.806, 0.840 };
-static const float afltFconstant10[13]{ 0.111, 0.185, 0.243, 0.290, 0.327, 0.359, 0.386, 0.410, 0.431, 0.558, 0.621, 0.662, 0.714 };
+static const float afltFconstant25[13]{ 0.333f, 0.424f, 0.485f, 0.529f, 0.562f, 0.588f, 0.610f, 0.629f, 0.645f, 0.735f, 0.781f, 0.806f, 0.840f };
+static const float afltFconstant10[13]{ 0.111f, 0.185f, 0.243f, 0.290f, 0.327f, 0.359f, 0.386f, 0.410f, 0.431f, 0.558f, 0.621f, 0.662f, 0.714f };
 static float afltF_Alpha[13]{ 1,1,1,1,1,1,1,1,1,1,1,1,1 };
 
 void setSplitAlpha(ALNDATAINFO* pDataInfo)
@@ -107,7 +116,7 @@ void setSplitAlpha(ALNDATAINFO* pDataInfo)
 	{
 		for (int i = 0; i < 13; i++) // We are doing an F-test
 		{
-			afltF_Alpha[i] = pow(afltFconstant75[i], (-fltLimit -50)/25.0);
+			afltF_Alpha[i] = (float)pow(afltFconstant75[i], (-fltLimit -50)/25.0);
 		}
 	}
 }
@@ -198,7 +207,7 @@ void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo) // routine
 				}
 				// The following should be a sample for the noise variance of the piece
 				// which is paired with data sample i in case fltMSEorF is negative and we are doing an F-test.
-				(pActiveLFN->DATA.LFN.pSplit)->NOISEVARIANCE += 0.5 * noiseSampleTemp * noiseSampleTemp;
+				(pActiveLFN->DATA.LFN.pSplit)->NOISEVARIANCE += 0.5f * noiseSampleTemp * noiseSampleTemp;
 			}
 		}
 	} // end loop over both files
@@ -293,8 +302,8 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
 			MINMAX_NORMAL(pNode)[i] = MINMAX_CENTROID(pNode)[i] - afltCL[i];
 			afltH[i] = afltCR[i] - MINMAX_NORMAL(pNode)[i]; // changed the sign of H, Jan 28
 			MINMAX_THRESHOLD(pNode) += -afltH[i] * MINMAX_NORMAL(pNode)[i];
-			MINMAX_SIGMA(pNode)[i] += 0.5 * fabs(afltCR[i] - afltCL[i]); // there are already two contributions from children as below
-			if (pParent) MINMAX_SIGMA(pParent)[i] += 0.5 * MINMAX_SIGMA(pNode)[i]; // we add half of one of two child values to the parent sigma
+			MINMAX_SIGMA(pNode)[i] += 0.5f * fabs(afltCR[i] - afltCL[i]); // there are already two contributions from children as below
+			if (pParent) MINMAX_SIGMA(pParent)[i] += 0.5f * MINMAX_SIGMA(pNode)[i]; // we add half of one of two child values to the parent sigma
 		}
 		free(afltCR);
 		free(afltCL);
@@ -312,7 +321,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
 			{
 				MINMAX_CENTROID(pParent)[i] += Count * LFN_C(pNode)[i]; // This is the weighted contribution of this leaf to the centroid of the parent
 																// It has to be divided by the Count of the parent on the way up
-				MINMAX_SIGMA(pParent)[i] += 4.0 * sqrt(LFN_D(pNode)[i]); // We have to add the absolute value of the difference of centroid components on the way up
+				MINMAX_SIGMA(pParent)[i] += 4.0f * sqrt(LFN_D(pNode)[i]); // We have to add the absolute value of the difference of centroid components on the way up
 				// one-sided probabilities at various sigmas: sigma = 2.0 0.0227; 2.5 0.0062; 3.0 0.0013; 3.5 0.0002; 3.88 0.0001 Seelalso alnmem.cpp line 497
 			}
 		}

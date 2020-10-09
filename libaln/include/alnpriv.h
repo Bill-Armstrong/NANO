@@ -24,6 +24,10 @@
 #ifndef __ALNPRIV_H__
 #define __ALNPRIV_H__
 
+#ifdef _MSC_VER 
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -111,16 +115,16 @@ class CALNException
 {
 private:
   BOOL m_bAutoDelete;
-	char m_szReason[256];
+    char m_szReason[256];
 
 public:
-	CALNException(BOOL bAutoDelete = TRUE, const char* pszReason = NULL);
+    CALNException(BOOL bAutoDelete = TRUE, const char* pszReason = NULL);
 
-	virtual ~CALNException() {};
-  virtual void Delete();
+    virtual ~CALNException() {};
+    virtual void Delete();
 
-	const char* GetReason() const
-		{ return m_szReason; }
+    const char* GetReason() const
+        { return m_szReason; }
 };
 void ALNAPI ThrowALNException();
   // throws CALNException*
@@ -129,8 +133,8 @@ void ALNAPI ThrowALNException();
 class CALNMemoryException : public CALNException
 {
 public:
-	CALNMemoryException(BOOL bAutoDelete = TRUE);
-	virtual ~CALNMemoryException() {};
+    CALNMemoryException(BOOL bAutoDelete = TRUE);
+    virtual ~CALNMemoryException() {};
 };
 void ALNAPI ThrowALNMemoryException();
   // throws CALNMemoryException*
@@ -139,8 +143,8 @@ void ALNAPI ThrowALNMemoryException();
 class CALNUserException : public CALNException
 {
 public:
-	CALNUserException(BOOL bAutoDelete = TRUE);
-	virtual ~CALNUserException() {};
+    CALNUserException(BOOL bAutoDelete = TRUE);
+    virtual ~CALNUserException() {};
 };
 void ALNAPI ThrowALNUserException();
   // throws CALNUserException*
@@ -241,7 +245,7 @@ float ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const float* afltX,
 // - adaptive, ie, will change ALN structure
 // NOTE: cutoff always passed on stack!
 float ALNAPI AdaptEvalMinMax(ALNNODE* pNode, ALN* pALN, const float* afltX,
-	CEvalCutoff cutoff, ALNNODE** ppActiveLFN);
+    CEvalCutoff cutoff, ALNNODE** ppActiveLFN);
                           
 // generic adapt eval
 inline float AdaptEval(ALNNODE* pNode, ALN* pALN, 
@@ -383,7 +387,7 @@ inline void Adapt(ALNNODE* pNode, ALN* pALN, const float* afltX,
                   const TRAINDATA* ptdata)
 {
   (pNode->fNode & NF_LFN) ? 
-	  AdaptLFN(pNode, pALN, afltX, fltResponse, bUsefulAdapt, ptdata) : 
+      AdaptLFN(pNode, pALN, afltX, fltResponse, bUsefulAdapt, ptdata) : 
     AdaptMinMax(pNode, pALN, afltX, fltResponse, bUsefulAdapt, ptdata);
 }
 

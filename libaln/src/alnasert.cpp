@@ -26,6 +26,8 @@
 #define ALNIMP __declspec(dllexport)
 #endif
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <aln.h>
 #include "alnpriv.h"
 
@@ -56,7 +58,7 @@ int __stdcall ALNAssertFailed(const char* pszFileName, int nLine)
   char szT[512 + 20];
   sprintf(szT, "Assertion Failed: %s\n", szMessage);
   
-  OutputDebugString(szT);
+  OutputDebugStringA(szT);
   
   if (InterlockedIncrement(&alnAssertBusy) > 0)
   {

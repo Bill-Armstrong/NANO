@@ -99,10 +99,10 @@ void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const float* afltX,
 
     // divide each quantity by 1 - 2r(1-r)
 
-    float fltFactor = 1.0 / (1 - 2 * fltR * (1 - fltR));
+    float fltFactor = 1.0f / (1 - 2 * fltR * (1 - fltR));
 
     fltResp0 = fltR * fltFactor;
-		fltResp1 = (1.0 - fltR) * fltFactor;
+		fltResp1 = (1.0f - fltR) * fltFactor;
   }
 	else // child 1 is active
 	{
@@ -131,10 +131,10 @@ void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const float* afltX,
 		    
     // divide each quantity by 1 - 2r(1-r)
 
-    float fltFactor = 1.0 / (1 - 2 * fltR * (1 - fltR));
+    float fltFactor = 1.0f / (1 - 2 * fltR * (1 - fltR));
 
     fltResp1 = fltR * fltFactor;
-		fltResp0 = (1.0 - fltR) * fltFactor;
+		fltResp0 = (1.0f - fltR) * fltFactor;
 	}
   
   // adapt child 0

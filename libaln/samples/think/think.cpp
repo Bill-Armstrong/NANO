@@ -8,6 +8,7 @@
 #ifdef __GNUC__
 #include <typeinfo>
 #endif
+
 #include "aln.h"
 #include "alnpp.h"
 #include "datafile.h"
@@ -37,7 +38,7 @@ int nNumberLFNs = 0;
 void setSplitAlpha(ALNDATAINFO* pdata); // This works in the split routine to implement an F-test.
 float WeightDecay = 1.0F; //  This is a factor like 0.7599. It is used during classification into two classes when lower weights give better generalization.
 float WeightBound = FLT_MAX;
-float WeightBoundIncrease = 0.000003; // increase every iteration, e.g. in 200 iterations it can go from 0.0 to 0.006, in 1800 from 0.0006 to .006
+float WeightBoundIncrease = 0.000003f; // increase every iteration, e.g. in 200 iterations it can go from 0.0 to 0.006, in 1800 from 0.0006 to .006
 int iterations =1900; // Initial iterations
 int SplitsAllowed = 75; // These are the two splits when the ALN is set up below, change to 4 if the two extra maxes are used.
 int SplitCount = 0;
@@ -91,7 +92,7 @@ int main(int argc, char* argv[])
 	}
 	int nTRcols = 2 * nDim + 1; // The nDim columns of sample data in afltTRdata are extended 
 								// to 2 * nDim + 1 total columns for the noise-attenuation tool.
-	WeightDecay = atof(argv[6]);
+	WeightDecay = (float)atof(argv[6]);
 
 	// create ALN 
 	std::cout << "Creating ALN";
@@ -143,7 +144,7 @@ int main(int argc, char* argv[])
 		{
 			LFN_W(pChildR)[i] = 0;
 			LFN_C(pChildR)[i] = 0;
-			LFN_D(pChildR)[i] = 0.001; // just not zero and not enough to destroy optimization
+			LFN_D(pChildR)[i] = 0.001f; // just not zero and not enough to destroy optimization
 		}
 		LFN_W(pChildR)[0] = ConstLevel;
 		LFN_W(pChildR)[nDim] = -1.0; // this is the weight for the output(0 is for the bias weight, there is a shift by one unit)
@@ -155,11 +156,11 @@ int main(int argc, char* argv[])
 		{
 			LFN_W(pGChildR)[i] = 0;
 			LFN_C(pGChildR)[i] = 0;
-			LFN_D(pGChildR)[i] = 0.001; // just not zero and not enough to destroy optimization
+			LFN_D(pGChildR)[i] = 0.001f; // just not zero and not enough to destroy optimization
 		}
-		LFN_W(pGChildR)[0] = -1.0 * ConstLevel;
-		LFN_W(pGChildR)[nDim] = -1.0; // this is the weight for the output(0 is for the bias weight, there is a shift by one unit)
-		LFN_C(pGChildR)[nDim - 1] = -1.0 * ConstLevel;
+		LFN_W(pGChildR)[0] = -1.0f * ConstLevel;
+		LFN_W(pGChildR)[nDim] = -1.0f; // this is the weight for the output(0 is for the bias weight, there is a shift by one unit)
+		LFN_C(pGChildR)[nDim - 1] = -1.0f * ConstLevel;
 		LFN_FLAGS(pGChildR) |= NF_CONSTANT;
 		LFN_FLAGS(pGChildR) &= ~LF_SPLIT; //Don't allow the new right leaf to split
 		// The left grandchild should be growable, non-constant, splittable, we set it to be flat at 0.0
@@ -167,10 +168,10 @@ int main(int argc, char* argv[])
 		{
 			LFN_W(pGChildL)[i] = 0;
 			LFN_C(pGChildL)[i] = 0;
-			LFN_D(pGChildL)[i] = 0.001; // just not zero and not enough to destroy optimization
+			LFN_D(pGChildL)[i] = 0.001f; // just not zero and not enough to destroy optimization
 		}
 		LFN_W(pGChildL)[0] = 0.0;
-		LFN_W(pGChildL)[nDim] = -1.0; // this is the weight for the output(0 is for the bias weight, there is a shift by one unit)
+		LFN_W(pGChildL)[nDim] = -1.0f; // this is the weight for the output(0 is for the bias weight, there is a shift by one unit)
 		LFN_C(pGChildL)[nDim - 1] = 0.0;
 		/*
 		// Option to add one or more maximum nodes to simplify recognition hardware if bConvex is TRUE.
@@ -218,7 +219,7 @@ int main(int argc, char* argv[])
 		if (bClassify2)
 		{
 			temp = afltX[nDim - 1]; // Replace the desired value by +1.0 for the target, -1.0 for the others.
-			afltX[nDim - 1] = (fabs(temp - targetDigit) < 0.1) ? 1.0 : -1.0;
+			afltX[nDim - 1] = (fabs(temp - targetDigit) < 0.1) ? 1.0f : -1.0f;
 		}
 		pALN->addTRsample(afltX, nDim);  
 		samplesAdded++;
@@ -350,7 +351,7 @@ int main(int argc, char* argv[])
 			for (int k = 0; k < nDim - 1; k++) // Get the domain coordinates
 			{
 				afltX[k] = file.GetAt(i, k, 0);
-				NormalReplaceTR.SetAt(countReplace, k, afltX[k] *98000.0F / (totalIntensity + .001), 0); // This copies the file with normalized intensities, but bad rows will be omitted.
+				NormalReplaceTR.SetAt(countReplace, k, afltX[k] *98000.0F / (totalIntensity + .001f), 0); // This copies the file with normalized intensities, but bad rows will be omitted.
 			}
 			afltX[nDim - 1] = file.GetAt(i, nDim - 1, 0);
 			NormalReplaceTR.SetAt(countReplace, nDim -1, afltX[nDim - 1], 0); //fix the label entry
@@ -361,7 +362,7 @@ int main(int argc, char* argv[])
 			float correctClass;
 			if(bClassify2)
 			{
-				correctClass = (abs(desired - targetDigit) < 0.1) ? 1 : -1;
+				correctClass = (abs(desired - targetDigit) < 0.1) ? 1.f : -1.f;
 				if (entry * correctClass > 0)
 				{
 					countcorrect++; // This is for the recognition of a single digit e.g. "9" vs all the others.
@@ -541,7 +542,7 @@ int main(int argc, char* argv[])
 		{
 			afltX[j] = testfile.GetAt(i, j, 0);
 		}
-		DesiredALNOutput = (fabs(afltX[nDim - 1] - targetDigit) < 0.1 ? 1 : -1);
+		DesiredALNOutput = (fabs(afltX[nDim - 1] - targetDigit) < 0.1 ? 1.f : -1.f);
 		label = afltX[nDim - 1];
 		afltX[nDim - 1] = -250.0; // Put in an incorrect value here (to show there is no cheating).
 		ALNoutput = pALN->QuickEval(afltX, ppActiveLFN);
