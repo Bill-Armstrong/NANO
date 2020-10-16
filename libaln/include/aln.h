@@ -165,7 +165,7 @@ extern "C" {
 #define LFN_SPLIT_COUNT(pNode) ((pNode)->DATA.LFN.pSplit->nCount)
 #define LFN_SPLIT_SQERR(pNode) ((pNode)->DATA.LFN.pSplit->fltSqError)
 #define LFN_SPLIT_RESPTOTAL(pNode) ((pNode)->DATA.LFN.pSplit->fltRespTotal)
-#define LFN_SPLIT_T(pNode) ((pNode)->DATA.LFN.pSplit->fltT)
+#define LFN_SPLIT_T(pNode) ((pNode)->DATA.LFN.pSplit->afltT)
 
 #define MINMAX_ACTIVE(pNode) ((pNode)->DATA.MINMAX.pActiveChild)
 #define MINMAX_RESPACTIVE(pNode) ((pNode)->DATA.MINMAX.fltRespActive)
@@ -201,7 +201,7 @@ extern "C" {
 		int nCount;
 		float fltSqError;                /* squared error                       */
 		float fltRespTotal;              /* total response                      */
-		float fltT;                      /* convexity criterion								 */
+		float* afltT;                    /* convexity criterion on each axis	*/
 	} ALNLFNSPLIT;
 
 	/* node structure -------------------------------------------------------- */

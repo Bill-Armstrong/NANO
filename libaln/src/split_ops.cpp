@@ -187,14 +187,35 @@ void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo) // routine
         {
             afltX[j] = afltTRdata[nDimt2p1ti + j];
         }
-        //afltX[nDimm1] = 0; // hide the desired value (not used anyway)
+        afltX[nDimm1] = 0; // hide the desired value (not used anyway)
         alnval = ALNQuickEval(pALN, afltX, &pActiveLFN); // the current ALN value
         if (LFN_CANSPLIT(pActiveLFN)) // Skip this leaf node if it can't split anyway.//READ ACCESS VIOLATION pActiveLFN was 0x4E210
         {
+            float error = alnval - desired;
+
             float noiseSampleTemp;
             desired = afltTRdata[nDimt2p1ti + nDimm1];
             (pActiveLFN->DATA.LFN.pSplit)->nCount++;
-            (pActiveLFN->DATA.LFN.pSplit)->fltSqError += (alnval - desired) * (alnval - desired);
+            (pActiveLFN->DATA.LFN.pSplit)->fltSqError += error * error;
+
+            float* afltC = pActiveLFN->DATA.LFN.afltC;
+            float* afltD = pActiveLFN->DATA.LFN.afltD;
+            float* afltT = pActiveLFN->DATA.LFN.pSplit->afltT;
+
+            for (int j = 0; j < nDimm1; j++) // Just do the domain dimensions.
+            {
+                // COLLECT DATA FOR LATER SPLITTING THIS PIECE:
+                // We analyze the errors of sample value minus ALN value V - L = -fltError (N.B. minus) on the piece which are
+                // further from and closer to the centroid than the stdev of the points on the piece along the current axis.
+                // If the V - L  is positive (negative) away from the centre compared to the error closer to the centre,
+                // then we need a split of the LFN into a MAX (MIN) node.
+
+                float fltXmC = afltX[j] - afltC[j];
+                float diff = (fltXmC * fltXmC) - afltD[j];
+                float fltBend = (diff > 0) ? -diff * error : diff * error;
+                afltT[j] += fltBend;
+            }
+
             if (fltMSEorF <= 0)
             {
                 noiseSampleTemp = afltTRdata[nDimt2p1ti + nDimt2m1]; // Get the difference of desired sample values in the tool
@@ -399,9 +420,17 @@ int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode)
     }
     else
     {
+        // sum the T convexity statistic across all dimensions
+        float t = 0;
+        float* afltT = LFN_SPLIT_T(pNode);
+        for (int i = 0; i < pALN->nDim - 1; i++)
+        {
+            t += afltT[i];
+        }
+
         // This is splitting for function approximation, we only get here if LFN_CANSPLIT(pNode) is TRUE
         // We split the same as the parent if LFN_SPLIT_T(pNode) == 0
-        if ((LFN_SPLIT_T(pNode) == 0) && (NODE_PARENT(pNode) != NULL))
+        if (t == 0 && (NODE_PARENT(pNode) != NULL))
         {
 
             if (MINMAX_ISMAX(NODE_PARENT(pNode)))
@@ -417,7 +446,7 @@ int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode)
 
         }
 
-        if (LFN_SPLIT_T(pNode) > 0) // This ">" is TRUE if the values of the samples
+        if (t > 0) // This ">" is TRUE if the values of the samples
             // in the training data are higher than the LFN surface some distance from the centroid.
             // This causes the LFN to split into a MAX of two LFNs.
         {

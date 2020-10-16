@@ -46,26 +46,26 @@ void ALNAPI ResetCounters(ALNNODE* pNode, ALN* pALN,BOOL bMarkAsUseful /*= FALSE
   int nRespCount = NODE_RESPCOUNT(pNode);
   NODE_RESPCOUNT(pNode) = 0;
      
-	// set last epoch resp count
-	if (bMarkAsUseful)
+    // set last epoch resp count
+    if (bMarkAsUseful)
   {
-		NODE_RESPCOUNTLASTEPOCH(pNode) = pALN->nDim; 
-		// a node is "useless" if it doesn't have enough training point hits per epoch to define any leaf on its subtree
+        NODE_RESPCOUNTLASTEPOCH(pNode) = pALN->nDim; 
+        // a node is "useless" if it doesn't have enough training point hits per epoch to define any leaf on its subtree
     ASSERT(!NODE_ISUSELESS(pNode, pALN->nDim));
   }
-	else
+    else
   {
-		NODE_RESPCOUNTLASTEPOCH(pNode) = nRespCount;
+        NODE_RESPCOUNTLASTEPOCH(pNode) = nRespCount;
   }
-	the top line below is the version I understand WWA
-	There used to be a lot of useless nodes.  Not now, so this concept may not be very useful.
-	A leaf node can fail to be part of the solution this way:        ________
-	This minimum leaves the horizontal part above it with no hits.  	/\
-		*/
-	NODE_RESPCOUNT(pNode) = 0;
+    the top line below is the version I understand WWA
+    There used to be a lot of useless nodes.  Not now, so this concept may not be very useful.
+    A leaf node can fail to be part of the solution this way:        ________
+    This minimum leaves the horizontal part above it with no hits.  	/\
+        */
+    NODE_RESPCOUNT(pNode) = 0;
   if (NODE_ISMINMAX(pNode))
   {
-  	// iterate over children
+    // iterate over children
     ResetCounters(MINMAX_LEFT(pNode), pALN, bMarkAsUseful);
     ResetCounters(MINMAX_RIGHT(pNode), pALN, bMarkAsUseful);
   }
@@ -78,7 +78,7 @@ void ALNAPI ResetCounters(ALNNODE* pNode, ALN* pALN,BOOL bMarkAsUseful /*= FALSE
       LFN_SPLIT_COUNT(pNode) = 0;
       LFN_SPLIT_SQERR(pNode) = 0.0;
       LFN_SPLIT_RESPTOTAL(pNode) = 0.0;
-      LFN_SPLIT_T(pNode) = 0.0;
-		}
+      memset(LFN_SPLIT_T(pNode), 0, sizeof(float) * pALN->nDim);
+    }
   }
 }

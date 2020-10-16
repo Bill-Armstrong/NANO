@@ -139,7 +139,12 @@ int ALNAPI DestroyTree(ALNNODE* pTree)
       free(LFN_VARMAP(pTree));
 
     if (LFN_SPLIT(pTree) != NULL)
+    {
+      if (LFN_SPLIT_T(pTree))
+        free(LFN_SPLIT_T(pTree));
+
       free(LFN_SPLIT(pTree));
+    }
 
     if (LFN_W(pTree) != NULL)
       free(LFN_W(pTree));
@@ -153,10 +158,10 @@ int ALNAPI DestroyTree(ALNNODE* pTree)
   else
   if (pTree->fNode & NF_MINMAX)
   {
-	if (MINMAX_CENTROID(pTree) != NULL)
-		free(MINMAX_CENTROID(pTree));
-	if (MINMAX_NORMAL(pTree) != NULL)
-		free(MINMAX_NORMAL(pTree));
+    if (MINMAX_CENTROID(pTree) != NULL)
+        free(MINMAX_CENTROID(pTree));
+    if (MINMAX_NORMAL(pTree) != NULL)
+        free(MINMAX_NORMAL(pTree));
   }
   else
   {
@@ -239,8 +244,8 @@ ALNIMP int ALNAPI ALNAddRegion(ALN* pALN, int nParentRegion,
   // allocate var map?
   char* afVarMap = (char*)((nConstr == 0 || nConstr == pALN->nDim) ? NULL :
                       malloc(MAPBYTECOUNT(pALN->nDim)));
-		// failure tolerable
-	if (afVarMap != NULL)
+        // failure tolerable
+    if (afVarMap != NULL)
   {
     memset(afVarMap, 0, MAPBYTECOUNT(pALN->nDim));
     for (int i = 0; i < nConstr; i++)
@@ -273,19 +278,19 @@ ALNIMP int ALNAPI ALNAddRegion(ALN* pALN, int nParentRegion,
       if (afVarMap && !TESTMAP(afVarMap, i))
         continue;
 
-			if (afVarMap == NULL && nConstr < pALN->nDim)
-			{
-				// check constraint array
-				for (int k = 0; k < nConstr; k++)
-				{
-					if (anConstr[k] == i)
-						break;
-				}
-				if (k == nConstr)
-					continue;	// constraint for var i not found
-			}
+            if (afVarMap == NULL && nConstr < pALN->nDim)
+            {
+                // check constraint array
+                for (int k = 0; k < nConstr; k++)
+                {
+                    if (anConstr[k] == i)
+                        break;
+                }
+                if (k == nConstr)
+                    continue;	// constraint for var i not found
+            }
 
-			// var i is constrained in this region, copy from parent
+            // var i is constrained in this region, copy from parent
       CONSTRAINT* pConstr = GetVarConstraint(nParentRegion, pALN, i);
       ASSERT(pConstr && pConstr->nVarIndex == i);
       ASSERT(nConstr == 0 || j < nConstr);
@@ -402,46 +407,61 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
         LFN_SPLIT(pChild) = (ALNLFNSPLIT*)malloc(sizeof(ALNLFNSPLIT));
         if (LFN_SPLIT(pChild) == NULL)
           ThrowALNMemoryException();
-		
+
+        LFN_SPLIT_T(pChild) = (float*)malloc(sizeof(float) * pALN->nDim);
+        if (LFN_SPLIT_T(pChild) == NULL)
+        {
+            free(LFN_SPLIT(pChild));
+            ThrowALNMemoryException();
+        }
+        
         pChild->fNode |= LF_SPLIT;
         LFN_SPLIT_COUNT(pChild) = 0;
         LFN_SPLIT_SQERR(pChild) = 0.0;
         LFN_SPLIT_RESPTOTAL(pChild) = 0.0;
+        memset(LFN_SPLIT_T(pChild), 0, sizeof(float) * pALN->nDim);
 
         // copy parent vectors
         memcpy(LFN_W(pChild), LFN_W(pParent), (pALN->nDim + 1) * sizeof(float));
         memcpy(LFN_C(pChild), LFN_C(pParent), pALN->nDim * sizeof(float));
         memcpy(LFN_D(pChild), LFN_D(pParent), pALN->nDim * sizeof(float));
         // shift LFN output value up or down depending on parent minmax type
-				// the shifts are different but close so the two children differentiate
-				// and the combined effect is not to change the value of the single LFN
+                // the shifts are different but close so the two children differentiate
+                // and the combined effect is not to change the value of the single LFN
         float fltSE = pALN->aRegions[pChild->nParentRegion].fltSmoothEpsilon;
-				int nOutput = pALN->nOutput;
-				// The following avoids a crash due to wrongly picking the active leaf node when there is a tie 
-				float fltChange;
-				// 2009.11.19  This change has to be tiny because it affects the fillets!
-				//fltChange = (0.9343727 + i * 0.1334818) * fltSE; old values where did they come from?
-				// When a piece splits into two equal leaf nodes, there is a fillet inserted so both pieces have to move
-				// in the output direction to leave the function unchanged
-				// THE FOLLOWING CURES A BUG WHEN TWO LFN's ARE EQUAL
-				fltChange = i * 0.00001F + fltSE; // only one child get the tiny increment so equality of LFNs is very rare for training points
+                int nOutput = pALN->nOutput;
+                // The following avoids a crash due to wrongly picking the active leaf node when there is a tie 
+                float fltChange;
+                // 2009.11.19  This change has to be tiny because it affects the fillets!
+                //fltChange = (0.9343727 + i * 0.1334818) * fltSE; old values where did they come from?
+                // When a piece splits into two equal leaf nodes, there is a fillet inserted so both pieces have to move
+                // in the output direction to leave the function unchanged
+                // THE FOLLOWING CURES A BUG WHEN TWO LFN's ARE EQUAL
+                fltChange = i * 0.00001F + fltSE; // only one child get the tiny increment so equality of LFNs is very rare for training points
 
         if (nParentMinMaxType == GF_MIN)
-				{
+                {
           *LFN_W(pChild) += fltChange;
-					LFN_C(pChild)[nOutput] += fltChange;
-				}
+                    LFN_C(pChild)[nOutput] += fltChange;
+                }
         else
-				{
+                {
           *LFN_W(pChild) -= fltChange;
-					LFN_C(pChild)[nOutput] -= fltChange;
-				}
+                    LFN_C(pChild)[nOutput] -= fltChange;
+                }
 
         // set LFN initialized
         NODE_FLAGS(pChild) |= LF_INIT;
       }
       else
       {
+        if (LFN_SPLIT(pChild))
+        {
+            if (LFN_SPLIT_T(pChild)) 
+                free(LFN_SPLIT_T(pChild));
+
+            free(LFN_SPLIT(pChild));
+        }
         LFN_SPLIT(pChild) = NULL;
 
         // zero vectors
@@ -465,7 +485,13 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
         {
           ASSERT(pChild->fNode & NF_LFN);
           if (LFN_VARMAP(pChild)) free(LFN_VARMAP(pChild));
-          if (LFN_SPLIT(pChild)) free(LFN_SPLIT(pChild));
+          if (LFN_SPLIT(pChild))
+          {
+              if (LFN_SPLIT_T(pChild)) 
+                  free(LFN_SPLIT_T(pChild));
+
+              free(LFN_SPLIT(pChild));
+          }
           if (LFN_W(pChild)) free(LFN_W(pChild));
           if (LFN_C(pChild)) free(LFN_C(pChild));
           if (LFN_D(pChild)) free(LFN_D(pChild));
@@ -493,16 +519,22 @@ ALNIMP int ALNAPI ALNAddLFNs(ALN* pALN, ALNNODE* pParent,
   pSigmaTemp = (float*)malloc(nDim * sizeof(float));
   for (int i = 0; i < nDim - 1; i++)
   {
-	  pCentroidTemp[i] = LFN_C(pParent)[i];
-	  pNormalTemp[i] = 0;  // since the child centroids are equal
-	  pSigmaTemp[i] = 4.0f * (float)sqrt(LFN_D(pParent)[i]);  // Larger values help to prevent optimization failures. See also split-ops.cpp line 304
+      pCentroidTemp[i] = LFN_C(pParent)[i];
+      pNormalTemp[i] = 0;  // since the child centroids are equal
+      pSigmaTemp[i] = 4.0f * (float)sqrt(LFN_D(pParent)[i]);  // Larger values help to prevent optimization failures. See also split-ops.cpp line 304
   }
   pCentroidTemp[nDim - 1] = LFN_C(pParent)[nDim - 1]; // Probably useless
   pNormalTemp[nDim - 1] = 0;
   pSigmaTemp[nDim - 1] = 0;
   // free existing vectors
   if (LFN_VARMAP(pParent)) free(LFN_VARMAP(pParent));
-  if (LFN_SPLIT(pParent)) free(LFN_SPLIT(pParent));
+  if (LFN_SPLIT(pParent))
+  {
+      if (LFN_SPLIT_T(pParent))
+          free(LFN_SPLIT_T(pParent));
+
+      free(LFN_SPLIT(pParent));
+  }
   if (LFN_W(pParent)) free(LFN_W(pParent));
   if (LFN_C(pParent)) free(LFN_C(pParent));
   if (LFN_D(pParent)) free(LFN_D(pParent));
@@ -719,10 +751,18 @@ ALNIMP int ALNAPI ALNSetGrowable(ALN* pALN, ALNNODE* pParent)
     return 0;
   }
 
+  LFN_SPLIT_T(pParent) = (float*)malloc(sizeof(float) * pALN->nDim);
+  if (LFN_SPLIT_T(pParent) == NULL)
+  {
+      free(LFN_SPLIT(pParent));
+      return 0;
+  }
+
   pParent->fNode |= LF_SPLIT;
   LFN_SPLIT_COUNT(pParent) = 0;
   LFN_SPLIT_SQERR(pParent) = 0.0;
   LFN_SPLIT_RESPTOTAL(pParent) = 0.0;
+  memset(LFN_SPLIT_T(pParent), 0, sizeof(float) * pALN->nDim);
 
   return 1;
 }

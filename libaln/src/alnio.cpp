@@ -349,7 +349,9 @@ static int ALNAPI WriteTree(FILE* pFile, const ALN* pALN, const ALNNODE* pNode)
       if (_WRITE(pFile, LFN_SPLIT_COUNT(pNode)) != 1) return ALN_ERRFILE;
       if (_WRITE(pFile, LFN_SPLIT_SQERR(pNode)) != 1) return ALN_ERRFILE;
       if (_WRITE(pFile, LFN_SPLIT_RESPTOTAL(pNode)) != 1) return ALN_ERRFILE;
-      if (_WRITE(pFile, LFN_SPLIT_T(pNode)) != 1) return ALN_ERRFILE;  // Added in Version 0x00030009
+
+      float unused = 0;
+      if (_WRITE(pFile, unused) != 1) return ALN_ERRFILE;  // Added in Version 0x00030009
     }
 
     // vectors
@@ -424,16 +426,24 @@ static int ALNAPI ReadTree(FILE* pFile, ALN* pALN, ALNNODE* pNode)
       if (LFN_SPLIT(pNode) == NULL)
         return ALN_OUTOFMEM;
 
+      LFN_SPLIT_T(pNode) = (float*)malloc(sizeof(float) * pALN->nDim);
+      if (LFN_SPLIT_T(pNode) == NULL)
+      {
+          free(LFN_SPLIT(pNode));
+          return ALN_OUTOFMEM;
+      }
+
       if (_READ(pFile, LFN_SPLIT_COUNT(pNode)) != 1) return ALN_ERRFILE;
       if (_READ(pFile, LFN_SPLIT_SQERR(pNode)) != 1) return ALN_ERRFILE;
       if (_READ(pFile, LFN_SPLIT_RESPTOTAL(pNode)) != 1) return ALN_ERRFILE;
 
       if (pALN->nVersion >= 0x00030009)
       {
-        if (_READ(pFile, LFN_SPLIT_T(pNode)) != 1) return ALN_ERRFILE;
+        // read and discard the value
+        float unused;
+        if (_READ(pFile, unused) != 1) return ALN_ERRFILE;
       }
-      else
-        LFN_SPLIT_T(pNode) = 0;
+      memset(LFN_SPLIT_T(pNode), 0, sizeof(float) * pALN->nDim);
     }
 
     // alloc and read vectors
