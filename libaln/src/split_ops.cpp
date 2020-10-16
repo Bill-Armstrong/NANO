@@ -187,14 +187,13 @@ void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo) // routine
         {
             afltX[j] = afltTRdata[nDimt2p1ti + j];
         }
-        afltX[nDimm1] = 0; // hide the desired value (not used anyway)
+        afltX[nDimm1] = 0; // set to zero to get value of the aln on the output
         alnval = ALNQuickEval(pALN, afltX, &pActiveLFN); // the current ALN value
         if (LFN_CANSPLIT(pActiveLFN)) // Skip this leaf node if it can't split anyway.//READ ACCESS VIOLATION pActiveLFN was 0x4E210
         {
+            desired = afltTRdata[nDimt2p1ti + nDimm1];
             float error = alnval - desired;
 
-            float noiseSampleTemp;
-            desired = afltTRdata[nDimt2p1ti + nDimm1];
             (pActiveLFN->DATA.LFN.pSplit)->nCount++;
             (pActiveLFN->DATA.LFN.pSplit)->fltSqError += error * error;
 
@@ -216,6 +215,7 @@ void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo) // routine
                 afltT[j] += fltBend;
             }
 
+            float noiseSampleTemp;
             if (fltMSEorF <= 0)
             {
                 noiseSampleTemp = afltTRdata[nDimt2p1ti + nDimt2m1]; // Get the difference of desired sample values in the tool
