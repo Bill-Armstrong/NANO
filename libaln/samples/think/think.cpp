@@ -1,5 +1,30 @@
-// NANO program
-// This program controls the libaln NANO library.  The user has to input the name of the data file and
+// NANO main program which controls the ALN library
+
+/* MIT License
+
+Copyright (c) 2020 William Ward Armstrong
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. */
+
+// think.cpp
+
+// This program controls the ALN library libaln.  The user has to input the name of the data file and
 // the columns to be used as inputs and the (single) output. The fltMSEorF value if negative, uses an F-test
 // to decide whether to break a linear piece (a multi-dimensional hyperplane in general) into two separate
 // hyperplanes connected by a max or min operator. If an F-test is not used, a positive level of Mean
@@ -23,7 +48,7 @@ static char szInfo[] = "NANO (Noise-Attenuating Neuron Online) program\n"
 "Copyright (C)  2019 William W. Armstrong\n"
 "Licensed under LGPL\n\n";
 // SET TARGET DIGIT HERE !!!!!
-float targetDigit =2; //  Here we specify the digit to be recognized. The other digits are all in the second class
+float targetDigit = 3; //  Here we specify the digit to be recognized. The other digits are all in the second class
 
 BOOL bClassify2 = TRUE; // FALSE produces the usual function learning; TRUE is for two-class classification with a target class
 BOOL bConvex = FALSE;  // Used when bClassify2 is TRUE. If bConvex is TRUE, then we do convex classification, i.e. all but one split involves minima.
@@ -39,7 +64,7 @@ void setSplitAlpha(ALNDATAINFO* pdata); // This works in the split routine to im
 float WeightDecay = 1.0F; //  This is a factor like 0.7599. It is used during classification into two classes when lower weights give better generalization.
 float WeightBound = FLT_MAX;
 float WeightBoundIncrease = 0.000003f; // increase every iteration, e.g. in 200 iterations it can go from 0.0 to 0.006, in 1800 from 0.0006 to .006
-int iterations = 1900; // Initial iterations
+int iterations = 1800; // Initial iterations
 int SplitsAllowed = 75; // These are the two splits when the ALN is set up below, change to 4 if the two extra maxes are used.
 int SplitCount = 0;
 
@@ -544,7 +569,6 @@ int main(int argc, char* argv[])
 		}
 		DesiredALNOutput = (fabs(afltX[nDim - 1] - targetDigit) < 0.1 ? 1.f : -1.f);
 		label = afltX[nDim - 1];
-		afltX[nDim - 1] = -250.0; // Put in an incorrect value here (to show there is no cheating).
 		ALNoutput = pALN->QuickEval(afltX, ppActiveLFN);
 		if (ALNoutput * DesiredALNOutput > 0) 
 		{

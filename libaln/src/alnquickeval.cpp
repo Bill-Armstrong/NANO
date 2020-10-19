@@ -58,6 +58,7 @@ ALNIMP float ALNAPI ALNQuickEval(const ALN* pALN, const float* afltX,
 	// surface value
 
   ALNNODE* pActiveLFN;
+
   float flt =  afltX[pALN->nOutput] + CutoffEval(pALN->pTree, pALN, afltX, 
                                                   CEvalCutoff(), &pActiveLFN);
   if (ppActiveLFN)
