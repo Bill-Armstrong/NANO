@@ -45,11 +45,11 @@ static char THIS_FILE[] = __FILE__;
 inline unsigned long DoFastRand()
 {
   // Using the current seed, generate a new random value and seed and
-	// return it.
-  
+    // return it.
+
   // This algorithm is similar to one proposed in Numerical Recipes in C,
   // which is in turn based on a Donald Knuth algorithm.
-  
+
   return (g_nFastRandSeed = 1664525L * g_nFastRandSeed + 1013904223L);
 }
 
@@ -61,12 +61,12 @@ ALNIMP void ALNAPI ALNSRand(unsigned int nSeed)
 
 ALNIMP unsigned long ALNAPI ALNRand()
 {
-	return DoFastRand();
+    return DoFastRand();
 }
 
-ALNIMP float ALNAPI ALNRandFloat() 
+ALNIMP float ALNAPI ALNRandFloat()
 {
-  
+
 }
 */
 
@@ -79,26 +79,26 @@ ALNIMP void ALNAPI ALNSRand(unsigned int nSeed);
 
 std::mt19937_64 generator;
 std::uniform_int_distribution<int> distribution1(0, 1474836UL);
-std::uniform_real_distribution<float> distribution2(0.0,1.0);
+std::uniform_real_distribution<float> distribution2(0.0, 1.0);
 
 
 unsigned long DoFastRand()
 {
     return distribution1(generator);
 }
-  
+
 ALNIMP unsigned long ALNAPI ALNRand()
 {
-	return DoFastRand(); // this does a random int
+    return DoFastRand(); // this does a random int
 }
 
-ALNIMP float ALNAPI ALNRandFloat() 
+ALNIMP float ALNAPI ALNRandFloat()
 {
-   return distribution2(generator);
+    return distribution2(generator);
 }
 
 
 ALNIMP void ALNAPI ALNSRand(unsigned int nSeed)
 {
-	return; // not used here
+    return; // not used here
 }

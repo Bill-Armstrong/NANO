@@ -37,37 +37,37 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 void ALNAPI FillInputVector(const ALN* pALN,
-                            float* afltX, 
-                            long nSample,
-                            int nStart,
-                            ALNDATAINFO* pDataInfo,
-                            const ALNCALLBACKINFO* pCallbackInfo)
+    float* afltX,
+    long nSample,
+    int nStart,
+    ALNDATAINFO* pDataInfo,
+    const ALNCALLBACKINFO* pCallbackInfo)
 {
-  ASSERT(afltX);
-  ASSERT(pALN);
+    ASSERT(afltX);
+    ASSERT(pALN);
 
-  int nDim = pALN->nDim;  // register statement removed
-  int nCols = pDataInfo->nTRcols; // This is 2 * nDim + 1
-  const float* afltTRdata = pDataInfo->afltTRdata;
-  const VARINFO* aVarInfo = pDataInfo->aVarInfo; // Not used
+    int nDim = pALN->nDim;  // register statement removed
+    int nCols = pDataInfo->nTRcols; // This is 2 * nDim + 1
+    const float* afltTRdata = pDataInfo->afltTRdata;
+    const VARINFO* aVarInfo = pDataInfo->aVarInfo; // Not used
 
-  // fill input vector
-  VECTORINFO vectorinfo;        
-  vectorinfo.bNeedData = FALSE;
-  if (afltTRdata != NULL)
-  {
-    ASSERT(nStart == 0);	// we must start at zero, since no aVarInfo
-    memcpy(afltX, afltTRdata + (nSample * nCols), sizeof(float) * nDim); 
-  }
-  // send vector info message
-	if (pCallbackInfo && CanCallback(AN_VECTORINFO, pCallbackInfo->pfnNotifyProc,
-									pCallbackInfo->nNotifyMask))
-	{
-	vectorinfo.nSample = nSample + nStart; // nStart based
-	vectorinfo.aVarInfo = aVarInfo;
-	vectorinfo.afltX = afltX;
-	Callback(pALN, AN_VECTORINFO, &vectorinfo, pCallbackInfo->pfnNotifyProc,
-				pCallbackInfo->pvData);
-	
-	}
+    // fill input vector
+    VECTORINFO vectorinfo;
+    vectorinfo.bNeedData = FALSE;
+    if (afltTRdata != NULL)
+    {
+        ASSERT(nStart == 0);	// we must start at zero, since no aVarInfo
+        memcpy(afltX, afltTRdata + (nSample * nCols), sizeof(float) * nDim);
+    }
+    // send vector info message
+    if (pCallbackInfo && CanCallback(AN_VECTORINFO, pCallbackInfo->pfnNotifyProc,
+        pCallbackInfo->nNotifyMask))
+    {
+        vectorinfo.nSample = nSample + nStart; // nStart based
+        vectorinfo.aVarInfo = aVarInfo;
+        vectorinfo.afltX = afltX;
+        Callback(pALN, AN_VECTORINFO, &vectorinfo, pCallbackInfo->pfnNotifyProc,
+            pCallbackInfo->pvData);
+
+    }
 }

@@ -39,40 +39,40 @@ static char THIS_FILE[] = __FILE__;
 ///////////////////////////////////////////////////////////////////////////////
 // constraint retrieval
 
-ALNCONSTRAINT* ALNAPI GetVarConstraint(int nRegion, const ALN* pALN, 
-                                       int nVar)
+ALNCONSTRAINT* ALNAPI GetVarConstraint(int nRegion, const ALN* pALN,
+    int nVar)
 {
-  ASSERT(pALN);
-  ASSERT(nRegion >= 0 && nRegion < pALN->nRegions);
-  ASSERT(nVar >= 0 && nVar < pALN->nDim);
-  ALNREGION* pRegion = &(pALN->aRegions[nRegion]);
+    ASSERT(pALN);
+    ASSERT(nRegion >= 0 && nRegion < pALN->nRegions);
+    ASSERT(nVar >= 0 && nVar < pALN->nDim);
+    ALNREGION* pRegion = &(pALN->aRegions[nRegion]);
 
-  while (TRUE)
-  {
-    // if region constrains all vars, then get constraint directly
-    if (pRegion->nConstr == pALN->nDim)
+    while (TRUE)
     {
-      ASSERT(pRegion->aConstr[nVar].nVarIndex == nVar);
-      return &(pRegion->aConstr[nVar]);
+        // if region constrains all vars, then get constraint directly
+        if (pRegion->nConstr == pALN->nDim)
+        {
+            ASSERT(pRegion->aConstr[nVar].nVarIndex == nVar);
+            return &(pRegion->aConstr[nVar]);
+        }
+        else if (pRegion->afVarMap == NULL || TESTMAP(pRegion->afVarMap, nVar))
+        {
+            // no var map, or map indicates region contains this var
+            for (int i = pRegion->nConstr - 1; i >= 0; i--)
+            {
+                ASSERT(pRegion->aConstr[i].nVarIndex >= 0 &&
+                    pRegion->aConstr[i].nVarIndex < pALN->nDim);
+
+                if (pRegion->aConstr[i].nVarIndex == nVar)
+                    return &(pRegion->aConstr[i]);
+            }
+        }
+
+        // variable not constrained in this region, check parent region
+        if (pRegion->nParentRegion == -1)
+            return NULL;  // var not found!?
+
+        pRegion = &(pALN->aRegions[pRegion->nParentRegion]);
     }
-    else if (pRegion->afVarMap == NULL || TESTMAP(pRegion->afVarMap, nVar))
-    {
-      // no var map, or map indicates region contains this var
-      for (int i = pRegion->nConstr - 1; i >= 0; i--)
-      {
-        ASSERT(pRegion->aConstr[i].nVarIndex >= 0 && 
-               pRegion->aConstr[i].nVarIndex < pALN->nDim);
-      
-        if (pRegion->aConstr[i].nVarIndex == nVar)
-          return &(pRegion->aConstr[i]);
-      }
-    }
-    
-    // variable not constrained in this region, check parent region
-    if (pRegion->nParentRegion == -1)
-      return NULL;  // var not found!?
-    
-    pRegion = &(pALN->aRegions[pRegion->nParentRegion]); 
-  }
 }
 

@@ -29,6 +29,8 @@ SOFTWARE. */
 #define ALNIMP __declspec(dllexport)
 #endif
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <aln.h>
 #include "alnpriv.h"
 #include <stdarg.h>
@@ -53,22 +55,22 @@ static char THIS_FILE[] = __FILE__;
 
 void __cdecl ALNTrace(const char* pszFormat, ...)
 {
-	va_list args;
-	va_start(args, pszFormat);
+    va_list args;
+    va_start(args, pszFormat);
 
-	int nBuf;
-	char szBuffer[512];
+    int nBuf;
+    char szBuffer[512];
 
-	nBuf = vsprintf(szBuffer, pszFormat, args);
-	ASSERT(nBuf < sizeof(szBuffer));
+    nBuf = vsprintf(szBuffer, pszFormat, args);
+    ASSERT(nBuf < sizeof(szBuffer));
 
-	va_end(args);
+    va_end(args);
 
-  #ifdef _WIN32
-  OutputDebugString(szBuffer);
-  #else
-  perror(szBuffer);
-  #endif
+#ifdef _WIN32
+    OutputDebugStringA(szBuffer);
+#else
+    perror(szBuffer);
+#endif
 }
 
 #endif //_DEBUG

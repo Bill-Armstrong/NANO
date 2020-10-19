@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{557ab46b-6c85-453d-bfe0-4ae3f1db2285}</ProjectGuid>
+    <RootNamespace>libaln</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>ALN_NOFORCE_LIBS;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile />
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>
+      </SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>ALN_NOFORCE_LIBS;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile />
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>
+      </SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\aln.h" />
+    <ClInclude Include="..\..\..\include\alncfg.h" />
+    <ClInclude Include="..\..\..\include\alndbg.h" />
+    <ClInclude Include="..\..\..\include\alnpp.h" />
+    <ClInclude Include="..\..\..\include\alnpriv.h" />
+    <ClInclude Include="..\..\..\include\alnver.h" />
+    <ClInclude Include="..\..\..\include\cmyaln.h" />
+    <ClInclude Include="..\..\..\include\datafile.h" />
+    <ClInclude Include="..\..\..\include\dtree.h" />
+    <ClInclude Include="..\..\..\include\targetver.h" />
+    <ClInclude Include="..\..\..\src\dtree\DTR_PRIV.H" />
+    <ClInclude Include="framework.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\adapteval.cpp" />
+    <ClCompile Include="..\..\..\src\adaptevallfn.cpp" />
+    <ClCompile Include="..\..\..\src\adaptevalminmax.cpp" />
+    <ClCompile Include="..\..\..\src\adaptlfn.cpp" />
+    <ClCompile Include="..\..\..\src\adaptminmax.cpp" />
+    <ClCompile Include="..\..\..\src\alnabort.cpp" />
+    <ClCompile Include="..\..\..\src\alnaddtreestring.cpp" />
+    <ClCompile Include="..\..\..\src\alnasert.cpp" />
+    <ClCompile Include="..\..\..\src\alncalcconfidence.cpp" />
+    <ClCompile Include="..\..\..\src\alncalcrmserror.cpp" />
+    <ClCompile Include="..\..\..\src\alnconfidenceplimit.cpp" />
+    <ClCompile Include="..\..\..\src\alnconfidencetlimit.cpp" />
+    <ClCompile Include="..\..\..\src\alnconvertdtree.cpp" />
+    <ClCompile Include="..\..\..\src\alneval.cpp" />
+    <ClCompile Include="..\..\..\src\alnex.cpp" />
+    <ClCompile Include="..\..\..\src\alninvert.cpp" />
+    <ClCompile Include="..\..\..\src\alnio.cpp" />
+    <ClCompile Include="..\..\..\src\alnlfnanalysis.cpp" />
+    <ClCompile Include="..\..\..\src\alnmem.cpp" />
+    <ClCompile Include="..\..\..\src\alnpp.cpp" />
+    <ClCompile Include="..\..\..\src\alnquickeval.cpp" />
+    <ClCompile Include="..\..\..\src\alnrand.cpp" />
+    <ClCompile Include="..\..\..\src\alntestvalid.cpp" />
+    <ClCompile Include="..\..\..\src\alntrace.cpp" />
+    <ClCompile Include="..\..\..\src\alntrain.cpp" />
+    <ClCompile Include="..\..\..\src\alnvarmono.cpp" />
+    <ClCompile Include="..\..\..\src\buildcutoffroute.cpp" />
+    <ClCompile Include="..\..\..\src\builddtree.cpp" />
+    <ClCompile Include="..\..\..\src\calcactivechild.cpp" />
+    <ClCompile Include="..\..\..\src\calccovariance.cpp" />
+    <ClCompile Include="..\..\..\src\calcdataendpoints.cpp" />
+    <ClCompile Include="..\..\..\src\countlfns.cpp" />
+    <ClCompile Include="..\..\..\src\cutoff.cpp" />
+    <ClCompile Include="..\..\..\src\cutoffeval.cpp" />
+    <ClCompile Include="..\..\..\src\cutoffevallfn.cpp" />
+    <ClCompile Include="..\..\..\src\cutoffevalminmax.cpp" />
+    <ClCompile Include="..\..\..\src\datafile.cpp" />
+    <ClCompile Include="..\..\..\src\debugevalminmax.cpp" />
+    <ClCompile Include="..\..\..\src\decayweights.cpp" />
+    <ClCompile Include="..\..\..\src\dtree\dtree.c" />
+    <ClCompile Include="..\..\..\src\dtree\dtr_bio.c" />
+    <ClCompile Include="..\..\..\src\dtree\dtr_err.c" />
+    <ClCompile Include="..\..\..\src\dtree\dtr_io.c" />
+    <ClCompile Include="..\..\..\src\dtree\dtr_mem.c" />
+    <ClCompile Include="..\..\..\src\evaltree.cpp" />
+    <ClCompile Include="..\..\..\src\fillinputvector.cpp" />
+    <ClCompile Include="..\..\..\src\getvarconstraint.cpp" />
+    <ClCompile Include="..\..\..\src\initlfns.cpp" />
+    <ClCompile Include="..\..\..\src\jitter.cpp" />
+    <ClCompile Include="..\..\..\src\plimit.cpp" />
+    <ClCompile Include="..\..\..\src\prepaln.cpp" />
+    <ClCompile Include="..\..\..\src\resetcounters.cpp" />
+    <ClCompile Include="..\..\..\src\shuffle.cpp" />
+    <ClCompile Include="..\..\..\src\split_ops.cpp" />
+    <ClCompile Include="..\..\..\src\validatedatainfo.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\boost.1.72.0.0\build\boost.targets" Condition="Exists('..\packages\boost.1.72.0.0\build\boost.targets')" />
+    <Import Project="..\packages\Eigen.3.3.3\build\native\Eigen.targets" Condition="Exists('..\packages\Eigen.3.3.3\build\native\Eigen.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\boost.1.72.0.0\build\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.72.0.0\build\boost.targets'))" />
+    <Error Condition="!Exists('..\packages\Eigen.3.3.3\build\native\Eigen.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Eigen.3.3.3\build\native\Eigen.targets'))" />
+  </Target>
+</Project>

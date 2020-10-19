@@ -31,7 +31,7 @@ SOFTWARE. */
 extern "C" {
 #endif             
 
-/* define __cdecl for non-Microsoft compilers */
+    /* define __cdecl for non-Microsoft compilers */
 #ifndef NODEFINE_CDECL
 
 #if	( !defined(_MSC_VER) && !defined(__cdecl) )
@@ -64,69 +64,69 @@ extern "C" {
 #endif
 
 #define DTREEAPI __stdcall
-                  
-/*                  
+
+/*
 /////////////////////////////////////////////////////////////////////
 // DTREE version info
 */
 #define DTREE_VERMAJOR 0x0001
 #define DTREE_VERMINOR 0x0005
-                                  
-/* returns major version in upper 16 bits, minor in lower 16 bits */
-DTRIMP int DTREEAPI GetDtreeVersion();  
 
-/*            
-/////////////////////////////////////////////////////////////////////
-// Decision Tree Structures
-*/
+/* returns major version in upper 16 bits, minor in lower 16 bits */
+    DTRIMP int DTREEAPI GetDtreeVersion();
+
+    /*
+    /////////////////////////////////////////////////////////////////////
+    // Decision Tree Structures
+    */
 
 #if defined(_MSC_VER)
 #pragma pack(4)                   /* structures aligned to DWORD boundaries */
 #endif
 
-/* DTREE min max node types */
+    /* DTREE min max node types */
 #define DTREE_MIN      0          
 #define DTREE_MAX      1
 #define DTREE_LINEAR   2
 
-typedef struct tagLINEARFORM      /* describes a linear form                */
-{                    
-  float fltBias;                 /* bias: computed from centroid,weights   */
-  float* afltW;                  /* weight vector has nDim elements        */
-  float* afltC;                  /* centroid vector has nDim elements      */
-} LINEARFORM;                     /* 16 bytes                               */
+    typedef struct tagLINEARFORM      /* describes a linear form                */
+    {
+        float fltBias;                 /* bias: computed from centroid,weights   */
+        float* afltW;                  /* weight vector has nDim elements        */
+        float* afltC;                  /* centroid vector has nDim elements      */
+    } LINEARFORM;                     /* 16 bytes                               */
 
-typedef struct tagMINMAXNODE      /* describes a min/max tree node          */
-{
-  int nType;                      /* node type                              */
-  union
-  {       
-    int nLFIndex;                 /* linearform index if nType == DTREE_LINEAR */
-    struct tagMINMAXNODE* pChildList;  /* linked list of children           */
-                                  /*   if nType == DTREE_MIN or nType == DTREE_MAX*/
-  } info;
-  struct tagMINMAXNODE* pNext;    /* pointer to sibling                     */
-} MINMAXNODE;                     /* 12 bytes                               */
+    typedef struct tagMINMAXNODE      /* describes a min/max tree node          */
+    {
+        int nType;                      /* node type                              */
+        union
+        {
+            int nLFIndex;                 /* linearform index if nType == DTREE_LINEAR */
+            struct tagMINMAXNODE* pChildList;  /* linked list of children           */
+                                          /*   if nType == DTREE_MIN or nType == DTREE_MAX*/
+        } info;
+        struct tagMINMAXNODE* pNext;    /* pointer to sibling                     */
+    } MINMAXNODE;                     /* 12 bytes                               */
 
 #define MMN_LFINDEX(pMMN) ((pMMN)->info.nLFIndex)
 #define MMN_CHILDLIST(pMMN) ((pMMN)->info.pChildList)
- 
-typedef struct tagDTREENODE       /* describes a decision tree node         */
-{ 
-  int nLeaf;                      /* non-zero if this is a leaf node        */
-  int nParentIndex;               /* index of parent (-1 if no parent)      */
-  union
-  {
-    int nBlockIndex;              /* index of block if this is a leaf       */
-    struct
-    {                             /* if this is an internal DTREE node...         */
-      float fltT;                /* threshold on a variable has split a block */
-      int nVarIndex;              /* variable index                         */
-      int nLeftIndex;             /* index of left child                    */
-      int nRightIndex;            /* index of right child                   */
-    } node;
-  } info;                                         
-} DTREENODE;                      /* 28 bytes                               */
+
+    typedef struct tagDTREENODE       /* describes a decision tree node         */
+    {
+        int nLeaf;                      /* non-zero if this is a leaf node        */
+        int nParentIndex;               /* index of parent (-1 if no parent)      */
+        union
+        {
+            int nBlockIndex;              /* index of block if this is a leaf       */
+            struct
+            {                             /* if this is an internal DTREE node...         */
+                float fltT;                /* threshold on a variable has split a block */
+                int nVarIndex;              /* variable index                         */
+                int nLeftIndex;             /* index of left child                    */
+                int nRightIndex;            /* index of right child                   */
+            } node;
+        } info;
+    } DTREENODE;                      /* 28 bytes                               */
 
 #define DNODE_BLOCKINDEX(pNode) ((pNode)->info.nBlockIndex)
 #define DNODE_THRESHOLD(pNode) ((pNode)->info.node.fltT)
@@ -134,146 +134,146 @@ typedef struct tagDTREENODE       /* describes a decision tree node         */
 #define DNODE_LEFTINDEX(pNode) ((pNode)->info.node.nLeftIndex)
 #define DNODE_RIGHTINDEX(pNode) ((pNode)->info.node.nRightIndex)
 
-typedef struct tagBLOCK           /* describes a block structure            */
-{
-  MINMAXNODE* pMinMaxTree;        /* min/max tree                           */
-  int nDtreeIndex;                /* dtree leaf index that refs this        */
-} BLOCK;                          /* 8 bytes                                */ 
-  
-typedef struct tagVARBOUND        /* variable bound structure               */
-{
-  float fltMin;                  /* variable minimum                       */
-  float fltMax;                  /* variable maximum                       */
-} VARBOUND;                       /* 16 bytes                               */
+    typedef struct tagBLOCK           /* describes a block structure            */
+    {
+        MINMAXNODE* pMinMaxTree;        /* min/max tree                           */
+        int nDtreeIndex;                /* dtree leaf index that refs this        */
+    } BLOCK;                          /* 8 bytes                                */
 
-typedef struct tagVARDEF          /* variable definition                    */
-{          
-  VARBOUND bound;                 /* variable bound                         */
-  char* pszName;                  /* variable name                          */
-} VARDEF;                         /* 20 bytes                               */
+    typedef struct tagVARBOUND        /* variable bound structure               */
+    {
+        float fltMin;                  /* variable minimum                       */
+        float fltMax;                  /* variable maximum                       */
+    } VARBOUND;                       /* 16 bytes                               */
+
+    typedef struct tagVARDEF          /* variable definition                    */
+    {
+        VARBOUND bound;                 /* variable bound                         */
+        char* pszName;                  /* variable name                          */
+    } VARDEF;                         /* 20 bytes                               */
 
 #define VARDEF_MIN(pVar) ((pVar)->bound.fltMin)
 #define VARDEF_MAX(pVar) ((pVar)->bound.fltMax)
-  
-typedef struct tagDTREE           /* main decision tree struct              */
-{
-  int nDim;                       /* dimension of space                     */
-  int nOutputIndex;               /* output var index                       */
-  VARDEF* aVarDefs;               /* array of variable definitions          */
-  int nLinearForms;               /* number linear forms                    */
-  LINEARFORM* aLinearForms;       /* array of linear forms                  */
-  int nBlocks;                    /* number of blocks                       */
-  BLOCK* aBlocks;                 /* array of blocks                        */
-  int nNodes;                     /* number of dtree nodes                  */
-  DTREENODE* aNodes;              /* array of nodes                         */
-} DTREE;                          /* 36 bytes                               */
+
+    typedef struct tagDTREE           /* main decision tree struct              */
+    {
+        int nDim;                       /* dimension of space                     */
+        int nOutputIndex;               /* output var index                       */
+        VARDEF* aVarDefs;               /* array of variable definitions          */
+        int nLinearForms;               /* number linear forms                    */
+        LINEARFORM* aLinearForms;       /* array of linear forms                  */
+        int nBlocks;                    /* number of blocks                       */
+        BLOCK* aBlocks;                 /* array of blocks                        */
+        int nNodes;                     /* number of dtree nodes                  */
+        DTREENODE* aNodes;              /* array of nodes                         */
+    } DTREE;                          /* 36 bytes                               */
 
 #if defined(_MSC_VER)
 #pragma pack()                    /* restore default structure alignment    */
 #endif
-                                                                     
-/*                                                                     
+
+/*
 /////////////////////////////////////////////////////////////////////
 // DTREE memory management prototypes
 */
 
-DTRIMP DTREE* DTREEAPI CreateDtree();
-DTRIMP void DTREEAPI DestroyDtree(DTREE* pDtree);
-          
-DTRIMP VARDEF* DTREEAPI CreateVarDefArray(int nDim);          
-DTRIMP void DTREEAPI DestroyVarDefArray(VARDEF* aVarDefs, int nDim);
-DTRIMP char* DTREEAPI SetVarDefName(VARDEF* pVarDef, const char* pszName);
+    DTRIMP DTREE* DTREEAPI CreateDtree();
+    DTRIMP void DTREEAPI DestroyDtree(DTREE* pDtree);
 
-DTRIMP DTREENODE* DTREEAPI CreateDtreeNodeArray(int nNodes);
-DTRIMP void DTREEAPI DestroyDtreeNodeArray(DTREENODE* aNodes);
+    DTRIMP VARDEF* DTREEAPI CreateVarDefArray(int nDim);
+    DTRIMP void DTREEAPI DestroyVarDefArray(VARDEF* aVarDefs, int nDim);
+    DTRIMP char* DTREEAPI SetVarDefName(VARDEF* pVarDef, const char* pszName);
 
-DTRIMP BLOCK* DTREEAPI CreateBlockArray(int nBlocks);
-DTRIMP void DTREEAPI DestroyBlockArray(BLOCK* aBlocks, int nBlocks);
+    DTRIMP DTREENODE* DTREEAPI CreateDtreeNodeArray(int nNodes);
+    DTRIMP void DTREEAPI DestroyDtreeNodeArray(DTREENODE* aNodes);
 
-DTRIMP MINMAXNODE* DTREEAPI CreateMinMaxNode();
-DTRIMP MINMAXNODE* DTREEAPI CopyMinMaxNode(MINMAXNODE* pMinMaxNode);
-DTRIMP MINMAXNODE* DTREEAPI AddMinMaxNodeChild(MINMAXNODE* pParent);
-DTRIMP void DTREEAPI DestroyMinMaxNode(MINMAXNODE* pMinMaxNode);
+    DTRIMP BLOCK* DTREEAPI CreateBlockArray(int nBlocks);
+    DTRIMP void DTREEAPI DestroyBlockArray(BLOCK* aBlocks, int nBlocks);
 
-DTRIMP LINEARFORM* DTREEAPI CreateLinearFormArray(int nForms, int nDim);
-DTRIMP void DTREEAPI DestroyLinearFormArray(LINEARFORM* aLinearForms, int nForms);
+    DTRIMP MINMAXNODE* DTREEAPI CreateMinMaxNode();
+    DTRIMP MINMAXNODE* DTREEAPI CopyMinMaxNode(MINMAXNODE* pMinMaxNode);
+    DTRIMP MINMAXNODE* DTREEAPI AddMinMaxNodeChild(MINMAXNODE* pParent);
+    DTRIMP void DTREEAPI DestroyMinMaxNode(MINMAXNODE* pMinMaxNode);
 
-/*
-/////////////////////////////////////////////////////////////////////
-// Dtree I/O routines
-*/
+    DTRIMP LINEARFORM* DTREEAPI CreateLinearFormArray(int nForms, int nDim);
+    DTRIMP void DTREEAPI DestroyLinearFormArray(LINEARFORM* aLinearForms, int nForms);
 
-/* global dtree line number counter */
+    /*
+    /////////////////////////////////////////////////////////////////////
+    // Dtree I/O routines
+    */
+
+    /* global dtree line number counter */
 #ifdef _WIN32
-DTRIMP int* __cdecl _dtree_lineno(void);
+    DTRIMP int* __cdecl _dtree_lineno(void);
 #define dtree_lineno (*_dtree_lineno())
 #else 
-extern int dtree_lineno;
+    extern int dtree_lineno;
 #endif
-                    
-/* returns DTR_NOERROR on success 
-   places a new DTREE in *ppDtree - use DestroyDtree to Destroy *ppDtree */
-DTRIMP int DTREEAPI ReadDtree(const char* pszFileName, DTREE** ppDtree);
-DTRIMP int DTREEAPI WriteDtree(const char* pszFileName, DTREE* pDtree);
 
-/*
-/////////////////////////////////////////////////////////////////////
-// Dtree binary I/O routines
-*/
-                   
-/* returns DTR_NOERROR on success 
-   places a new DTREE in *ppDtree - use DestroyDtree to Destroy *ppDtree */
-DTRIMP int DTREEAPI BinReadDtree(const char* pszFileName, DTREE** ppDtree);
-DTRIMP int DTREEAPI BinWriteDtree(const char* pszFileName, DTREE* pDtree);
+    /* returns DTR_NOERROR on success
+       places a new DTREE in *ppDtree - use DestroyDtree to Destroy *ppDtree */
+    DTRIMP int DTREEAPI ReadDtree(const char* pszFileName, DTREE** ppDtree);
+    DTRIMP int DTREEAPI WriteDtree(const char* pszFileName, DTREE* pDtree);
 
-/*                   
-/////////////////////////////////////////////////////////////////////
-// Dtree evaluation routines                   
-*/
-                                                                        
-/* returns DTR_NOERROR on success             
-   places a result in *pfltResult
-   returns index of linear form that calculated the result in
-   plLinearIndex (if not NULL) */
-DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, float* afltInput, 
-                              float* pfltResult, int* pnLinearIndex);
+    /*
+    /////////////////////////////////////////////////////////////////////
+    // Dtree binary I/O routines
+    */
 
-/* min/max tree evaluation         
-   returns DTR_NOERROR on success         
-   places result in pfltResult, 
-   places responsible linear index in plLinearIndex (if not NULL) */
-DTRIMP int DTREEAPI EvalMinMaxTree(MINMAXNODE* pMMN, LINEARFORM* aLF, int nDim, 
-                                   int nOutput, float* afltInput, 
-                                   float* pfltResult, int* pnLinearIndex);
-                            
-/* linear form evaluation         
-   returns DTR_NOERROROR on success         
-   places result in pfltResult */
-DTRIMP int DTREEAPI EvalLinearForm(LINEARFORM* pLF, int nDim, int nOutput, 
-                                   float* afltInput, float* pfltResult);
+    /* returns DTR_NOERROR on success
+       places a new DTREE in *ppDtree - use DestroyDtree to Destroy *ppDtree */
+    DTRIMP int DTREEAPI BinReadDtree(const char* pszFileName, DTREE** ppDtree);
+    DTRIMP int DTREEAPI BinWriteDtree(const char* pszFileName, DTREE* pDtree);
 
-                                 
-/*                                 
-/////////////////////////////////////////////////////////////////////
-// Dtree error handling
-*/
+    /*
+    /////////////////////////////////////////////////////////////////////
+    // Dtree evaluation routines
+    */
 
-/* global dtree error number */
+    /* returns DTR_NOERROR on success
+       places a result in *pfltResult
+       returns index of linear form that calculated the result in
+       plLinearIndex (if not NULL) */
+    DTRIMP int DTREEAPI EvalDtree(DTREE* pDtree, float* afltInput,
+        float* pfltResult, int* pnLinearIndex);
+
+    /* min/max tree evaluation
+       returns DTR_NOERROR on success
+       places result in pfltResult,
+       places responsible linear index in plLinearIndex (if not NULL) */
+    DTRIMP int DTREEAPI EvalMinMaxTree(MINMAXNODE* pMMN, LINEARFORM* aLF, int nDim,
+        int nOutput, float* afltInput,
+        float* pfltResult, int* pnLinearIndex);
+
+    /* linear form evaluation
+       returns DTR_NOERROROR on success
+       places result in pfltResult */
+    DTRIMP int DTREEAPI EvalLinearForm(LINEARFORM* pLF, int nDim, int nOutput,
+        float* afltInput, float* pfltResult);
+
+
+    /*
+    /////////////////////////////////////////////////////////////////////
+    // Dtree error handling
+    */
+
+    /* global dtree error number */
 #ifdef _WIN32
-DTRIMP int* __cdecl _dtree_errno(void);
+    DTRIMP int* __cdecl _dtree_errno(void);
 #define dtree_errno (*_dtree_errno())
 #else
-extern int dtree_errno;
+    extern int dtree_errno;
 #endif
 
-/* retrieves string associated with nErrNo */
-DTRIMP void DTREEAPI GetDtreeError(int nErrno, char* pBuf, int nMaxBufLen);
+    /* retrieves string associated with nErrNo */
+    DTRIMP void DTREEAPI GetDtreeError(int nErrno, char* pBuf, int nMaxBufLen);
 
-/* error codes */
+    /* error codes */
 #define DTR_NOERROR                 0
 
 #define DTR_ERRORBASE               10000
-                                 
+
 #define DTR_GENERIC                 (DTR_ERRORBASE + 10)
 #define DTR_FILEERR                 (DTR_ERRORBASE + 30)
 #define DTR_FILEWRITEERR            (DTR_ERRORBASE + 31)
@@ -286,7 +286,7 @@ DTRIMP void DTREEAPI GetDtreeError(int nErrno, char* pBuf, int nMaxBufLen);
 #define DTR_BADVERSIONINT           (DTR_ERRORBASE + 101)
 #define DTR_MISSINGVERSIONSEMI      (DTR_ERRORBASE + 102)
 #define DTR_UNKNOWNVERSION          (DTR_ERRORBASE + 103)
-                                     
+
 #define DTR_BADDIMDEF               (DTR_ERRORBASE + 150)
 #define DTR_BADDIMINT               (DTR_ERRORBASE + 151)
 #define DTR_BADDIMRANGE             (DTR_ERRORBASE + 152)
@@ -301,7 +301,7 @@ DTRIMP void DTREEAPI GetDtreeError(int nErrno, char* pBuf, int nMaxBufLen);
 #define DTR_MISSINGVARBOUNDEND      (DTR_ERRORBASE + 206)
 #define DTR_NEGATIVEVARBOUNDRANGE   (DTR_ERRORBASE + 207)
 #define DTR_MISSINGVARDEFSEMI       (DTR_ERRORBASE + 208)
-                                     
+
 #define DTR_BADOUTPUTDEF            (DTR_ERRORBASE + 300)
 #define DTR_BADOUTPUTIDENT          (DTR_ERRORBASE + 301)
 #define DTR_BADOUTPUTRANGE          (DTR_ERRORBASE + 302)
@@ -338,7 +338,7 @@ DTRIMP void DTREEAPI GetDtreeError(int nErrno, char* pBuf, int nMaxBufLen);
 #define DTR_BADLINEARCENTROID       (DTR_ERRORBASE + 511)
 #define DTR_BADLINEARINDEXRANGE     (DTR_ERRORBASE + 512)
 #define DTR_MISSINGLINEARSEMI       (DTR_ERRORBASE + 513)
-                                     
+
 #define DTR_BADDTREEDEF             (DTR_ERRORBASE + 600)                                     
 #define DTR_BADDTREEINT             (DTR_ERRORBASE + 601)
 #define DTR_MISSINGDTREEINDEX       (DTR_ERRORBASE + 602)
@@ -356,7 +356,7 @@ DTRIMP void DTREEAPI GetDtreeError(int nErrno, char* pBuf, int nMaxBufLen);
 #define DTR_BADDTREEINDEXRANGE      (DTR_ERRORBASE + 614)
 #define DTR_MISSINGDTREEBLOCKINDEX  (DTR_ERRORBASE + 615)
 #define DTR_MISSINGDTREESEMI        (DTR_ERRORBASE + 616)
-                   
+
 #ifdef __cplusplus
 }
 #endif

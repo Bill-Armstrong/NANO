@@ -44,63 +44,63 @@ static char THIS_FILE[] = __FILE__;
 
 float ALNAPI AdaptEvalMinMax(ALNNODE* pNode, ALN* pALN, const float* afltX, CEvalCutoff cutoff, ALNNODE** ppActiveLFN)
 {
-	ASSERT(NODE_ISMINMAX(pNode));
+    ASSERT(NODE_ISMINMAX(pNode));
 
-	// set node eval flags
- 	NODE_FLAGS(pNode) |= NF_EVAL;  //NODE_FLAGS(pNode) ((pNode)->fNode)
-	NODE_FLAGS(MINMAX_LEFT(pNode)) &= ~NF_EVAL;
-	NODE_FLAGS(MINMAX_RIGHT(pNode)) &= ~NF_EVAL;//((pNode)->DATA.MINMAX.CHILDREN.CHILDSEPARATE.pRightChild)
-	// set first child
-	ALNNODE* pChild0;
-	if (MINMAX_EVAL(pNode))    // ((pNode)->DATA.MINMAX.pEvalChild)
-		pChild0 = MINMAX_EVAL(pNode);
-	else
-		pChild0 = MINMAX_LEFT(pNode);
+    // set node eval flags
+    NODE_FLAGS(pNode) |= NF_EVAL;  //NODE_FLAGS(pNode) ((pNode)->fNode)
+    NODE_FLAGS(MINMAX_LEFT(pNode)) &= ~NF_EVAL;
+    NODE_FLAGS(MINMAX_RIGHT(pNode)) &= ~NF_EVAL;//((pNode)->DATA.MINMAX.CHILDREN.CHILDSEPARATE.pRightChild)
+    // set first child
+    ALNNODE* pChild0;
+    if (MINMAX_EVAL(pNode))    // ((pNode)->DATA.MINMAX.pEvalChild)
+        pChild0 = MINMAX_EVAL(pNode);
+    else
+        pChild0 = MINMAX_LEFT(pNode);
 
-	// set next child
-	ALNNODE* pChild1;
-	if (pChild0 == MINMAX_LEFT(pNode))
-		pChild1 = MINMAX_RIGHT(pNode);
-	else
-		pChild1 = MINMAX_LEFT(pNode);
+    // set next child
+    ALNNODE* pChild1;
+    if (pChild0 == MINMAX_LEFT(pNode))
+        pChild1 = MINMAX_RIGHT(pNode);
+    else
+        pChild1 = MINMAX_LEFT(pNode);
 
-	// get reference to region for this node
-	ALNREGION& region = pALN->aRegions[NODE_REGION(pNode)];
-	
-	// eval first child
-	ALNNODE* pActiveLFN0;
-	float flt0 = AdaptEval(pChild0, pALN, afltX, cutoff, &pActiveLFN0);
+    // get reference to region for this node
+    ALNREGION& region = pALN->aRegions[NODE_REGION(pNode)];
 
-	// see if we can cutoff...
-	if (Cutoff(flt0, pNode, cutoff))
-	{
-		*ppActiveLFN = pActiveLFN0;
-		MINMAX_ACTIVE(pNode) = pChild0;
-		NODE_DISTANCE(pNode) = flt0;
-		MINMAX_RESPACTIVE(pNode) = 1.0;	 // we can't have < 1 without additional evaluation
-		return flt0;  
-	}  // Removed the cutoff to see what happens, now restored
+    // eval first child
+    ALNNODE* pActiveLFN0;
+    float flt0 = AdaptEval(pChild0, pALN, afltX, cutoff, &pActiveLFN0);
 
-	// eval second child
-	ALNNODE* pActiveLFN1;
-	float flt1 = AdaptEval(pChild1, pALN, afltX, cutoff, &pActiveLFN1);
-		
-	// Recall that flt0 == flt1 is not a rare event!  It always happens after a split,
-	// however it happens then only once as the first adapt will likely destroy equality.
-	MINMAX_RESPACTIVE(pNode) = 1.0;
-	if ((MINMAX_ISMAX(pNode) > 0) == (flt1 > flt0)) // int MINMAX_ISMAX is used as a bit-vector!
-	{
-		NODE_DISTANCE(pNode) = flt1;
-		*ppActiveLFN = pActiveLFN1;
-		MINMAX_ACTIVE(pNode) = pChild1;
-	}
-	else
-	{
-		NODE_DISTANCE(pNode) = flt0;
-		*ppActiveLFN = pActiveLFN0;
-		MINMAX_ACTIVE(pNode) = pChild0;
-	}
-	return NODE_DISTANCE(pNode);
+    // see if we can cutoff...
+    if (Cutoff(flt0, pNode, cutoff))
+    {
+        *ppActiveLFN = pActiveLFN0;
+        MINMAX_ACTIVE(pNode) = pChild0;
+        NODE_DISTANCE(pNode) = flt0;
+        MINMAX_RESPACTIVE(pNode) = 1.0;	 // we can't have < 1 without additional evaluation
+        return flt0;
+    }  // Removed the cutoff to see what happens, now restored
+
+    // eval second child
+    ALNNODE* pActiveLFN1;
+    float flt1 = AdaptEval(pChild1, pALN, afltX, cutoff, &pActiveLFN1);
+
+    // Recall that flt0 == flt1 is not a rare event!  It always happens after a split,
+    // however it happens then only once as the first adapt will likely destroy equality.
+    MINMAX_RESPACTIVE(pNode) = 1.0;
+    if ((MINMAX_ISMAX(pNode) > 0) == (flt1 > flt0)) // int MINMAX_ISMAX is used as a bit-vector!
+    {
+        NODE_DISTANCE(pNode) = flt1;
+        *ppActiveLFN = pActiveLFN1;
+        MINMAX_ACTIVE(pNode) = pChild1;
+    }
+    else
+    {
+        NODE_DISTANCE(pNode) = flt0;
+        *ppActiveLFN = pActiveLFN0;
+        MINMAX_ACTIVE(pNode) = pChild0;
+    }
+    return NODE_DISTANCE(pNode);
 }
 
 

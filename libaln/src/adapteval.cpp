@@ -36,53 +36,53 @@ SOFTWARE. */
 static char THIS_FILE[] = __FILE__;
 #endif
 
-float ALNAPI AdaptEval(ALNNODE* pNode, ALN* pALN, const float* afltX, 
-                        CCutoffInfo* pCutoffInfo, ALNNODE** ppActiveLFN)
+float ALNAPI AdaptEval(ALNNODE* pNode, ALN* pALN, const float* afltX,
+    CCutoffInfo* pCutoffInfo, ALNNODE** ppActiveLFN)
 {
-  ASSERT(pNode);
-  ASSERT(pALN);
-  ASSERT(afltX);
-  ASSERT(ppActiveLFN);
-  
-  // do a cutoff eval to get active LFN and distance
-  ALNNODE* pActiveLFN = NULL;
-  float flt;
-  CEvalCutoff cutoff;
- 
-  // check for cutoff info
-  if (pCutoffInfo != NULL)
-  {
-    // set up cutoff
-    ALNNODE* pEval = pCutoffInfo->pLFN;
-    if (pEval != NULL)
+    ASSERT(pNode);
+    ASSERT(pALN);
+    ASSERT(afltX);
+    ASSERT(ppActiveLFN);
+
+    // do a cutoff eval to get active LFN and distance
+    ALNNODE* pActiveLFN = NULL;
+    float flt;
+    CEvalCutoff cutoff;
+
+    // check for cutoff info
+    if (pCutoffInfo != NULL)
     {
-      BuildCutoffRoute(pEval);
+        // set up cutoff
+        ALNNODE* pEval = pCutoffInfo->pLFN;
+        if (pEval != NULL)
+        {
+            BuildCutoffRoute(pEval);
+        }
+
+        // evaluate using cutoff
+        flt = AdaptEval(pNode, pALN, afltX, cutoff, &pActiveLFN);
+
+        // set new cutoff info
+        pCutoffInfo->pLFN = pActiveLFN;
+        pCutoffInfo->fltValue = flt;
+    }
+    else
+    {
+        // eval with expanded cutoff
+        flt = AdaptEval(pNode, pALN, afltX, cutoff, &pActiveLFN);
     }
 
-    // evaluate using cutoff
-    flt = AdaptEval(pNode, pALN, afltX, cutoff, &pActiveLFN);
-
-    // set new cutoff info
-    pCutoffInfo->pLFN = pActiveLFN;
-    pCutoffInfo->fltValue = flt;
-  }
-  else
-  {
-    // eval with expanded cutoff
-    flt = AdaptEval(pNode, pALN, afltX, cutoff, &pActiveLFN);
-  }
-
 #ifdef _DEBUG
-  ALNNODE* pLFNCheck = NULL;
-  float fltCheck = DebugEval(pNode, pALN, afltX, &pLFNCheck);
-	ASSERT(flt == fltCheck); //MYTEST
-	ASSERT(pLFNCheck == pActiveLFN); // This could break because of equal LFNs after a split.  This was only corrected if smoothing > 0
-	// but now it is corrected in the case of no smoothing.
-	// See what happens if we don't use the cutoffs
-	//flt = fltCheck; // MYTEST assumes debug version is correct (no cutoffs)
-	//pActiveLFN = pLFNCheck; // MYTEST
+    ALNNODE* pLFNCheck = NULL;
+    float fltCheck = DebugEval(pNode, pALN, afltX, &pLFNCheck);
+    ASSERT(flt == fltCheck); //MYTEST
+    ASSERT(pLFNCheck == pActiveLFN); // This could break because of equal LFNs after a split.  This was only corrected if smoothing > 0
+    // but now it is corrected in the case of no smoothing.
+    // See what happens if we don't use the cutoffs
+    //flt = fltCheck; // MYTEST assumes debug version is correct (no cutoffs)
+    //pActiveLFN = pLFNCheck; // MYTEST
 #endif  // MYTEST 
-  *ppActiveLFN = pActiveLFN;
+    * ppActiveLFN = pActiveLFN;
 
-  return flt;
+    return flt;
 }

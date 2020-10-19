@@ -41,103 +41,103 @@ static char THIS_FILE[] = __FILE__;
 // calc RMS error on data set
 
 ALNIMP int ALNAPI ALNCalcRMSError(const ALN* pALN,
-                                  ALNDATAINFO* pDataInfo,
-                                  const ALNCALLBACKINFO* pCallbackInfo,
-                                  float* pfltRMSErr)
+    ALNDATAINFO* pDataInfo,
+    const ALNCALLBACKINFO* pCallbackInfo,
+    float* pfltRMSErr)
 {
-  int nReturn = ValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
+    int nReturn = ValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
 
-  try
-  {
-    *pfltRMSErr = DoCalcRMSError(pALN, pDataInfo, pCallbackInfo);
-  }
-	catch(CALNUserException* e)
-  {
-    nReturn = ALN_USERABORT;
-    e->Delete();
-    *pfltRMSErr = -1.0;
-  }
-  catch (CALNMemoryException* e)	// memory specific exceptions
-	{
-		nReturn = ALN_OUTOFMEM;
-    *pfltRMSErr = -1.0;
-    e->Delete();
-	}
-	catch (CALNException* e)	      // anything other exception we recognize
-	{
-		nReturn = ALN_GENERIC;
-    *pfltRMSErr = -1.0;
-    e->Delete();
-  }
-  catch(...)
-  {
-    nReturn = ALN_GENERIC;
-    *pfltRMSErr = -1.0;
-  }
+    try
+    {
+        *pfltRMSErr = DoCalcRMSError(pALN, pDataInfo, pCallbackInfo);
+    }
+    catch (CALNUserException* e)
+    {
+        nReturn = ALN_USERABORT;
+        e->Delete();
+        *pfltRMSErr = -1.0;
+    }
+    catch (CALNMemoryException* e)	// memory specific exceptions
+    {
+        nReturn = ALN_OUTOFMEM;
+        *pfltRMSErr = -1.0;
+        e->Delete();
+    }
+    catch (CALNException* e)	      // anything other exception we recognize
+    {
+        nReturn = ALN_GENERIC;
+        *pfltRMSErr = -1.0;
+        e->Delete();
+    }
+    catch (...)
+    {
+        nReturn = ALN_GENERIC;
+        *pfltRMSErr = -1.0;
+    }
 
-  return nReturn;
+    return nReturn;
 }
 
 float ALNAPI DoCalcRMSError(const ALN* pALN,
-                             ALNDATAINFO* pDataInfo,
-                             const ALNCALLBACKINFO* pCallbackInfo)
+    ALNDATAINFO* pDataInfo,
+    const ALNCALLBACKINFO* pCallbackInfo)
 {
 #ifdef _DEBUG
-  DebugValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
+    DebugValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
 #endif
 
-  long nStart, nEnd;
-  //CalcDataEndPoints(nStart, nEnd, pALN, pDataInfo);
-  nStart = 0;
-  nEnd = pDataInfo->nTRcurrSamples - 1;
-  
-  float fltRMSError = -1.0;
-	ALNNODE* pTree = pALN->pTree;
-  int nDim = pALN->nDim;
-  float* afltX = NULL;
-  const float** apfltBase = NULL;
-  CCutoffInfo* aCutoffInfo = NULL;  
-  
-  try
-  {
-    // allocate eval vector
-    afltX = new float[nDim];
-    if (!afltX) ThrowALNMemoryException();
-    memset(afltX, 0, sizeof(float) * nDim);
+    long nStart, nEnd;
+    //CalcDataEndPoints(nStart, nEnd, pALN, pDataInfo);
+    nStart = 0;
+    nEnd = pDataInfo->nTRcurrSamples - 1;
 
-    // allocate and init cutoff info array
-    aCutoffInfo = new CCutoffInfo[nEnd - nStart + 1];
-    if (!aCutoffInfo) ThrowALNMemoryException();
-		
-    for (int i = nStart; i <= nEnd; i++)
-			aCutoffInfo[i - nStart].pLFN = NULL;
+    float fltRMSError = -1.0;
+    ALNNODE* pTree = pALN->pTree;
+    int nDim = pALN->nDim;
+    float* afltX = NULL;
+    const float** apfltBase = NULL;
+    CCutoffInfo* aCutoffInfo = NULL;
 
-    // calc rms error
-    float fltSqErrorSum = 0;
-    for (int nSample = nStart; nSample <= nEnd; nSample++)
-	  {
-      // get vector (cvt to zero based point index)
-      FillInputVector(pALN, afltX, nSample - nStart, nStart, pDataInfo, pCallbackInfo);
-		
-      // do an eval to get active LFN and distance
-      ALNNODE* pActiveLFN = NULL;
-      CCutoffInfo& cutoffinfo = aCutoffInfo[nSample - nStart];
-      float flt = CutoffEval(pTree, pALN, afltX, &cutoffinfo, &pActiveLFN);
-      
-		  // now add square of distance from surface to error
-		  fltSqErrorSum += flt * flt;
-	  }	// end for each point
+    try
+    {
+        // allocate eval vector
+        afltX = new float[nDim];
+        if (!afltX) ThrowALNMemoryException();
+        memset(afltX, 0, sizeof(float) * nDim);
 
-	  fltRMSError = sqrt(fltSqErrorSum / (nEnd - nStart + 1));
-  }
-  catch(...)
-  {
+        // allocate and init cutoff info array
+        aCutoffInfo = new CCutoffInfo[nEnd - nStart + 1];
+        if (!aCutoffInfo) ThrowALNMemoryException();
+
+        for (int i = nStart; i <= nEnd; i++)
+            aCutoffInfo[i - nStart].pLFN = NULL;
+
+        // calc rms error
+        float fltSqErrorSum = 0;
+        for (int nSample = nStart; nSample <= nEnd; nSample++)
+        {
+            // get vector (cvt to zero based point index)
+            FillInputVector(pALN, afltX, nSample - nStart, nStart, pDataInfo, pCallbackInfo);
+
+            // do an eval to get active LFN and distance
+            ALNNODE* pActiveLFN = NULL;
+            CCutoffInfo& cutoffinfo = aCutoffInfo[nSample - nStart];
+            float flt = CutoffEval(pTree, pALN, afltX, &cutoffinfo, &pActiveLFN);
+
+            // now add square of distance from surface to error
+            fltSqErrorSum += flt * flt;
+        }	// end for each point
+
+        fltRMSError = (float)sqrt(fltSqErrorSum / (nEnd - nStart + 1));
+    }
+    catch (...)
+    {
+        delete[] afltX;
+        delete[] aCutoffInfo;
+        throw;
+    }
+
     delete[] afltX;
     delete[] aCutoffInfo;
-    throw;
-  }
-  
-  delete[] afltX;
-  delete[] aCutoffInfo;
-  return fltRMSError;
+    return fltRMSError;
 }

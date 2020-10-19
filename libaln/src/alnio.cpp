@@ -45,31 +45,31 @@ static int ALNAPI DoALNRead(FILE* pFile, ALN** ppALN);
 // returns ALN_* error code, (ALN_NOERROR on success)
 ALNIMP int ALNAPI ALNWrite(const ALN* pALN, const char* pszFileName)
 {
-   // parameter variance
-  if (pALN == NULL)
-    return ALN_GENERIC;
+    // parameter variance
+    if (pALN == NULL)
+        return ALN_GENERIC;
 
-  if (pszFileName == NULL)
-    return ALN_GENERIC;
+    if (pszFileName == NULL)
+        return ALN_GENERIC;
 
-  // open a file -- binary mode
-  FILE* pFile;
-  if(fopen_s(&pFile, pszFileName, "wb") != 0)
-    return ALN_ERRFILE;
+    // open a file -- binary mode
+    FILE* pFile;
+    if (fopen_s(&pFile, pszFileName, "wb") != 0)
+        return ALN_ERRFILE;
 
-  int nRet = DoALNWrite(pFile, pALN);
+    int nRet = DoALNWrite(pFile, pALN);
 
-  fclose(pFile);  // will not reset errno
+    fclose(pFile);  // will not reset errno
 
-  if (nRet != ALN_NOERROR)
-  {
-    ASSERT(nRet == ALN_ERRFILE);
-    int nErr = errno;     // save it
-    remove(pszFileName);
-    errno = nErr;
-  }
+    if (nRet != ALN_NOERROR)
+    {
+        ASSERT(nRet == ALN_ERRFILE);
+        int nErr = errno;     // save it
+        remove(pszFileName);
+        errno = nErr;
+    }
 
-  return nRet;
+    return nRet;
 }
 
 // loading ALN from disk file
@@ -77,23 +77,23 @@ ALNIMP int ALNAPI ALNWrite(const ALN* pALN, const char* pszFileName)
 // returns ALN_* error code, (ALN_NOERROR on success)
 ALNIMP int ALNAPI ALNRead(const char* pszFileName, ALN** ppALN)
 {
-  // parameter variance
-  if (ppALN == NULL)
-    return ALN_GENERIC;
+    // parameter variance
+    if (ppALN == NULL)
+        return ALN_GENERIC;
 
-  if (pszFileName == NULL)
-    return ALN_GENERIC;
+    if (pszFileName == NULL)
+        return ALN_GENERIC;
 
-  // open a file -- binary mode
-  FILE* pFile;
-  if(fopen_s(&pFile, pszFileName, "rb") != 0 )
-    return ALN_ERRFILE;
+    // open a file -- binary mode
+    FILE* pFile;
+    if (fopen_s(&pFile, pszFileName, "rb") != 0)
+        return ALN_ERRFILE;
 
-  int nRet = DoALNRead(pFile, ppALN);
+    int nRet = DoALNRead(pFile, ppALN);
 
-  fclose(pFile);  // will not reset errno
+    fclose(pFile);  // will not reset errno
 
-  return nRet;  
+    return nRet;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -115,379 +115,389 @@ static int ALNAPI WriteTree(FILE* pFile, const ALN* pALN, const ALNNODE* pNode);
 
 static int ALNAPI DoALNWrite(FILE* pFile, const ALN* pALN)
 {
-  ASSERT(pFile);
-  ASSERT(pALN);
-  
-  // header
-  if (fwrite(ALNHDR, ALNHDRSIZE, 1, pFile) != 1) return ALN_ERRFILE;
-  
-  // write version, dim, output, number of regions
-  if (_WRITE(pFile, pALN->nVersion) != 1) return ALN_ERRFILE;
-  if (_WRITE(pFile, pALN->nDim) != 1) return ALN_ERRFILE;
-  if (_WRITE(pFile, pALN->nOutput) != 1) return ALN_ERRFILE;
-  if (_WRITE(pFile, pALN->nRegions) != 1) return ALN_ERRFILE;
+    ASSERT(pFile);
+    ASSERT(pALN);
 
-  // write region array
-  for (int i = 0; i < pALN->nRegions; i++)
-  {
-    int nRet = WriteRegion(pFile, &(pALN->aRegions[i]));
-    if (nRet != ALN_NOERROR)
-      return nRet;
-  }
+    // header
+    if (fwrite(ALNHDR, ALNHDRSIZE, 1, pFile) != 1) return ALN_ERRFILE;
 
-  // write tree
-  return WriteTree(pFile, pALN, pALN->pTree);
+    // write version, dim, output, number of regions
+    if (_WRITE(pFile, pALN->nVersion) != 1) return ALN_ERRFILE;
+    if (_WRITE(pFile, pALN->nDim) != 1) return ALN_ERRFILE;
+    if (_WRITE(pFile, pALN->nOutput) != 1) return ALN_ERRFILE;
+    if (_WRITE(pFile, pALN->nRegions) != 1) return ALN_ERRFILE;
+
+    // write region array
+    for (int i = 0; i < pALN->nRegions; i++)
+    {
+        int nRet = WriteRegion(pFile, &(pALN->aRegions[i]));
+        if (nRet != ALN_NOERROR)
+            return nRet;
+    }
+
+    // write tree
+    return WriteTree(pFile, pALN, pALN->pTree);
 }
 
 static int ALNAPI DoALNRead(FILE* pFile, ALN** ppALN)
 {
-  ASSERT(pFile);
-  ASSERT(ppALN);
+    ASSERT(pFile);
+    ASSERT(ppALN);
 
-  *ppALN = NULL;
- 
-  // header
-  char szHdr[ALNHDRSIZE];
-  if (fread(szHdr, ALNHDRSIZE, 1, pFile) != 1) return ALN_ERRFILE;
-  if (strncmp(szHdr, ALNHDR, ALNHDRSIZE) != 0)
-    return ALN_BADFILEFORMAT;
+    *ppALN = NULL;
 
-  // alloc aln
-  ALN* pALN = (ALN*)malloc(sizeof(ALN));
-  if (pALN == NULL) return ALN_OUTOFMEM;
-  memset(pALN, 0, sizeof(ALN));
-  
-  // read version, dim, output, number of regions,
-  if (_READ(pFile, pALN->nVersion) != 1) return ALN_ERRFILE;
-  if (_READ(pFile, pALN->nDim) != 1) return ALN_ERRFILE;
-  if (_READ(pFile, pALN->nOutput) != 1) return ALN_ERRFILE;
-  if (_READ(pFile, pALN->nRegions) != 1) return ALN_ERRFILE;
+    // header
+    char szHdr[ALNHDRSIZE];
+    if (fread(szHdr, ALNHDRSIZE, 1, pFile) != 1) return ALN_ERRFILE;
+    if (strncmp(szHdr, ALNHDR, ALNHDRSIZE) != 0)
+        return ALN_BADFILEFORMAT;
 
-  if (pALN->nVersion > ALNVER || pALN->nDim < 0 ||
-      pALN->nOutput < 0 || pALN->nOutput >= pALN->nDim ||
-      pALN->nRegions <= 0)
-  {
-    pALN->nRegions = 0;
-    ALNDestroyALN(pALN);
-    return ALN_BADFILEFORMAT;
-  }
+    // alloc aln
+    ALN* pALN = (ALN*)malloc(sizeof(ALN));
+    if (pALN == NULL) return ALN_OUTOFMEM;
+    memset(pALN, 0, sizeof(ALN));
 
-  // skip over confidence params if version is 0x00030007; no other version has these
-  if (pALN->nVersion == 0x00030007)
-  {
-    // P, lower bound, upper bound, Tail05, Interval4P
-    float flt;
-    if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
-    if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
-    if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
-    if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
-    if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
-  }
-  // else confidence info already zeroed out, or not present
-  
-  // allocate region array
-  pALN->aRegions = (ALNREGION*)malloc(pALN->nRegions * sizeof(ALNREGION));
-  if (pALN->aRegions == NULL)
-  {
-    pALN->nRegions = 0;
-    ALNDestroyALN(pALN);
-    return ALN_OUTOFMEM;
-  }
-  memset(pALN->aRegions, 0, pALN->nRegions * sizeof(ALNREGION));
+    // read version, dim, output, number of regions,
+    if (_READ(pFile, pALN->nVersion) != 1) return ALN_ERRFILE;
+    if (_READ(pFile, pALN->nDim) != 1) return ALN_ERRFILE;
+    if (_READ(pFile, pALN->nOutput) != 1) return ALN_ERRFILE;
+    if (_READ(pFile, pALN->nRegions) != 1) return ALN_ERRFILE;
 
-  // read region array
-  for (int i = 0; i < pALN->nRegions; i++)
-  {
-    int nRet = ReadRegion(pFile, pALN, &(pALN->aRegions[i]));
+    if (pALN->nVersion > ALNVER || pALN->nDim < 0 ||
+        pALN->nOutput < 0 || pALN->nOutput >= pALN->nDim ||
+        pALN->nRegions <= 0)
+    {
+        pALN->nRegions = 0;
+        ALNDestroyALN(pALN);
+        return ALN_BADFILEFORMAT;
+    }
+
+    // skip over confidence params if version is 0x00030007; no other version has these
+    if (pALN->nVersion == 0x00030007)
+    {
+        // P, lower bound, upper bound, Tail05, Interval4P
+        float flt;
+        if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
+        if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
+        if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
+        if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
+        if (_READ(pFile, flt) != 1) return ALN_ERRFILE;
+    }
+    // else confidence info already zeroed out, or not present
+
+    // allocate region array
+    pALN->aRegions = (ALNREGION*)malloc(pALN->nRegions * sizeof(ALNREGION));
+    if (pALN->aRegions == NULL)
+    {
+        pALN->nRegions = 0;
+        ALNDestroyALN(pALN);
+        return ALN_OUTOFMEM;
+    }
+    memset(pALN->aRegions, 0, pALN->nRegions * sizeof(ALNREGION));
+
+    // read region array
+    for (int i = 0; i < pALN->nRegions; i++)
+    {
+        int nRet = ReadRegion(pFile, pALN, &(pALN->aRegions[i]));
+        if (nRet != ALN_NOERROR)
+        {
+            ALNDestroyALN(pALN);
+            return nRet;
+        }
+    }
+
+    // allocate first node
+    pALN->pTree = (ALNNODE*)malloc(sizeof(ALNNODE));
+    if (pALN->pTree == NULL)
+    {
+        ALNDestroyALN(pALN);
+        return ALN_OUTOFMEM;
+    }
+
+    int nRet = ReadTree(pFile, pALN, pALN->pTree);
     if (nRet != ALN_NOERROR)
     {
-      ALNDestroyALN(pALN);
-      return nRet;
+        ALNDestroyALN(pALN);
+        return nRet;
     }
-  }
 
-  // allocate first node
-  pALN->pTree = (ALNNODE*)malloc(sizeof(ALNNODE));
-  if (pALN->pTree == NULL)
-  {
-    ALNDestroyALN(pALN);
-    return ALN_OUTOFMEM;
-  }
+    // set new version number
+    pALN->nVersion = ALNVER;
 
-  int nRet = ReadTree(pFile, pALN, pALN->pTree);
-  if (nRet != ALN_NOERROR)
-  {
-    ALNDestroyALN(pALN);
-    return nRet;
-  }
+    // assign to output param
+    *ppALN = pALN;
 
-  // set new version number
-  pALN->nVersion = ALNVER;
-
-  // assign to output param
-  *ppALN = pALN;
-
-  return ALN_NOERROR;
+    return ALN_NOERROR;
 }
 
 static int ALNAPI WriteRegion(FILE* pFile, const ALNREGION* pRegion)
 {
-  ASSERT(pFile);
-  ASSERT(pRegion);
+    ASSERT(pFile);
+    ASSERT(pRegion);
 
-  // write parent, learn factor
-  if (_WRITE(pFile, pRegion->nParentRegion) != 1) return ALN_ERRFILE;
-  if (_WRITE(pFile, pRegion->fltLearnFactor) != 1) return ALN_ERRFILE;
+    // write parent, learn factor
+    if (_WRITE(pFile, pRegion->nParentRegion) != 1) return ALN_ERRFILE;
+    if (_WRITE(pFile, pRegion->fltLearnFactor) != 1) return ALN_ERRFILE;
 
-  // don't write var map!
+    // don't write var map!
 
-  // write number of constraints
-  if (_WRITE(pFile, pRegion->nConstr) != 1) return ALN_ERRFILE;
+    // write number of constraints
+    if (_WRITE(pFile, pRegion->nConstr) != 1) return ALN_ERRFILE;
 
-  // write each constraint...
-  for(int i = 0; i < pRegion->nConstr; i++)
-  {
-    if (_WRITE(pFile, pRegion->aConstr[i]) != 1) return ALN_ERRFILE;
-  }
+    // write each constraint...
+    for (int i = 0; i < pRegion->nConstr; i++)
+    {
+        if (_WRITE(pFile, pRegion->aConstr[i]) != 1) return ALN_ERRFILE;
+    }
 
-  return ALN_NOERROR;
+    return ALN_NOERROR;
 }
 
 static int ALNAPI ReadRegion(FILE* pFile, ALN* pALN, ALNREGION* pRegion)
 {
-  ASSERT(pFile);
-  ASSERT(pALN);
-  ASSERT(pRegion);
+    ASSERT(pFile);
+    ASSERT(pALN);
+    ASSERT(pRegion);
 
-  memset(pRegion, 0, sizeof(ALNREGION));
+    memset(pRegion, 0, sizeof(ALNREGION));
 
-  // read parent, learn factor
-  if (_READ(pFile, pRegion->nParentRegion) != 1) return ALN_ERRFILE;
-  if (_READ(pFile, pRegion->fltLearnFactor) != 1) return ALN_ERRFILE;
-  if (pRegion->nParentRegion < -1 || pRegion->nParentRegion >= pALN->nRegions ||
-      pRegion->fltLearnFactor < 0)
-    return ALN_BADFILEFORMAT;
+    // read parent, learn factor
+    if (_READ(pFile, pRegion->nParentRegion) != 1) return ALN_ERRFILE;
+    if (_READ(pFile, pRegion->fltLearnFactor) != 1) return ALN_ERRFILE;
+    if (pRegion->nParentRegion < -1 || pRegion->nParentRegion >= pALN->nRegions ||
+        pRegion->fltLearnFactor < 0)
+        return ALN_BADFILEFORMAT;
 
-  // read number of constraints
-  if (_READ(pFile, pRegion->nConstr) != 1) return ALN_ERRFILE;
-  if (pRegion->nConstr < 0 || pRegion->nConstr > pALN->nDim)
-    return ALN_BADFILEFORMAT;
+    // read number of constraints
+    if (_READ(pFile, pRegion->nConstr) != 1) return ALN_ERRFILE;
+    if (pRegion->nConstr < 0 || pRegion->nConstr > pALN->nDim)
+        return ALN_BADFILEFORMAT;
 
-  // alloc var map?
-  if (pRegion->nConstr > 0 && pRegion->nConstr < pALN->nDim)
-  {
-    pRegion->afVarMap = (char*)malloc(MAPBYTECOUNT(pALN->nDim));
-      // failure tolerable, since we can always search for constraint
-    if (pRegion->afVarMap)
-      memset(pRegion->afVarMap, 0, MAPBYTECOUNT(pALN->nDim));
-  }
-  else pRegion->afVarMap = NULL;
-
-  // alloc constraints
-  pRegion->aConstr = (ALNCONSTRAINT*)malloc(pRegion->nConstr * sizeof(ALNCONSTRAINT));
-  if (pRegion->aConstr == NULL)
-  {
-    pRegion->nConstr = 0;
-    return ALN_OUTOFMEM;
-  }
-
-  // read each constraint...
-  for(int i = 0; i < pRegion->nConstr; i++)
-  {
-    if (_READ(pFile, pRegion->aConstr[i]) != 1) return ALN_ERRFILE;
-    if (pRegion->aConstr[i].nVarIndex < 0 || 
-        pRegion->aConstr[i].nVarIndex >= pALN->nDim)
-      return ALN_BADFILEFORMAT;
-  
-    if (pRegion->afVarMap)
+    // alloc var map?
+    if (pRegion->nConstr > 0 && pRegion->nConstr < pALN->nDim)
     {
-      if (TESTMAP(pRegion->afVarMap, pRegion->aConstr[i].nVarIndex))
-        return ALN_BADFILEFORMAT; // dup var index!
-
-      SETMAP(pRegion->afVarMap, pRegion->aConstr[i].nVarIndex);
+        pRegion->afVarMap = (char*)malloc(MAPBYTECOUNT(pALN->nDim));
+        // failure tolerable, since we can always search for constraint
+        if (pRegion->afVarMap)
+            memset(pRegion->afVarMap, 0, MAPBYTECOUNT(pALN->nDim));
     }
-  }
+    else pRegion->afVarMap = NULL;
 
-  return ALN_NOERROR;
+    // alloc constraints
+    pRegion->aConstr = (ALNCONSTRAINT*)malloc(pRegion->nConstr * sizeof(ALNCONSTRAINT));
+    if (pRegion->aConstr == NULL)
+    {
+        pRegion->nConstr = 0;
+        return ALN_OUTOFMEM;
+    }
+
+    // read each constraint...
+    for (int i = 0; i < pRegion->nConstr; i++)
+    {
+        if (_READ(pFile, pRegion->aConstr[i]) != 1) return ALN_ERRFILE;
+        if (pRegion->aConstr[i].nVarIndex < 0 ||
+            pRegion->aConstr[i].nVarIndex >= pALN->nDim)
+            return ALN_BADFILEFORMAT;
+
+        if (pRegion->afVarMap)
+        {
+            if (TESTMAP(pRegion->afVarMap, pRegion->aConstr[i].nVarIndex))
+                return ALN_BADFILEFORMAT; // dup var index!
+
+            SETMAP(pRegion->afVarMap, pRegion->aConstr[i].nVarIndex);
+        }
+    }
+
+    return ALN_NOERROR;
 }
 
 
 static int ALNAPI WriteTree(FILE* pFile, const ALN* pALN, const ALNNODE* pNode)
 {
-  ASSERT(pFile);
-  ASSERT(pNode);
+    ASSERT(pFile);
+    ASSERT(pNode);
 
-  // write parent region, node flags
-  if (_WRITE(pFile, pNode->nParentRegion) != 1) return ALN_ERRFILE;
+    // write parent region, node flags
+    if (_WRITE(pFile, pNode->nParentRegion) != 1) return ALN_ERRFILE;
 
-  // do not write eval flag!  
-  int fNode = pNode->fNode & ~NF_EVAL;  
-  if (_WRITE(pFile, fNode) != 1) return ALN_ERRFILE;
+    // do not write eval flag!  
+    int fNode = pNode->fNode & ~NF_EVAL;
+    if (_WRITE(pFile, fNode) != 1) return ALN_ERRFILE;
 
-  if (pNode->fNode & NF_LFN)
-  {
-    // vector dim
-    if (_WRITE(pFile, LFN_VDIM(pNode)) != 1) return ALN_ERRFILE;
-
-    // var map
-    if (LFN_VARMAP(pNode))
+    if (pNode->fNode & NF_LFN)
     {
-      char c = 1;
-      if (_WRITE(pFile, c) != 1) return ALN_ERRFILE;
-      if ((int)fwrite(LFN_VARMAP(pNode), sizeof(char), 
-                      MAPBYTECOUNT(pALN->nDim), pFile) 
-            != MAPBYTECOUNT(pALN->nDim)) return ALN_ERRFILE;
+        // vector dim
+        if (_WRITE(pFile, LFN_VDIM(pNode)) != 1) return ALN_ERRFILE;
+
+        // var map
+        if (LFN_VARMAP(pNode))
+        {
+            char c = 1;
+            if (_WRITE(pFile, c) != 1) return ALN_ERRFILE;
+            if ((int)fwrite(LFN_VARMAP(pNode), sizeof(char),
+                MAPBYTECOUNT(pALN->nDim), pFile)
+                != MAPBYTECOUNT(pALN->nDim)) return ALN_ERRFILE;
+        }
+        else
+        {
+            char c = 0;
+            if (_WRITE(pFile, c) != 1) return ALN_ERRFILE;
+        }
+
+        // split
+        if (pNode->fNode & LF_SPLIT)
+        {
+            ASSERT(LFN_CANSPLIT(pNode));
+            if (_WRITE(pFile, LFN_SPLIT_COUNT(pNode)) != 1) return ALN_ERRFILE;
+            if (_WRITE(pFile, LFN_SPLIT_SQERR(pNode)) != 1) return ALN_ERRFILE;
+            if (_WRITE(pFile, LFN_SPLIT_RESPTOTAL(pNode)) != 1) return ALN_ERRFILE;
+
+            float unused = 0;
+            if (_WRITE(pFile, unused) != 1) return ALN_ERRFILE;  // Added in Version 0x00030009
+        }
+
+        // vectors
+        if ((int)fwrite(LFN_W(pNode), sizeof(float), LFN_VDIM(pNode) + 1, pFile)
+            != (LFN_VDIM(pNode) + 1)) return ALN_ERRFILE;
+
+        if ((int)fwrite(LFN_C(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
+            != LFN_VDIM(pNode)) return ALN_ERRFILE;
+
+        if ((int)fwrite(LFN_D(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
+            != LFN_VDIM(pNode)) return ALN_ERRFILE;
+
     }
     else
     {
-      char c = 0;
-      if (_WRITE(pFile, c) != 1) return ALN_ERRFILE;
+        ASSERT(pNode->fNode & NF_MINMAX);
+
+        // number of children
+        int nChildren = 2;
+        if (_WRITE(pFile, nChildren) != 1) return ALN_ERRFILE;
+
+        for (int i = 0; i < MINMAX_NUMCHILDREN(pNode); i++)
+        {
+            int nRet = WriteTree(pFile, pALN, MINMAX_CHILDREN(pNode)[i]);
+            if (nRet != ALN_NOERROR) return nRet;
+        }
     }
 
-    // split
-    if (pNode->fNode & LF_SPLIT)
-    {
-      ASSERT(LFN_CANSPLIT(pNode));
-      if (_WRITE(pFile, LFN_SPLIT_COUNT(pNode)) != 1) return ALN_ERRFILE;
-      if (_WRITE(pFile, LFN_SPLIT_SQERR(pNode)) != 1) return ALN_ERRFILE;
-      if (_WRITE(pFile, LFN_SPLIT_RESPTOTAL(pNode)) != 1) return ALN_ERRFILE;
-      if (_WRITE(pFile, LFN_SPLIT_T(pNode)) != 1) return ALN_ERRFILE;  // Added in Version 0x00030009
-    }
-
-    // vectors
-    if ((int)fwrite(LFN_W(pNode), sizeof(float), LFN_VDIM(pNode) + 1, pFile)
-          != (LFN_VDIM(pNode) + 1)) return ALN_ERRFILE;
-
-    if ((int)fwrite(LFN_C(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
-          != LFN_VDIM(pNode)) return ALN_ERRFILE;
-
-    if ((int)fwrite(LFN_D(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
-          != LFN_VDIM(pNode)) return ALN_ERRFILE;
-
-	}
-  else
-  {
-    ASSERT(pNode->fNode & NF_MINMAX);
-
-    // number of children
-    int nChildren = 2;
-    if (_WRITE(pFile, nChildren) != 1) return ALN_ERRFILE;
-
-    for(int i = 0; i < MINMAX_NUMCHILDREN(pNode); i++)
-    {
-      int nRet = WriteTree(pFile, pALN, MINMAX_CHILDREN(pNode)[i]);
-      if (nRet != ALN_NOERROR) return nRet;
-    }
-  }
-
-  return ALN_NOERROR;
+    return ALN_NOERROR;
 }
 
 static int ALNAPI ReadTree(FILE* pFile, ALN* pALN, ALNNODE* pNode)
 {
-  ASSERT(pFile);
-  ASSERT(pALN);
-  ASSERT(pNode);
+    ASSERT(pFile);
+    ASSERT(pALN);
+    ASSERT(pNode);
 
-  memset(pNode, 0, sizeof(ALNNODE));
+    memset(pNode, 0, sizeof(ALNNODE));
 
-  // read parent region, node flags
-  if (_READ(pFile, pNode->nParentRegion) != 1) return ALN_ERRFILE;
-  if (_READ(pFile, pNode->fNode) != 1) return ALN_ERRFILE;
-  if (pNode->nParentRegion < 0 || pNode->nParentRegion >= pALN->nRegions ||
-      (pNode->fNode & (NF_MINMAX | NF_LFN)) == 0)
-    return ALN_BADFILEFORMAT;
+    // read parent region, node flags
+    if (_READ(pFile, pNode->nParentRegion) != 1) return ALN_ERRFILE;
+    if (_READ(pFile, pNode->fNode) != 1) return ALN_ERRFILE;
+    if (pNode->nParentRegion < 0 || pNode->nParentRegion >= pALN->nRegions ||
+        (pNode->fNode & (NF_MINMAX | NF_LFN)) == 0)
+        return ALN_BADFILEFORMAT;
 
-  if (pNode->fNode & NF_LFN)
-  {
-    // vector dim
-    if (_READ(pFile, LFN_VDIM(pNode)) != 1) return ALN_ERRFILE;
-    if (LFN_VDIM(pNode) < 0 || LFN_VDIM(pNode) > pALN->nDim)
-      return ALN_BADFILEFORMAT;
-
-    // var map
-    char c;
-    if (_READ(pFile, c) != 1) return ALN_ERRFILE;
-    if (c != 0) // var map exists
+    if (pNode->fNode & NF_LFN)
     {
-      LFN_VARMAP(pNode) = (char*)malloc(MAPBYTECOUNT(pALN->nDim));
-      if (LFN_VARMAP(pNode) == NULL)
-        return ALN_OUTOFMEM;
+        // vector dim
+        if (_READ(pFile, LFN_VDIM(pNode)) != 1) return ALN_ERRFILE;
+        if (LFN_VDIM(pNode) < 0 || LFN_VDIM(pNode) > pALN->nDim)
+            return ALN_BADFILEFORMAT;
 
-      if ((int)fread(LFN_VARMAP(pNode), sizeof(char), 
-                     MAPBYTECOUNT(pALN->nDim), pFile) 
-            != MAPBYTECOUNT(pALN->nDim)) return ALN_ERRFILE;
+        // var map
+        char c;
+        if (_READ(pFile, c) != 1) return ALN_ERRFILE;
+        if (c != 0) // var map exists
+        {
+            LFN_VARMAP(pNode) = (char*)malloc(MAPBYTECOUNT(pALN->nDim));
+            if (LFN_VARMAP(pNode) == NULL)
+                return ALN_OUTOFMEM;
+
+            if ((int)fread(LFN_VARMAP(pNode), sizeof(char),
+                MAPBYTECOUNT(pALN->nDim), pFile)
+                != MAPBYTECOUNT(pALN->nDim)) return ALN_ERRFILE;
+        }
+
+        // split
+        if (pNode->fNode & LF_SPLIT)
+        {
+            LFN_SPLIT(pNode) = (ALNLFNSPLIT*)malloc(sizeof(ALNLFNSPLIT));
+            if (LFN_SPLIT(pNode) == NULL)
+                return ALN_OUTOFMEM;
+
+            LFN_SPLIT_T(pNode) = (float*)malloc(sizeof(float) * pALN->nDim);
+            if (LFN_SPLIT_T(pNode) == NULL)
+            {
+                free(LFN_SPLIT(pNode));
+                return ALN_OUTOFMEM;
+            }
+
+            if (_READ(pFile, LFN_SPLIT_COUNT(pNode)) != 1) return ALN_ERRFILE;
+            if (_READ(pFile, LFN_SPLIT_SQERR(pNode)) != 1) return ALN_ERRFILE;
+            if (_READ(pFile, LFN_SPLIT_RESPTOTAL(pNode)) != 1) return ALN_ERRFILE;
+
+            if (pALN->nVersion >= 0x00030009)
+            {
+                // read and discard the value
+                float unused;
+                if (_READ(pFile, unused) != 1) return ALN_ERRFILE;
+            }
+            memset(LFN_SPLIT_T(pNode), 0, sizeof(float) * pALN->nDim);
+        }
+
+        // alloc and read vectors
+        LFN_W(pNode) = (float*)malloc((LFN_VDIM(pNode) + 1) * sizeof(float));
+        if (LFN_W(pNode) == NULL)
+            return ALN_OUTOFMEM;
+
+        if ((int)fread(LFN_W(pNode), sizeof(float), LFN_VDIM(pNode) + 1, pFile)
+            != (LFN_VDIM(pNode) + 1)) return ALN_ERRFILE;
+
+        LFN_C(pNode) = (float*)malloc(LFN_VDIM(pNode) * sizeof(float));
+        if (LFN_C(pNode) == NULL)
+            return ALN_OUTOFMEM;
+
+        if ((int)fread(LFN_C(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
+            != LFN_VDIM(pNode)) return ALN_ERRFILE;
+
+        LFN_D(pNode) = (float*)malloc(LFN_VDIM(pNode) * sizeof(float));
+        if (LFN_D(pNode) == NULL)
+            return ALN_OUTOFMEM;
+
+        if ((int)fread(LFN_D(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
+            != LFN_VDIM(pNode)) return ALN_ERRFILE;
+    }
+    else
+    {
+        ASSERT(pNode->fNode & NF_MINMAX);
+
+        // number of children
+        int nChildren;
+        if (_READ(pFile, nChildren) != 1) return ALN_ERRFILE;
+        if (nChildren != 2)
+            return ALN_BADFILEFORMAT;
+
+        // init child ptr array
+        memset(MINMAX_CHILDREN(pNode), 0, 2 * sizeof(ALNNODE*));
+
+        // read children
+        for (int i = 0; i < 2; i++)
+        {
+            MINMAX_CHILDREN(pNode)[i] = (ALNNODE*)malloc(sizeof(ALNNODE));
+            if (MINMAX_CHILDREN(pNode)[i] == NULL)
+                return ALN_OUTOFMEM;
+
+            // set parent
+            NODE_PARENT(MINMAX_CHILDREN(pNode)[i]) = pNode;
+
+            int nRet = ReadTree(pFile, pALN, MINMAX_CHILDREN(pNode)[i]);
+            if (nRet != ALN_NOERROR) return nRet;
+        }
     }
 
-    // split
-    if (pNode->fNode & LF_SPLIT)
-    {
-      LFN_SPLIT(pNode) = (ALNLFNSPLIT*)malloc(sizeof(ALNLFNSPLIT));
-      if (LFN_SPLIT(pNode) == NULL)
-        return ALN_OUTOFMEM;
-
-      if (_READ(pFile, LFN_SPLIT_COUNT(pNode)) != 1) return ALN_ERRFILE;
-      if (_READ(pFile, LFN_SPLIT_SQERR(pNode)) != 1) return ALN_ERRFILE;
-      if (_READ(pFile, LFN_SPLIT_RESPTOTAL(pNode)) != 1) return ALN_ERRFILE;
-
-      if (pALN->nVersion >= 0x00030009)
-      {
-        if (_READ(pFile, LFN_SPLIT_T(pNode)) != 1) return ALN_ERRFILE;
-      }
-      else
-        LFN_SPLIT_T(pNode) = 0;
-    }
-
-    // alloc and read vectors
-    LFN_W(pNode) = (float*)malloc((LFN_VDIM(pNode) + 1) * sizeof(float));
-    if (LFN_W(pNode) == NULL)
-      return ALN_OUTOFMEM;
-
-    if ((int)fread(LFN_W(pNode), sizeof(float), LFN_VDIM(pNode) + 1, pFile)
-          != (LFN_VDIM(pNode) + 1)) return ALN_ERRFILE;
-
-    LFN_C(pNode) = (float*)malloc(LFN_VDIM(pNode) * sizeof(float));
-    if (LFN_C(pNode) == NULL)
-      return ALN_OUTOFMEM;
-
-    if ((int)fread(LFN_C(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
-          != LFN_VDIM(pNode)) return ALN_ERRFILE;
-
-    LFN_D(pNode) = (float*)malloc(LFN_VDIM(pNode) * sizeof(float));
-    if (LFN_D(pNode) == NULL)
-      return ALN_OUTOFMEM;
-
-    if ((int)fread(LFN_D(pNode), sizeof(float), LFN_VDIM(pNode), pFile)
-          != LFN_VDIM(pNode)) return ALN_ERRFILE;
-  }
-  else
-  {
-    ASSERT(pNode->fNode & NF_MINMAX);
-
-    // number of children
-    int nChildren;
-    if (_READ(pFile, nChildren) != 1) return ALN_ERRFILE;
-    if (nChildren != 2)
-      return ALN_BADFILEFORMAT;
-
-    // init child ptr array
-    memset(MINMAX_CHILDREN(pNode), 0, 2 * sizeof(ALNNODE*));
-
-    // read children
-    for(int i = 0; i < 2; i++)
-    {
-      MINMAX_CHILDREN(pNode)[i] = (ALNNODE*)malloc(sizeof(ALNNODE));
-      if (MINMAX_CHILDREN(pNode)[i] == NULL)
-        return ALN_OUTOFMEM;
-
-      // set parent
-      NODE_PARENT(MINMAX_CHILDREN(pNode)[i]) = pNode;
-
-      int nRet = ReadTree(pFile, pALN, MINMAX_CHILDREN(pNode)[i]);
-      if (nRet != ALN_NOERROR) return nRet;
-    }
-  }
-
-  return ALN_NOERROR;
+    return ALN_NOERROR;
 }
 

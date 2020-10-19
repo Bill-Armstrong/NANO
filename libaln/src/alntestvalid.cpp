@@ -41,11 +41,11 @@ static char THIS_FILE[] = __FILE__;
 
 ALNIMP int ALNAPI ALNTestValid(const ALN* pALN)
 {
-  // parameter variance
-  if (pALN == NULL)
-    return ALN_GENERIC;
+    // parameter variance
+    if (pALN == NULL)
+        return ALN_GENERIC;
 
-  // not implemented...
-  return ALN_NOERROR;
+    // not implemented...
+    return ALN_NOERROR;
 }
 

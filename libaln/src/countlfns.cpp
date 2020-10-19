@@ -42,23 +42,23 @@ static char THIS_FILE[] = __FILE__;
 
 void ALNAPI CountLFNs(const ALNNODE* pNode, int& nTotal, int& nAdapted)
 {
-	ASSERT(pNode != NULL);
-	
-  int nTotalThis = 0;
+    ASSERT(pNode != NULL);
 
-	// are we an LFN?
-	if (NODE_ISLFN(pNode))
-  {
-    nTotal++;
-		nAdapted += !(NODE_RESPCOUNT(pNode) == 0);
-  }
-  else
-  {
-	  // we're a minmax... iterate over children
-	  ASSERT(NODE_ISMINMAX(pNode));
-  
-    CountLFNs(MINMAX_LEFT(pNode), nTotal, nAdapted);
-    CountLFNs(MINMAX_RIGHT(pNode), nTotal, nAdapted);
-  }
+    int nTotalThis = 0;
+
+    // are we an LFN?
+    if (NODE_ISLFN(pNode))
+    {
+        nTotal++;
+        nAdapted += !(NODE_RESPCOUNT(pNode) == 0);
+    }
+    else
+    {
+        // we're a minmax... iterate over children
+        ASSERT(NODE_ISMINMAX(pNode));
+
+        CountLFNs(MINMAX_LEFT(pNode), nTotal, nAdapted);
+        CountLFNs(MINMAX_RIGHT(pNode), nTotal, nAdapted);
+    }
 }
 

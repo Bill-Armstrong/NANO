@@ -28,6 +28,8 @@ SOFTWARE. */
 #define ALNIMP __declspec(dllexport)
 #endif
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <aln.h>
 #include "alnpriv.h"
 
@@ -49,46 +51,46 @@ LONG alnAssertBusy = -1;
 
 int __stdcall ALNAssertFailed(const char* pszFileName, int nLine)
 {
-  char szMessage[512];
-  
-  // format message into buffer
-  sprintf(szMessage, "File %hs, Line %d", pszFileName, nLine);
-  
-  // assume the debugger or auxiliary port
-  char szT[512 + 20];
-  sprintf(szT, "Assertion Failed: %s\n", szMessage);
-  
-  OutputDebugString(szT);
-  
-  if (InterlockedIncrement(&alnAssertBusy) > 0)
-  {
+    char szMessage[512];
+
+    // format message into buffer
+    sprintf(szMessage, "File %hs, Line %d", pszFileName, nLine);
+
+    // assume the debugger or auxiliary port
+    char szT[512 + 20];
+    sprintf(szT, "Assertion Failed: %s\n", szMessage);
+
+    OutputDebugStringA(szT);
+
+    if (InterlockedIncrement(&alnAssertBusy) > 0)
+    {
+        InterlockedDecrement(&alnAssertBusy);
+
+        // assert within assert (examine call stack to determine first one)
+        ALNDebugBreak();
+        return FALSE;
+    }
+
+    // active popup window for the current thread  HOW CAN THIS BE IMPLEMENTED ?  WWA
+    //HWND hWndParent = GetActiveWindow();
+    //if (hWndParent != NULL)
+    //hWndParent = GetLastActivePopup(hWndParent);
+
+    // display the assert
+    //int nCode = ::MessageBox(hWndParent, szMessage, "Assertion Failed!",
+    //  MB_TASKMODAL|MB_ICONHAND|MB_ABORTRETRYIGNORE|MB_SETFOREGROUND);
+
+    // cleanup
     InterlockedDecrement(&alnAssertBusy);
-    
-    // assert within assert (examine call stack to determine first one)
-    ALNDebugBreak();
-    return FALSE;
-  }
-  
-  // active popup window for the current thread  HOW CAN THIS BE IMPLEMENTED ?  WWA
-  //HWND hWndParent = GetActiveWindow();
-  //if (hWndParent != NULL)
-  //hWndParent = GetLastActivePopup(hWndParent);
-  
-  // display the assert
-  //int nCode = ::MessageBox(hWndParent, szMessage, "Assertion Failed!",
-  //  MB_TASKMODAL|MB_ICONHAND|MB_ABORTRETRYIGNORE|MB_SETFOREGROUND);
 
-  // cleanup
-  InterlockedDecrement(&alnAssertBusy);
-
-  //if (nCode == IDIGNORE)
+    //if (nCode == IDIGNORE)
     return FALSE;   // ignore
-  
+
   //if (nCode == IDRETRY)
   //  return TRUE;    // will cause ALNDebugBreak
 
-  ALNAbort();     // should not return (but otherwise ALNDebugBreak)
-  return TRUE;
+    ALNAbort();     // should not return (but otherwise ALNDebugBreak)
+    return TRUE;
 }
 
 #endif  // _WIN32

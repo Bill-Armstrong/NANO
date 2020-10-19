@@ -51,106 +51,106 @@ static char THIS_FILE[] = __FILE__;
 
 float ALNAPI PLimit(int n, int m, float fltX)
 {
-  static const float fltInc = 0.1;     // coarse increment
-  static const float fltAcc = 1.0e-7;  // maximum accuracy
+    static const float fltInc = 0.1f;     // coarse increment
+    static const float fltAcc = 1.0e-7f;  // maximum accuracy
 
-  if (fltX < 0.0 || fltX > 1.0 || n < 0)
-  {
-    return NAN;
-  }
-  
-  // known cases
-  if (m < 0)
-    return 0.0;
-  if (m >= n)
-    return 1.0;
-
- 
-  // P is desired probability, Y is difference between desired area
-  // under tail and the area under the tail given P
-
-  // therfore, Y goes to 0 as P approaches desired value
-
-  // lower bound
-  float fltP1 = 0.0;
-  float fltY1 = fltX - 1.0;
-  ASSERT(fltY1 <= 0.0);
-
-  // begin coarse approximation of P
-  
-  // scan upward until Y3 is +ve
-  float fltP3, fltY3;
-  for (fltP3 = fltInc; fltP3 < 1.0; fltP3 += fltInc)
-  {
-    fltY3 = fltX - (1.0 - ibeta(m + 1, n - m, fltP3));  //ibet??
-                   // cumulative binomial dist 0 to m events in n trials, 
-                   // see Press et al p229
-
-    // convergence test (unlikely at this point)
-    if (fabs(fltY3) < fltAcc)
-      return fltP3;
-
-    // check for sign change
-    if (fltY3 > 0.0)
-      break;  // we've bracketed desired value
-
-    // else, new lower bound
-    fltP1 = fltP3;
-    fltY1 = fltY3;
-  }
-
-  // P1 and P3 bracket desired value... refine using ridders method
-  const int nMaxIt = 100;
-  
-  for (int i = 0; i < nMaxIt; i++)
-  {
-    // get mid-values
-    float fltP2 = 0.5 * (fltP1 + fltP3);
-    if ((fltP3 - fltP1) < fltAcc)   // convergence test
-      return fltP2;
-    
-    float fltY2 = fltX - (1.0 - ibeta(m + 1, n - m, fltP2)); //ibeta??
-
-    // convergence test
-    if (fabs(fltY2) < fltAcc)
-      return fltP2;
-
-    float fltDenom = sqrt(fltY2 * fltY2 - fltY1 * fltY3);  // y1, y3 opposite sign
-    float fltTrial = fltP2 + (fltP1 - fltP2) * fltY2 / fltDenom;
-
-    float fltY = fltX - (1.0 - ibeta(m + 1, n - m, fltTrial));  //ibeta
-
-    // convergence test
-    if (fabs(fltY) < fltAcc)
-      return fltTrial;
-
-    // between mid and test point?
-    if ((fltY2 < 0.0) && (fltY > 0.0))
+    if (fltX < 0.0 || fltX > 1.0 || n < 0)
     {
-      fltP1 = fltP2;    // new lower bound
-      fltY1 = fltY2;
-      fltP3 = fltTrial; // new upper bound
-      fltY3 = fltY;
+        return NAN;
     }
-    else if ((fltY < 0.0) && (fltY2 > 0.0))
-    {
-      fltP1 = fltTrial; // new lower bound
-      fltY1 = fltY;
-      fltP3 = fltP2;    // new upper bound
-      fltY3 = fltY2;
-    }
-    else if (fltY < 0.0)  // both negative
-    {
-      fltP1 = fltTrial;
-      fltY1 = fltY;
-    }
-    else  // both positive
-    {
-      fltP3 = fltTrial;
-      fltY3 = fltY;
-    }
-  }
 
-  // convergence failed... return best guess?
-  return 0.5 * (fltP1 + fltP3); 
+    // known cases
+    if (m < 0)
+        return 0.0;
+    if (m >= n)
+        return 1.0;
+
+
+    // P is desired probability, Y is difference between desired area
+    // under tail and the area under the tail given P
+
+    // therfore, Y goes to 0 as P approaches desired value
+
+    // lower bound
+    float fltP1 = 0.0f;
+    float fltY1 = fltX - 1.0f;
+    ASSERT(fltY1 <= 0.0f);
+
+    // begin coarse approximation of P
+
+    // scan upward until Y3 is +ve
+    float fltP3, fltY3;
+    for (fltP3 = fltInc; fltP3 < 1.0f; fltP3 += fltInc)
+    {
+        fltY3 = fltX - (float)(1.0 - ibeta(m + 1, n - m, fltP3));  //ibet??
+                       // cumulative binomial dist 0 to m events in n trials, 
+                       // see Press et al p229
+
+        // convergence test (unlikely at this point)
+        if (fabs(fltY3) < fltAcc)
+            return fltP3;
+
+        // check for sign change
+        if (fltY3 > 0.0)
+            break;  // we've bracketed desired value
+
+          // else, new lower bound
+        fltP1 = fltP3;
+        fltY1 = fltY3;
+    }
+
+    // P1 and P3 bracket desired value... refine using ridders method
+    const int nMaxIt = 100;
+
+    for (int i = 0; i < nMaxIt; i++)
+    {
+        // get mid-values
+        float fltP2 = 0.5f * (fltP1 + fltP3);
+        if ((fltP3 - fltP1) < fltAcc)   // convergence test
+            return fltP2;
+
+        float fltY2 = fltX - (float)(1.0 - ibeta(m + 1, n - m, fltP2)); //ibeta??
+
+        // convergence test
+        if (fabs(fltY2) < fltAcc)
+            return fltP2;
+
+        float fltDenom = sqrt(fltY2 * fltY2 - fltY1 * fltY3);  // y1, y3 opposite sign
+        float fltTrial = fltP2 + (fltP1 - fltP2) * fltY2 / fltDenom;
+
+        float fltY = fltX - (float)(1.0 - ibeta(m + 1, n - m, fltTrial));  //ibeta
+
+        // convergence test
+        if (fabs(fltY) < fltAcc)
+            return fltTrial;
+
+        // between mid and test point?
+        if ((fltY2 < 0.0) && (fltY > 0.0))
+        {
+            fltP1 = fltP2;    // new lower bound
+            fltY1 = fltY2;
+            fltP3 = fltTrial; // new upper bound
+            fltY3 = fltY;
+        }
+        else if ((fltY < 0.0) && (fltY2 > 0.0))
+        {
+            fltP1 = fltTrial; // new lower bound
+            fltY1 = fltY;
+            fltP3 = fltP2;    // new upper bound
+            fltY3 = fltY2;
+        }
+        else if (fltY < 0.0)  // both negative
+        {
+            fltP1 = fltTrial;
+            fltY1 = fltY;
+        }
+        else  // both positive
+        {
+            fltP3 = fltTrial;
+            fltY3 = fltY;
+        }
+    }
+
+    // convergence failed... return best guess?
+    return 0.5f * (fltP1 + fltP3);
 }

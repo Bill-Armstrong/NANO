@@ -67,107 +67,115 @@ typedef int BOOL;
 // class CDataFile
 
 class CDataFile
-{ 
-// Constructors
+{
+    // Constructors
 public:
-  CDataFile();    
-  CDataFile(const CDataFile& datafile);
-    
-  BOOL Create(long lRows, long lColumns);
+    CDataFile();
+    CDataFile(const CDataFile& datafile);
 
-// Attributes
-public:
-  
-  long ColumnCount() const
-    { return m_lColumns; }
-  long RowCount() const
-    { return m_lRows; }
-  
-  float GetColMax(long lCol) const;
-  float GetColMin(long lCol) const;
-  
-  float operator[](long lIndex) const
-    {
-      ASSERT(lIndex < (m_lBufferLen / (long)sizeof(float)));
-      return m_pBuffer[lIndex];
-    }
-  float& operator[](long lIndex)
-    {
-      ASSERT(lIndex < (m_lBufferLen / (long)sizeof(float)));
-      return m_pBuffer[lIndex];
-    }
+    BOOL Create(long lRows, long lColumns);
 
-  long CalcDataIndex(long lRow, long lColumn, long lDelta = 0) const
-    {
-      ASSERT((lRow + lDelta) >= 0 && (lRow + lDelta) < m_lRows && 
-             lColumn >=0 && lColumn < m_lColumns);
-      ASSERT((lRow + lDelta) * m_lColumns + lColumn < (m_lBufferLen / (long)sizeof(float)));
-      return (lRow + lDelta) * m_lColumns + lColumn;
-    }
-
-  const float* GetRowAt(long lRow) const
-    {
-      ASSERT(m_pBuffer);
-      return m_pBuffer + CalcDataIndex(lRow, 0, 0);
-    }
-
-  float* GetRowAt(long lRow)
-    {
-      ASSERT(m_pBuffer);
-      return m_pBuffer + CalcDataIndex(lRow, 0, 0);
-    }
-
-  float GetAt(long lRow, long lColumn, long lDelta = 0) const
-    { 
-      ASSERT(m_pBuffer);
-      return m_pBuffer[CalcDataIndex(lRow, lColumn, lDelta)];
-    }
-  void SetAt(long lRow, long lColumn, float flt, long lDelta = 0)
-    { 
-      ASSERT(m_pBuffer);
-      m_pBuffer[CalcDataIndex(lRow, lColumn, lDelta)] = flt;
-    }
-
-	const float* GetDataPtr() const
-		{	return m_pBuffer; }
-
-  float* GetDataPtr()
-		{	return m_pBuffer; }
-
-// Operations:
+    // Attributes
 public:
 
-  BOOL Append(const CDataFile& datafile);
+    long ColumnCount() const
+    {
+        return m_lColumns;
+    }
+    long RowCount() const
+    {
+        return m_lRows;
+    }
+
+    float GetColMax(long lCol) const;
+    float GetColMin(long lCol) const;
+
+    float operator[](long lIndex) const
+    {
+        ASSERT(lIndex < (m_lBufferLen / (long)sizeof(float)));
+        return m_pBuffer[lIndex];
+    }
+    float& operator[](long lIndex)
+    {
+        ASSERT(lIndex < (m_lBufferLen / (long)sizeof(float)));
+        return m_pBuffer[lIndex];
+    }
+
+    long CalcDataIndex(long lRow, long lColumn, long lDelta = 0) const
+    {
+        ASSERT((lRow + lDelta) >= 0 && (lRow + lDelta) < m_lRows &&
+            lColumn >= 0 && lColumn < m_lColumns);
+        ASSERT((lRow + lDelta) * m_lColumns + lColumn < (m_lBufferLen / (long)sizeof(float)));
+        return (lRow + lDelta) * m_lColumns + lColumn;
+    }
+
+    const float* GetRowAt(long lRow) const
+    {
+        ASSERT(m_pBuffer);
+        return m_pBuffer + CalcDataIndex(lRow, 0, 0);
+    }
+
+    float* GetRowAt(long lRow)
+    {
+        ASSERT(m_pBuffer);
+        return m_pBuffer + CalcDataIndex(lRow, 0, 0);
+    }
+
+    float GetAt(long lRow, long lColumn, long lDelta = 0) const
+    {
+        ASSERT(m_pBuffer);
+        return m_pBuffer[CalcDataIndex(lRow, lColumn, lDelta)];
+    }
+    void SetAt(long lRow, long lColumn, float flt, long lDelta = 0)
+    {
+        ASSERT(m_pBuffer);
+        m_pBuffer[CalcDataIndex(lRow, lColumn, lDelta)] = flt;
+    }
+
+    const float* GetDataPtr() const
+    {
+        return m_pBuffer;
+    }
+
+    float* GetDataPtr()
+    {
+        return m_pBuffer;
+    }
+
+    // Operations:
+public:
+
+    BOOL Append(const CDataFile& datafile);
     // appends datafile to end of this... truncates or adds columns
     // from datafile as necessary to match our columns
 
-  BOOL Read(const char* pszFileName);
-  BOOL ReadBinary(const char* pszFileName);
+    BOOL Read(const char* pszFileName);
+    BOOL ReadBinary(const char* pszFileName);
     // read data from a file, erase current contents
-  
-  BOOL ReadAppend(const char* pszFileName);
-  BOOL ReadAppendBinary(const char* pszFileName);
+
+    BOOL ReadAppend(const char* pszFileName);
+    BOOL ReadAppendBinary(const char* pszFileName);
     // read data from a file, appending to current contents
-  
-  BOOL Write(const char* pszFileName, int nDelim = '\t');
-  BOOL WriteBinary(const char* pszFileName);
- 
-  void Destroy();
-  
-// implementation
+
+    BOOL Write(const char* pszFileName, int nDelim = '\t');
+    BOOL WriteBinary(const char* pszFileName);
+
+    void Destroy();
+
+    // implementation
 public:
-  virtual ~CDataFile();  
-  CDataFile& operator = (const CDataFile& datafile);
+    virtual ~CDataFile();
+    CDataFile& operator = (const CDataFile& datafile);
 
-protected:  
+protected:
 
-  // growing the data file
-  BOOL Grow(long lNewLen);
-  
-  float* m_pBuffer;      // data block
-  long m_lBufferLen;      // length of block
-  long m_lColumns;        // number of columns
-  long m_lRows;           // number of rows
+    // growing the data file
+    BOOL Grow(long lNewLen);
+
+    float* m_pBuffer;      // data block
+    long m_lBufferLen;      // length of block
+    long m_lColumns;        // number of columns
+    long m_lRows;           // number of rows
 };
 
 ///////////////////////////////////////////////////////////////////////////////

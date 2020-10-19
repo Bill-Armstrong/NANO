@@ -38,13 +38,13 @@ static char THIS_FILE[] = __FILE__;
 
 void ALNAPI BuildCutoffRoute(ALNNODE* pNode)
 {
-  ALNNODE* pParent = NODE_PARENT(pNode);
-  while (pParent != NULL)
-  {
-    ASSERT(NODE_ISMINMAX(pParent));
-    MINMAX_EVAL(pParent) = pNode;
+    ALNNODE* pParent = NODE_PARENT(pNode);
+    while (pParent != NULL)
+    {
+        ASSERT(NODE_ISMINMAX(pParent));
+        MINMAX_EVAL(pParent) = pNode;
 
-    pNode = pParent;
-    pParent = NODE_PARENT(pNode);
-  }
+        pNode = pParent;
+        pParent = NODE_PARENT(pNode);
+    }
 }

@@ -94,40 +94,40 @@ SOFTWARE.*/
 
 #ifdef _DEBUG
 
-  #ifdef ALNDLL
-  #pragma comment(lib, "libalndlld.lib")      /* ALNDLL */
-  #else
+#ifdef ALNDLL
+#pragma comment(lib, "libalndlld.lib")      /* ALNDLL */
+#else
 
-    #ifdef _MT
-      #ifdef _DLL
-      #pragma comment(lib, "libalndmtd.lib")  /* MT DLL */
-      #else  /* !_DLL */
-      #pragma comment(lib, "libalnmtd.lib")   /* MT */
-      #endif /* _DLL */
-    #else
-      #pragma comment(lib, "libalnd.lib")
-    #endif /* _MT */
+#ifdef _MT
+#ifdef _DLL
+#pragma comment(lib, "libalndmtd.lib")  /* MT DLL */
+#else  /* !_DLL */
+#pragma comment(lib, "libalnmtd.lib")   /* MT */
+#endif /* _DLL */
+#else
+#pragma comment(lib, "libalnd.lib")
+#endif /* _MT */
 
-  #endif /* ALNDLL */
+#endif /* ALNDLL */
 
 
 #else   /* !_DEBUG */
 
-  #ifdef ALNDLL
-  #pragma comment(lib, "libalndll.lib")       /* ALNDLL */
-  #else
+#ifdef ALNDLL
+#pragma comment(lib, "libalndll.lib")       /* ALNDLL */
+#else
 
-    #ifdef _MT
-      #ifdef _DLL
-      #pragma comment(lib, "libalndmt.lib")   /* MT DLL */
-      #else  /* !_DLL */
-      #pragma comment(lib, "libalnmt.lib")    /* MT */
-      #endif /* _DLL */
-    #else
-      #pragma comment(lib, "libaln.lib")
-    #endif /* _MT */
+#ifdef _MT
+#ifdef _DLL
+#pragma comment(lib, "libalndmt.lib")   /* MT DLL */
+#else  /* !_DLL */
+#pragma comment(lib, "libalnmt.lib")    /* MT */
+#endif /* _DLL */
+#else
+#pragma comment(lib, "libaln.lib")
+#endif /* _MT */
 
-  #endif /* ALNDLL */
+#endif /* ALNDLL */
 
 #endif  /* _DEBUG */
 
