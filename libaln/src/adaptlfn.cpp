@@ -39,8 +39,8 @@ static char THIS_FILE[] = __FILE__;
 extern BOOL bClassify2;
 // LFN specific adapt
 
-void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const float* afltX, 
-                     float fltResponse, BOOL bUsefulAdapt, const TRAINDATA* ptdata)
+void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const float* afltX,
+    float fltResponse, BOOL bUsefulAdapt, const TRAINDATA* ptdata)
 {
     ASSERT(NODE_ISLFN(pNode));
     ASSERT(LFN_ISINIT(pNode));
@@ -99,12 +99,12 @@ void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const float* afltX,
     // V is the value of the sample X[nDim - 1]
     // fltError = L - V,   N.B. if L is greater than the sample the error is positive
     // We neglect the fillet if any and make the average V the target for afltC[nDim - 1]
-    afltC[nDim -1] += (afltX[nDim -1] - afltC[nDim - 1]) * fltLearnRespParam;
+    afltC[nDim - 1] += (afltX[nDim - 1] - afltC[nDim - 1]) * fltLearnRespParam;
 
     // ADAPT CENTROID AND WEIGHT FOR EACH INPUT VARIABLE  
     float fltXmC = 0;
     float fltBend = 0;
-    for (int i = 0; i < nDim -1; i++) //Skip the output centroid and weight at nDim - 1. (The output weight is always -1)
+    for (int i = 0; i < nDim - 1; i++) //Skip the output centroid and weight at nDim - 1. (The output weight is always -1)
     {
         // get pointer to variable constraints
         ALNCONSTRAINT* pConstr = GetVarConstraint(NODE_REGION(pNode), pALN, i);
@@ -128,7 +128,7 @@ void ALNAPI AdaptLFN(ALNNODE* pNode, ALN* pALN, const float* afltX,
 
     } // end loop over all nDim - 1 domain dimensions
     // compress the weighted centroid info into W[0]       
-    float * const pfltW0 = LFN_W(pNode);
+    float* const pfltW0 = LFN_W(pNode);
     *pfltW0 = afltC[nDim - 1];
     for (int i = 0; i < nDim - 1; i++)
     {

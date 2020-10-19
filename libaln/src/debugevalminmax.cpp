@@ -39,52 +39,52 @@ static char THIS_FILE[] = __FILE__;
 
 #ifdef _DEBUG
 
-float ALNAPI DebugEvalMinMax(const ALNNODE* pNode, const ALN* pALN, 
-                            const float* afltX, ALNNODE** ppActiveLFN)
+float ALNAPI DebugEvalMinMax(const ALNNODE* pNode, const ALN* pALN,
+    const float* afltX, ALNNODE** ppActiveLFN)
 {
-  ASSERT(NODE_ISMINMAX(pNode));
+    ASSERT(NODE_ISMINMAX(pNode));
 
-  // set first child
-  ALNNODE* pChild0;
-  if (MINMAX_EVAL(pNode))
-    pChild0 = MINMAX_EVAL(pNode);
-  else
-    pChild0 = MINMAX_LEFT(pNode);
+    // set first child
+    ALNNODE* pChild0;
+    if (MINMAX_EVAL(pNode))
+        pChild0 = MINMAX_EVAL(pNode);
+    else
+        pChild0 = MINMAX_LEFT(pNode);
 
-  // set next child
-  ALNNODE* pChild1;
-  if (pChild0 == MINMAX_LEFT(pNode))
-    pChild1 = MINMAX_RIGHT(pNode);
-  else
-    pChild1 = MINMAX_LEFT(pNode);
+    // set next child
+    ALNNODE* pChild1;
+    if (pChild0 == MINMAX_LEFT(pNode))
+        pChild1 = MINMAX_RIGHT(pNode);
+    else
+        pChild1 = MINMAX_LEFT(pNode);
 
-  // eval first child
-  ALNNODE* pActiveLFN0;
-  float flt0 = DebugEval(pChild0, pALN, afltX, &pActiveLFN0);
-  
-	// eval second child
-  ALNNODE* pActiveLFN1;
-	float flt1 = DebugEval(pChild1, pALN, afltX, &pActiveLFN1);
+    // eval first child
+    ALNNODE* pActiveLFN0;
+    float flt0 = DebugEval(pChild0, pALN, afltX, &pActiveLFN0);
 
-  // get reference to region for this node
-  const ALNREGION& region = pALN->aRegions[NODE_REGION(pNode)];
+    // eval second child
+    ALNNODE* pActiveLFN1;
+    float flt1 = DebugEval(pChild1, pALN, afltX, &pActiveLFN1);
 
-  // calc active child, active child response, and distance
-  float fltDist, fltRespActive;
-  int nActive = CalcActiveChild(fltRespActive, 
-                                fltDist, 
-                                flt0, flt1, pNode);
-	
-  if (nActive == 0)
-  {
-    *ppActiveLFN = pActiveLFN0;
-  }
-  else
-  {
-    *ppActiveLFN = pActiveLFN1;
-  }
-  
-  return fltDist;
+    // get reference to region for this node
+    const ALNREGION& region = pALN->aRegions[NODE_REGION(pNode)];
+
+    // calc active child, active child response, and distance
+    float fltDist, fltRespActive;
+    int nActive = CalcActiveChild(fltRespActive,
+        fltDist,
+        flt0, flt1, pNode);
+
+    if (nActive == 0)
+    {
+        *ppActiveLFN = pActiveLFN0;
+    }
+    else
+    {
+        *ppActiveLFN = pActiveLFN1;
+    }
+
+    return fltDist;
 }
 
 

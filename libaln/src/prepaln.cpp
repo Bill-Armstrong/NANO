@@ -41,68 +41,68 @@ BOOL ALNAPI DoPrepNode(ALN* pALN, ALNNODE* pNode);
 
 BOOL ALNAPI PrepALN(ALN* pALN)
 {
-  ASSERT(pALN);
+    ASSERT(pALN);
 
-  if (!DoPrepRegions(pALN))
-    return FALSE;
+    if (!DoPrepRegions(pALN))
+        return FALSE;
 
-  if (!DoPrepNode(pALN, pALN->pTree))
-    return FALSE;
+    if (!DoPrepNode(pALN, pALN->pTree))
+        return FALSE;
 
-  return TRUE;
+    return TRUE;
 }
 
 BOOL ALNAPI DoPrepRegions(ALN* pALN)
 {
-  ASSERT(pALN);
+    ASSERT(pALN);
 
-  // calc all region and var quantities
+    // calc all region and var quantities
 
-  for (int i = 0; i < pALN->nRegions; i++)
-  {
-    ALNREGION* pRegion = pALN->aRegions + i;
-    
-    // iterate over var constraints
-    for (int j = 0; j < pRegion->nConstr; j++)
+    for (int i = 0; i < pALN->nRegions; i++)
     {
-      float fltEpsilon = pRegion->aConstr[j].fltEpsilon;
+        ALNREGION* pRegion = pALN->aRegions + i;
 
-      if (j == pALN->nOutput)
-      {
-        // make sure wmin and wmax are -1
-        pRegion->aConstr[j].fltWMin = -1.0;
-        pRegion->aConstr[j].fltWMax = -1.0;
-      }
+        // iterate over var constraints
+        for (int j = 0; j < pRegion->nConstr; j++)
+        {
+            float fltEpsilon = pRegion->aConstr[j].fltEpsilon;
 
-      // calc sq epsilon
-      pRegion->aConstr[j].fltSqEpsilon = fltEpsilon * fltEpsilon; // this may be useless now
+            if (j == pALN->nOutput)
+            {
+                // make sure wmin and wmax are -1
+                pRegion->aConstr[j].fltWMin = -1.0;
+                pRegion->aConstr[j].fltWMax = -1.0;
+            }
+
+            // calc sq epsilon
+            pRegion->aConstr[j].fltSqEpsilon = fltEpsilon * fltEpsilon; // this may be useless now
+        }
+
+
     }
 
-
-  }
-
-  return TRUE;
+    return TRUE;
 }
 
 BOOL ALNAPI DoPrepNode(ALN* pALN, ALNNODE* pNode)
 {
-  // currently no prepping required here
-  return TRUE;
+    // currently no prepping required here
+    return TRUE;
 
 
-  // otherwise, recurse over entire tree
-  /*
-  if (NODE_ISLFN(pNode))
-  {
-  }
-  else
-  {
-    ASSERT(NODE_ISMINMAX(pNode));
-        DoPrepNode(MINMAX_LEFT(pNode));
-    DoPrepNode(MINMAX_RIGHT(pNode));
-  }
+    // otherwise, recurse over entire tree
+    /*
+    if (NODE_ISLFN(pNode))
+    {
+    }
+    else
+    {
+      ASSERT(NODE_ISMINMAX(pNode));
+          DoPrepNode(MINMAX_LEFT(pNode));
+      DoPrepNode(MINMAX_RIGHT(pNode));
+    }
 
-  return TRUE;
-  */
+    return TRUE;
+    */
 }
 

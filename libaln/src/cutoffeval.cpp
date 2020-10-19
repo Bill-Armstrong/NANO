@@ -45,50 +45,50 @@ static char THIS_FILE[] = __FILE__;
 //
 //   20/09/96 MMT: seems to work OK so far
 
-float ALNAPI CutoffEval(const ALNNODE* pNode, const ALN* pALN, 
-                         const float* afltX, CCutoffInfo* pCutoffInfo, 
-                         ALNNODE** ppActiveLFN)
+float ALNAPI CutoffEval(const ALNNODE* pNode, const ALN* pALN,
+    const float* afltX, CCutoffInfo* pCutoffInfo,
+    ALNNODE** ppActiveLFN)
 {
-  ASSERT(pNode);
-  ASSERT(pALN);
-  ASSERT(afltX);
-  ASSERT(ppActiveLFN);
-  
-  // do a cutoff eval to get active LFN and distance
-  ALNNODE* pActiveLFN = NULL;
-  float flt;
-  CEvalCutoff cutoff;
- 
-  // check for cutoff info
-  if (pCutoffInfo != NULL)
-  {
-    // set up cutoff
-    ALNNODE* pEval = pCutoffInfo->pLFN;
-    if (pEval != NULL)
+    ASSERT(pNode);
+    ASSERT(pALN);
+    ASSERT(afltX);
+    ASSERT(ppActiveLFN);
+
+    // do a cutoff eval to get active LFN and distance
+    ALNNODE* pActiveLFN = NULL;
+    float flt;
+    CEvalCutoff cutoff;
+
+    // check for cutoff info
+    if (pCutoffInfo != NULL)
     {
-     BuildCutoffRoute(pEval);
-    }       
+        // set up cutoff
+        ALNNODE* pEval = pCutoffInfo->pLFN;
+        if (pEval != NULL)
+        {
+            BuildCutoffRoute(pEval);
+        }
 
-    // evaluate using cutoff
-    flt = CutoffEval(pNode, pALN, afltX, cutoff, &pActiveLFN);
+        // evaluate using cutoff
+        flt = CutoffEval(pNode, pALN, afltX, cutoff, &pActiveLFN);
 
-    // set new cutoff info
-    pCutoffInfo->pLFN = pActiveLFN;
-    pCutoffInfo->fltValue = flt;
-  }
-  else
-  {
-    // eval with expanded cutoff
-    flt = CutoffEval(pNode, pALN, afltX, cutoff, &pActiveLFN);
-  }
+        // set new cutoff info
+        pCutoffInfo->pLFN = pActiveLFN;
+        pCutoffInfo->fltValue = flt;
+    }
+    else
+    {
+        // eval with expanded cutoff
+        flt = CutoffEval(pNode, pALN, afltX, cutoff, &pActiveLFN);
+    }
 
 #ifdef _DEBUG
-  ALNNODE* pLFNCheck = NULL;
-  //float fltCheck = DebugEval(pNode, pALN, afltX, &pLFNCheck);
- // ASSERT (flt == fltCheck && pLFNCheck == pActiveLFN); MYTEST
+    ALNNODE* pLFNCheck = NULL;
+    //float fltCheck = DebugEval(pNode, pALN, afltX, &pLFNCheck);
+   // ASSERT (flt == fltCheck && pLFNCheck == pActiveLFN); MYTEST
 #endif
 
-  *ppActiveLFN = pActiveLFN;
+    * ppActiveLFN = pActiveLFN;
 
-  return flt;
+    return flt;
 }

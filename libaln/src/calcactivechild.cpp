@@ -37,44 +37,44 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 
-int ALNAPI CalcActiveChild(float& fltRespActive, float& fltDistance, 
-                           float flt0, float flt1, const ALNNODE* pNode)                          
+int ALNAPI CalcActiveChild(float& fltRespActive, float& fltDistance,
+    float flt0, float flt1, const ALNNODE* pNode)
 
 {
-  int nActive = -1;
+    int nActive = -1;
 
-  // MAX node handling
-	if (MINMAX_ISMAX(pNode)) 
-	{
-		if(flt1 > flt0)	//  this puts child 1 100% active
-		{
-		  nActive = 1;
-		  fltRespActive = 1.0;
-		  fltDistance = flt1;
-		}
-		else	// child 0 is 100% active
-		{
-			nActive = 0;
-		  fltRespActive = 1.0;
-		  fltDistance = flt0;
-		}	
-	}
-	else // this is a MIN node
-	{    
-  		if(flt1 < flt0) //  this puts child 1 100% active
-		{
-			nActive = 1;
-			fltRespActive = 1.0;
-			fltDistance = flt1;
-  		}
-		else	 // child 0 is 100% active
-		{
-			nActive = 0;
-			fltRespActive = 1.0;
-			fltDistance = flt0;
-		}
-	}
+    // MAX node handling
+    if (MINMAX_ISMAX(pNode))
+    {
+        if (flt1 > flt0)	//  this puts child 1 100% active
+        {
+            nActive = 1;
+            fltRespActive = 1.0;
+            fltDistance = flt1;
+        }
+        else	// child 0 is 100% active
+        {
+            nActive = 0;
+            fltRespActive = 1.0;
+            fltDistance = flt0;
+        }
+    }
+    else // this is a MIN node
+    {
+        if (flt1 < flt0) //  this puts child 1 100% active
+        {
+            nActive = 1;
+            fltRespActive = 1.0;
+            fltDistance = flt1;
+        }
+        else	 // child 0 is 100% active
+        {
+            nActive = 0;
+            fltRespActive = 1.0;
+            fltDistance = flt0;
+        }
+    }
 
-  ASSERT(nActive != -1);
-  return nActive;
+    ASSERT(nActive != -1);
+    return nActive;
 }

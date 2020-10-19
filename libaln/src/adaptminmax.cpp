@@ -43,115 +43,115 @@ static char THIS_FILE[] = __FILE__;
 static const float fltRespThresh = 1.0;//.9999999999; 
 static const float fltRespMin = 0.0;
 
-void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const float* afltX, 
-                      float fltResponse, BOOL bUsefulAdapt,
-                      const TRAINDATA* ptdata)
+void ALNAPI AdaptMinMax(ALNNODE* pNode, ALN* pALN, const float* afltX,
+    float fltResponse, BOOL bUsefulAdapt,
+    const TRAINDATA* ptdata)
 {
-  ASSERT(NODE_ISMINMAX(pNode));
- 	ASSERT(NODE_ISEVAL(pNode));
-	ASSERT(ptdata != NULL);
+    ASSERT(NODE_ISMINMAX(pNode));
+    ASSERT(NODE_ISEVAL(pNode));
+    ASSERT(ptdata != NULL);
 
-	if (bUsefulAdapt)
-	{
-    NODE_RESPCOUNT(pNode)++;
-	}
+    if (bUsefulAdapt)
+    {
+        NODE_RESPCOUNT(pNode)++;
+    }
 
-  // get output var constraint
-	ALNCONSTRAINT* pConstrOutput = GetVarConstraint(NODE_REGION(pNode), pALN, pALN->nOutput);
-  
-  // get children
-  ALNNODE* pChild0 = MINMAX_LEFT(pNode);
-	ALNNODE* pChild1 = MINMAX_RIGHT(pNode);
-  BOOL bUsefulAdapt0 = FALSE;
-  BOOL bUsefulAdapt1 = FALSE;
+    // get output var constraint
+    ALNCONSTRAINT* pConstrOutput = GetVarConstraint(NODE_REGION(pNode), pALN, pALN->nOutput);
 
-  // get resp counts
-  int nResp0 = NODE_RESPCOUNT(pChild0) + NODE_RESPCOUNTLASTEPOCH(pChild0);
-  int nResp1 = NODE_RESPCOUNT(pChild1) + NODE_RESPCOUNTLASTEPOCH(pChild1);
+    // get children
+    ALNNODE* pChild0 = MINMAX_LEFT(pNode);
+    ALNNODE* pChild1 = MINMAX_RIGHT(pNode);
+    BOOL bUsefulAdapt0 = FALSE;
+    BOOL bUsefulAdapt1 = FALSE;
 
-  // calculate the responsibilities of the children
-  float fltResp0, fltResp1;
-	float fltRespActive = MINMAX_RESPACTIVE(pNode);
+    // get resp counts
+    int nResp0 = NODE_RESPCOUNT(pChild0) + NODE_RESPCOUNTLASTEPOCH(pChild0);
+    int nResp1 = NODE_RESPCOUNT(pChild1) + NODE_RESPCOUNTLASTEPOCH(pChild1);
 
-  ASSERT(MINMAX_ACTIVE(pNode) != NULL);
-  if (MINMAX_ACTIVE(pNode) == pChild0) // child 0 active
-  {
-    bUsefulAdapt0 = bUsefulAdapt;
+    // calculate the responsibilities of the children
+    float fltResp0, fltResp1;
+    float fltRespActive = MINMAX_RESPACTIVE(pNode);
 
-    float fltR;
+    ASSERT(MINMAX_ACTIVE(pNode) != NULL);
+    if (MINMAX_ACTIVE(pNode) == pChild0) // child 0 active
+    {
+        bUsefulAdapt0 = bUsefulAdapt;
 
-    if((fabs(ptdata->fltGlobalError) > pConstrOutput->fltEpsilon) && 
-       (fltRespActive > fltRespThresh) && (nResp1 < nResp0))
-		{
-      // bring in useless piece 1
-			fltR = fltRespThresh;
-      
-      // eval if necessary before adapting
-			if(!NODE_ISEVAL(pChild1))
-			{
-        ALNNODE* pActiveLFN1;
-        int nCutoffs = 0;
-				AdaptEval(pChild1, pALN, afltX, CEvalCutoff(), &pActiveLFN1);
-			}
-		}
-		else
-		{
-			fltR = fltRespActive;
-		}
+        float fltR;
 
-    // divide each quantity by 1 - 2r(1-r)
+        if ((fabs(ptdata->fltGlobalError) > pConstrOutput->fltEpsilon) &&
+            (fltRespActive > fltRespThresh) && (nResp1 < nResp0))
+        {
+            // bring in useless piece 1
+            fltR = fltRespThresh;
 
-    float fltFactor = 1.0f / (1 - 2 * fltR * (1 - fltR));
+            // eval if necessary before adapting
+            if (!NODE_ISEVAL(pChild1))
+            {
+                ALNNODE* pActiveLFN1;
+                int nCutoffs = 0;
+                AdaptEval(pChild1, pALN, afltX, CEvalCutoff(), &pActiveLFN1);
+            }
+        }
+        else
+        {
+            fltR = fltRespActive;
+        }
 
-    fltResp0 = fltR * fltFactor;
-		fltResp1 = (1.0f - fltR) * fltFactor;
-  }
-	else // child 1 is active
-	{
-    bUsefulAdapt1 = bUsefulAdapt;
+        // divide each quantity by 1 - 2r(1-r)
 
-    float fltR;
+        float fltFactor = 1.0f / (1 - 2 * fltR * (1 - fltR));
 
-    if((fabs(ptdata->fltGlobalError) > pConstrOutput->fltEpsilon) && 
-       (fltRespActive > fltRespThresh) && (nResp0 < nResp1))
-    { 
-      // bring in useless piece 0
-			fltR = fltRespThresh;
-			
-      // eval child 0 if necessary before adapting
-			if(!NODE_ISEVAL(pChild0))
-			{
-        ALNNODE* pActiveLFN0;
-        int nCutoffs = 0;
-				AdaptEval(pChild0, pALN, afltX, CEvalCutoff(), &pActiveLFN0);
-			}
-		}
-		else
-		{
-			fltR = fltRespActive;
-		}
-		    
-    // divide each quantity by 1 - 2r(1-r)
+        fltResp0 = fltR * fltFactor;
+        fltResp1 = (1.0f - fltR) * fltFactor;
+    }
+    else // child 1 is active
+    {
+        bUsefulAdapt1 = bUsefulAdapt;
 
-    float fltFactor = 1.0f / (1 - 2 * fltR * (1 - fltR));
+        float fltR;
 
-    fltResp1 = fltR * fltFactor;
-		fltResp0 = (1.0f - fltR) * fltFactor;
-	}
-  
-  // adapt child 0
-  fltResp0 *= fltResponse;
-  if(fltResp0 > fltRespMin)
-	{
-    Adapt(pChild0, pALN, afltX, fltResp0, bUsefulAdapt0, ptdata);
-	}
+        if ((fabs(ptdata->fltGlobalError) > pConstrOutput->fltEpsilon) &&
+            (fltRespActive > fltRespThresh) && (nResp0 < nResp1))
+        {
+            // bring in useless piece 0
+            fltR = fltRespThresh;
 
-  // adapt child 1
-  fltResp1 *= fltResponse;
-  if(fltResp1 > fltRespMin)
-	{
-    Adapt(pChild1, pALN, afltX, fltResp1, bUsefulAdapt1, ptdata);
-  }
+            // eval child 0 if necessary before adapting
+            if (!NODE_ISEVAL(pChild0))
+            {
+                ALNNODE* pActiveLFN0;
+                int nCutoffs = 0;
+                AdaptEval(pChild0, pALN, afltX, CEvalCutoff(), &pActiveLFN0);
+            }
+        }
+        else
+        {
+            fltR = fltRespActive;
+        }
+
+        // divide each quantity by 1 - 2r(1-r)
+
+        float fltFactor = 1.0f / (1 - 2 * fltR * (1 - fltR));
+
+        fltResp1 = fltR * fltFactor;
+        fltResp0 = (1.0f - fltR) * fltFactor;
+    }
+
+    // adapt child 0
+    fltResp0 *= fltResponse;
+    if (fltResp0 > fltRespMin)
+    {
+        Adapt(pChild0, pALN, afltX, fltResp0, bUsefulAdapt0, ptdata);
+    }
+
+    // adapt child 1
+    fltResp1 *= fltResponse;
+    if (fltResp1 > fltRespMin)
+    {
+        Adapt(pChild1, pALN, afltX, fltResp1, bUsefulAdapt1, ptdata);
+    }
 }
 
 

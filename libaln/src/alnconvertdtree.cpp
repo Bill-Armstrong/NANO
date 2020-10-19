@@ -41,26 +41,26 @@ static char THIS_FILE[] = __FILE__;
 // returns ALN_* error code, (ALN_NOERROR on success)
 // if ALN_ERRDTREE is returned, check dtree_errno
 ALNIMP int ALNAPI ALNConvertDtree(const ALN* pALN, int nMaxDepth,
-                                  DTREE** ppDtree)
+    DTREE** ppDtree)
 {
-  // parameter variance
-  if (pALN == NULL)
-    return ALN_GENERIC;
+    // parameter variance
+    if (pALN == NULL)
+        return ALN_GENERIC;
 
-  if (ppDtree == NULL)
-    return ALN_GENERIC;
+    if (ppDtree == NULL)
+        return ALN_GENERIC;
 
-  if (nMaxDepth < DTREE_MINDEPTH || nMaxDepth > DTREE_MAXDEPTH)
-    return ALN_GENERIC;
+    if (nMaxDepth < DTREE_MINDEPTH || nMaxDepth > DTREE_MAXDEPTH)
+        return ALN_GENERIC;
 
-  int nResult = ALN_NOERROR;
+    int nResult = ALN_NOERROR;
 
-  // build dtree
-  *ppDtree = BuildDtree(pALN, nMaxDepth);
-  if (*ppDtree == NULL && dtree_errno != DTR_NOERROR)
-    nResult = ALN_GENERIC;  // dtree lib error
-  else if (*ppDtree == NULL)
-    nResult = ALN_OUTOFMEM;
-  
-  return nResult;
+    // build dtree
+    *ppDtree = BuildDtree(pALN, nMaxDepth);
+    if (*ppDtree == NULL && dtree_errno != DTR_NOERROR)
+        nResult = ALN_GENERIC;  // dtree lib error
+    else if (*ppDtree == NULL)
+        nResult = ALN_OUTOFMEM;
+
+    return nResult;
 }

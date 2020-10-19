@@ -28,7 +28,7 @@ SOFTWARE. */
 #define __ALNDBG_H__
 
 #ifndef __ALNCFG_H__
-  #include <alncfg.h>
+#include <alncfg.h>
 #endif
 
 /*

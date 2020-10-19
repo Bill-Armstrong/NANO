@@ -39,37 +39,37 @@ static char THIS_FILE[] = __FILE__;
 inline
 float ALNAPI Noise()
 {
-//   This generates a random value with a triangular distribution from -1 to 1
-//   This by subtracting two random uniformly distributed values in (0, 1).
-	return ALNRandFloat() - ALNRandFloat();
+    //   This generates a random value with a triangular distribution from -1 to 1
+    //   This by subtracting two random uniformly distributed values in (0, 1).
+    return ALNRandFloat() - ALNRandFloat();
 }
 
 void ALNAPI Jitter(ALN* pALN, float* afltX)
 {
-  ASSERT(pALN);
-  ASSERT(afltX);
+    ASSERT(pALN);
+    ASSERT(afltX);
 
-  int nDim = pALN->nDim;
-  int nOutput = pALN->nOutput;
-  
-  // save output value
-  float fltOutput = afltX[nOutput];
+    int nDim = pALN->nDim;
+    int nOutput = pALN->nOutput;
 
-  for (int i = 0; i < nDim; i++)
-  {
+    // save output value
+    float fltOutput = afltX[nOutput];
+
+    for (int i = 0; i < nDim; i++)
+    {
 #ifdef _DEBUG
-    float flt = afltX[i];
+        float flt = afltX[i];
 #endif
-		
-    afltX[i] += Noise() * pALN->aRegions[0].aConstr[i].fltEpsilon;
+
+        afltX[i] += Noise() * pALN->aRegions[0].aConstr[i].fltEpsilon;
 
 #ifdef _DEBUG
-    float fltEps = pALN->aRegions[0].aConstr[i].fltEpsilon;
-    ASSERT(afltX[i] >= flt - fltEps && 
-           afltX[i] <= flt + fltEps);
+        float fltEps = pALN->aRegions[0].aConstr[i].fltEpsilon;
+        ASSERT(afltX[i] >= flt - fltEps &&
+            afltX[i] <= flt + fltEps);
 #endif
-  }
+    }
 
-  // restore output value
-  afltX[nOutput] = fltOutput;
+    // restore output value
+    afltX[nOutput] = fltOutput;
 }

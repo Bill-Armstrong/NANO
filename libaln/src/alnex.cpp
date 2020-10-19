@@ -45,53 +45,53 @@ static char THIS_FILE[] = __FILE__;
 ///////////////////////////////////////////////////////////////////////////////
 // CALNException
 
-CALNException::CALNException(BOOL bAutoDelete /*= TRUE*/, 
-                             const char* pszReason /*= NULL*/)
+CALNException::CALNException(BOOL bAutoDelete /*= TRUE*/,
+    const char* pszReason /*= NULL*/)
 {
-  m_bAutoDelete = bAutoDelete;
-	
-  m_szReason[0] = '\0';	  // set NULL at beginning of string
-	if (pszReason)
-		strncpy(m_szReason, pszReason, sizeof(m_szReason) - 1);
-  m_szReason[255] = '\0';	// set NULL at end of string
+    m_bAutoDelete = bAutoDelete;
+
+    m_szReason[0] = '\0';	  // set NULL at beginning of string
+    if (pszReason)
+        strncpy(m_szReason, pszReason, sizeof(m_szReason) - 1);
+    m_szReason[255] = '\0';	// set NULL at end of string
 }
-	
+
 void CALNException::Delete()
 {
-  if (m_bAutoDelete)
-    delete this;
+    if (m_bAutoDelete)
+        delete this;
 }
 
 void ALNAPI ThrowALNException()
 {
-  static CALNException gALNException(FALSE);
-  throw &gALNException;
+    static CALNException gALNException(FALSE);
+    throw& gALNException;
 }
- 
+
 ///////////////////////////////////////////////////////////////////////////////
 // CALNMemoryException
 
 CALNMemoryException::CALNMemoryException(BOOL bAutoDelete /*= TRUE*/)
-  : CALNException(bAutoDelete)
+    : CALNException(bAutoDelete)
 {
 }
 
 void ALNAPI ThrowALNMemoryException()
 {
-  static CALNMemoryException gALNMemoryException(FALSE);
-  throw &gALNMemoryException;
+    static CALNMemoryException gALNMemoryException(FALSE);
+    throw& gALNMemoryException;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // CALNUserException
 
 CALNUserException::CALNUserException(BOOL bAutoDelete /*= TRUE*/)
-  : CALNException(bAutoDelete)
+    : CALNException(bAutoDelete)
 {
 }
 
 void ALNAPI ThrowALNUserException()
 {
-  static CALNUserException gALNUserException(FALSE);
-  throw &gALNUserException;
+    static CALNUserException gALNUserException(FALSE);
+    throw& gALNUserException;
 }

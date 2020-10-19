@@ -37,57 +37,57 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 static int ALNAPI ValidateALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-                                              float fltSignificance,
-                                              float* pfltPLimit);
+    float fltSignificance,
+    float* pfltPLimit);
 
 #ifdef _DEBUG
 static void DebugValidateALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-                                             float fltSignificance,
-                                             float* pfltPLimit);
+    float fltSignificance,
+    float* pfltPLimit);
 #endif
 
 // much of this is derived from theory documented in Master95 p302-323
 // and Press et al p228-229
 
 ALNIMP int ALNAPI ALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-                                      float fltSignificance,
-                                      float* pfltPLimit)
+    float fltSignificance,
+    float* pfltPLimit)
 {
-	int nReturn = ValidateALNConfidencePLimit(pConfidence, fltSignificance, pfltPLimit);
-  if (nReturn != ALN_NOERROR)
-    return nReturn;
-  
-  #ifdef _DEBUG
+    int nReturn = ValidateALNConfidencePLimit(pConfidence, fltSignificance, pfltPLimit);
+    if (nReturn != ALN_NOERROR)
+        return nReturn;
+
+#ifdef _DEBUG
     DebugValidateALNConfidencePLimit(pConfidence, fltSignificance, pfltPLimit);
-  #endif
+#endif
 
-  // calc number of samples in tail
-  int nTailSamples = (int)floor((float)pConfidence->nSamples * pConfidence->fltP - 1);
-  
-  // calculate limit at desired significance level
-	*pfltPLimit = PLimit(pConfidence->nSamples, nTailSamples + 1, fltSignificance);
+    // calc number of samples in tail
+    int nTailSamples = (int)floor((float)pConfidence->nSamples * pConfidence->fltP - 1);
 
-	return nReturn;
+    // calculate limit at desired significance level
+    *pfltPLimit = PLimit(pConfidence->nSamples, nTailSamples + 1, fltSignificance);
+
+    return nReturn;
 }
 
 
 // validate params
 static int ALNAPI ValidateALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-                                              float fltSignificance,
-                                              float* pfltPLimit)
+    float fltSignificance,
+    float* pfltPLimit)
 {
-  if (pConfidence == NULL || pfltPLimit == NULL)
-    return ALN_GENERIC;
+    if (pConfidence == NULL || pfltPLimit == NULL)
+        return ALN_GENERIC;
 
-  return ALN_NOERROR;
+    return ALN_NOERROR;
 }
 
 // debug version ASSERTS if bad params
 #ifdef _DEBUG
 static void DebugValidateALNConfidencePLimit(const ALNCONFIDENCE* pConfidence,
-                                             float fltSignificance,
-                                             float* pfltPLimit)
+    float fltSignificance,
+    float* pfltPLimit)
 {
-  ASSERT(fltSignificance >= 0.0 && fltSignificance <= 1.0);
+    ASSERT(fltSignificance >= 0.0 && fltSignificance <= 1.0);
 }
 #endif

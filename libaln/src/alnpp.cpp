@@ -47,15 +47,15 @@ static char THIS_FILE[] = __FILE__;
 
 CAln::CAln()
 {
-  m_pALN = NULL;
-  memset(&m_datainfo, 0, sizeof(m_datainfo));
-  m_nLastError = ALN_GENERIC; // no ALN pointer yet!
+    m_pALN = NULL;
+    memset(&m_datainfo, 0, sizeof(m_datainfo));
+    m_nLastError = ALN_GENERIC; // no ALN pointer yet!
 }
 
 CAln::~CAln()
 {
-  Destroy();
-  ASSERT(m_pALN == NULL);
+    Destroy();
+    ASSERT(m_pALN == NULL);
 }
 
 void ALNAPI CAln::addTRsample(float* afltX, const int nDim)
@@ -91,7 +91,7 @@ void ALNAPI CAln::addTRsample(float* afltX, const int nDim)
     {
         long bufferSize = nTRmaxSamples * nTRcols;
         //Allocate the buffer on first use 
-        thisDataInfo->afltTRdata = (float*)malloc( bufferSize * sizeof(float));
+        thisDataInfo->afltTRdata = (float*)malloc(bufferSize * sizeof(float));
         // make the stack pointer point to the allocated space
         afltTRdata = thisDataInfo->afltTRdata;
         // First we fill TRbuff with 0's and an FLT_MAX
@@ -100,7 +100,7 @@ void ALNAPI CAln::addTRsample(float* afltX, const int nDim)
         for (long i = 0; i < nTRmaxSamples; i++)
         {
             int nDimt2p1ti = nDimt2p1 * i;
-            
+
             for (int j = 0; j < nDimt2; j++)
             {
                 afltTRdata[nDimt2p1ti + j] = 0; // We manipulate the buffer using the local pointer
@@ -126,7 +126,7 @@ void ALNAPI CAln::addTRsample(float* afltX, const int nDim)
     // Start by comparing the new sample to all in the buffer to find
     // 1. what other samples it is closest to
     // 2. what other sample is closest to it.	(N.B. "closest" means * among * the closest if it is not unique)
-    
+
     afltTRdata = thisDataInfo->afltTRdata; // restore the stack-based pointer.
     if (fltMSEorF < 0)
     {
@@ -195,9 +195,9 @@ void ALNAPI CAln::addTRsample(float* afltX, const int nDim)
         nTRcurrSamples++; // This will stay at the max if it gets to it
     }
     thisDataInfo->nTRcurrSamples = nTRcurrSamples;
-    if(++nTRinsert == nTRmaxSamples) nTRinsert = 0; // Too TRICKY!!! See if it works!
+    if (++nTRinsert == nTRmaxSamples) nTRinsert = 0; // Too TRICKY!!! See if it works!
     thisDataInfo->nTRinsert = nTRinsert; // Pass the information back to the ALN.
-    
+
     return;
 }
 
@@ -215,13 +215,13 @@ void ALNAPI CAln::reduceNoiseVariance()
     //float fltMSEorF = thisDataInfo->fltMSEorF;
     if (!afltTRdata) return; // this avoids a crash
     if (thisDataInfo->fltMSEorF > 0) return; // we are not using noise variance
-    int nDim = (nTRcols - 1)/2;
+    int nDim = (nTRcols - 1) / 2;
     int nDimm1 = nDim - 1;
     int nDimt2m1 = nDim * 2 - 1;
     float value;
     for (long i = 0; i < nTRcurrSamples; i++)
     {
-        value = afltTRdata[nTRcols * i + nDimm1 ];
+        value = afltTRdata[nTRcols * i + nDimm1];
         value -= 0.5f * afltTRdata[nTRcols * i + nDimt2m1];
         afltTRdata[nTRcols * i + nDimm1] = value;
     }
@@ -229,309 +229,309 @@ void ALNAPI CAln::reduceNoiseVariance()
 
 ALNREGION* CAln::GetRegion(int nRegion)
 {
-  if (m_pALN == NULL)
-    return NULL;
+    if (m_pALN == NULL)
+        return NULL;
 
-  ASSERT(nRegion >= 0 && nRegion < m_pALN->nRegions);
-  return m_pALN->aRegions + nRegion;
+    ASSERT(nRegion >= 0 && nRegion < m_pALN->nRegions);
+    return m_pALN->aRegions + nRegion;
 }
 
 const ALNREGION* CAln::GetRegion(int nRegion) const
 {
-  if (m_pALN == NULL)
-    return NULL;
+    if (m_pALN == NULL)
+        return NULL;
 
-  ASSERT(nRegion >= 0 && nRegion < m_pALN->nRegions);
-  return m_pALN->aRegions + nRegion;
+    ASSERT(nRegion >= 0 && nRegion < m_pALN->nRegions);
+    return m_pALN->aRegions + nRegion;
 }
 
 ALNCONSTRAINT* CAln::GetConstraint(int nVar, int nRegion)
 {
-  if (m_pALN == NULL)
-    return NULL;
+    if (m_pALN == NULL)
+        return NULL;
 
-  ASSERT(nRegion >= 0 && nRegion < m_pALN->nRegions);
-  ASSERT(nVar >= 0 && nVar < m_pALN->nDim);
-  return m_pALN->aRegions[nRegion].aConstr + nVar;
+    ASSERT(nRegion >= 0 && nRegion < m_pALN->nRegions);
+    ASSERT(nVar >= 0 && nVar < m_pALN->nDim);
+    return m_pALN->aRegions[nRegion].aConstr + nVar;
 }
 
 const ALNCONSTRAINT* CAln::GetConstraint(int nVar, int nRegion) const
 {
-  if (m_pALN == NULL)
-    return NULL;
+    if (m_pALN == NULL)
+        return NULL;
 
-  ASSERT(nRegion >= 0 && nRegion < m_pALN->nRegions);
-  ASSERT(nVar >= 0 && nVar < m_pALN->nDim);
-  return m_pALN->aRegions[nRegion].aConstr + nVar;
+    ASSERT(nRegion >= 0 && nRegion < m_pALN->nRegions);
+    ASSERT(nVar >= 0 && nVar < m_pALN->nDim);
+    return m_pALN->aRegions[nRegion].aConstr + nVar;
 }
 
 float CAln::GetEpsilon(int nVar, int nRegion) const
 {
-  const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
-  ASSERT(pConstr != NULL);
+    const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
+    ASSERT(pConstr != NULL);
 
-  return pConstr->fltEpsilon; 
+    return pConstr->fltEpsilon;
 }
 
 void CAln::SetEpsilon(float fltEpsilon, int nVar, int nRegion)
-{ 
-  ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
-  ASSERT(pConstr != NULL);
+{
+    ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
+    ASSERT(pConstr != NULL);
 
-  pConstr->fltEpsilon = fltEpsilon;
+    pConstr->fltEpsilon = fltEpsilon;
     pConstr->fltSqEpsilon = fltEpsilon * fltEpsilon;
 }
 
 float CAln::GetWeightMin(int nVar, int nRegion) const
-{ 
-  const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
-  ASSERT(pConstr != NULL);
+{
+    const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
+    ASSERT(pConstr != NULL);
 
-  return pConstr->fltWMin; 
+    return pConstr->fltWMin;
 }
 
 void CAln::SetWeightMin(float fltWMin, int nVar, int nRegion)
-{ 
-  ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
-  ASSERT(pConstr != NULL);
-  ASSERT(nVar != m_pALN->nOutput);  
+{
+    ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
+    ASSERT(pConstr != NULL);
+    ASSERT(nVar != m_pALN->nOutput);
     // can't change output var weight!
-  
-  if (nVar != m_pALN->nOutput)
-    pConstr->fltWMin = fltWMin; 
+
+    if (nVar != m_pALN->nOutput)
+        pConstr->fltWMin = fltWMin;
 }
 
 float CAln::GetWeightMax(int nVar, int nRegion) const
-{ 
-  const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
-  ASSERT(pConstr != NULL);
+{
+    const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
+    ASSERT(pConstr != NULL);
 
-  return pConstr->fltWMax; 
+    return pConstr->fltWMax;
 }
 
 void CAln::SetWeightMax(float fltWMax, int nVar, int nRegion)
-{ 
-  ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
-  ASSERT(pConstr != NULL);
-  ASSERT(nVar != m_pALN->nOutput);  
+{
+    ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
+    ASSERT(pConstr != NULL);
+    ASSERT(nVar != m_pALN->nOutput);
     // can't change output var weight!
-  
-  if (nVar != m_pALN->nOutput)
-    pConstr->fltWMax = fltWMax; 
-}  
+
+    if (nVar != m_pALN->nOutput)
+        pConstr->fltWMax = fltWMax;
+}
 
 float CAln::GetMin(int nVar, int nRegion) const
-{ 
-  const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
-  ASSERT(pConstr != NULL);
+{
+    const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
+    ASSERT(pConstr != NULL);
 
-  return pConstr->fltMin; 
+    return pConstr->fltMin;
 }
 
 void CAln::SetMin(float fltMin, int nVar, int nRegion)
-{ 
-  ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
-  ASSERT(pConstr != NULL);
-  
-  pConstr->fltMin = fltMin; 
+{
+    ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
+    ASSERT(pConstr != NULL);
+
+    pConstr->fltMin = fltMin;
 }
 
 float CAln::GetMax(int nVar, int nRegion) const
-{ 
-  const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
-  ASSERT(pConstr != NULL);
+{
+    const ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
+    ASSERT(pConstr != NULL);
 
-  return pConstr->fltMax; 
+    return pConstr->fltMax;
 }
 
 void CAln::SetMax(float fltMax, int nVar, int nRegion)
-{ 
-  ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
-  ASSERT(pConstr != NULL);
-  
-  pConstr->fltMax = fltMax; 
-}  
+{
+    ALNCONSTRAINT* pConstr = GetConstraint(nVar, nRegion);
+    ASSERT(pConstr != NULL);
+
+    pConstr->fltMax = fltMax;
+}
 
 ALNNODE* CAln::GetTree()
 {
-  if (m_pALN == NULL)
-    return NULL;
+    if (m_pALN == NULL)
+        return NULL;
 
-  return m_pALN->pTree;
+    return m_pALN->pTree;
 }
 
 const ALNNODE* CAln::GetTree() const
 {
-  if (m_pALN == NULL)
-    return NULL;
+    if (m_pALN == NULL)
+        return NULL;
 
-  return m_pALN->pTree;
+    return m_pALN->pTree;
 }
 
-void CAln::SetDataInfo(float* afltTRdata, const long nTRmaxSamples, long nTRcurrSamples, int nTRcols, long nTRinsert,	const float fltMSEorF)
+void CAln::SetDataInfo(float* afltTRdata, const long nTRmaxSamples, long nTRcurrSamples, int nTRcols, long nTRinsert, const float fltMSEorF)
 {
-  m_datainfo.afltTRdata = afltTRdata;
-  m_datainfo.nTRmaxSamples = nTRmaxSamples;
-  m_datainfo.nTRcurrSamples = nTRcurrSamples;
-  m_datainfo.nTRcols = nTRcols;
-  m_datainfo.nTRinsert = nTRinsert;
-  m_datainfo.fltMSEorF = fltMSEorF;
+    m_datainfo.afltTRdata = afltTRdata;
+    m_datainfo.nTRmaxSamples = nTRmaxSamples;
+    m_datainfo.nTRcurrSamples = nTRcurrSamples;
+    m_datainfo.nTRcols = nTRcols;
+    m_datainfo.nTRinsert = nTRinsert;
+    m_datainfo.fltMSEorF = fltMSEorF;
 }
 
 BOOL CAln::Create(int nDim, int nOutput)
 {
-  Destroy();
-  ASSERT(m_pALN == NULL);
+    Destroy();
+    ASSERT(m_pALN == NULL);
 
-  m_pALN = ALNCreateALN(nDim, nOutput);
-  if (m_pALN != NULL)
-  {
-    m_nLastError = ALN_NOERROR;
-  }
-  else
-  {
-    m_nLastError = ALN_GENERIC;
-  }
+    m_pALN = ALNCreateALN(nDim, nOutput);
+    if (m_pALN != NULL)
+    {
+        m_nLastError = ALN_NOERROR;
+    }
+    else
+    {
+        m_nLastError = ALN_GENERIC;
+    }
 
-  return m_pALN != NULL;
+    return m_pALN != NULL;
 }
 
 #ifdef ENABLE_REGIONS
-int CAln::AddRegion(int nParentRegion, float fltLearnFactor, 
-                    int nConstr, int* anConstr)
+int CAln::AddRegion(int nParentRegion, float fltLearnFactor,
+    int nConstr, int* anConstr)
 {
-  m_nLastError = ALN_NOERROR;
-  return ALNAddRegion(m_pALN, nParentRegion, fltLearnFactor,
-                      nConstr, anConstr);
+    m_nLastError = ALN_NOERROR;
+    return ALNAddRegion(m_pALN, nParentRegion, fltLearnFactor,
+        nConstr, anConstr);
 }
 #endif
 
-BOOL CAln::AddLFNs(ALNNODE* pParent, int nParentMinMaxType, 
-                   int nLFNs, ALNNODE** apLFNs /*= NULL*/)
+BOOL CAln::AddLFNs(ALNNODE* pParent, int nParentMinMaxType,
+    int nLFNs, ALNNODE** apLFNs /*= NULL*/)
 {
-  m_nLastError = ALNAddLFNs(m_pALN, pParent, nParentMinMaxType, nLFNs, apLFNs);
-  return m_nLastError == ALN_NOERROR;
+    m_nLastError = ALNAddLFNs(m_pALN, pParent, nParentMinMaxType, nLFNs, apLFNs);
+    return m_nLastError == ALN_NOERROR;
 }
 
-BOOL CAln::AddMultiLayer(ALNNODE* pParent, int nParentMinMaxType, 
-                         int nLayers, int nMinMaxFanin, int nLFNFanin, 
-                         int nFlags)
+BOOL CAln::AddMultiLayer(ALNNODE* pParent, int nParentMinMaxType,
+    int nLayers, int nMinMaxFanin, int nLFNFanin,
+    int nFlags)
 {
-  m_nLastError = ALNAddMultiLayer(m_pALN, pParent, nParentMinMaxType, nLayers, 
-                                  nMinMaxFanin, nLFNFanin, nFlags);
-  return m_nLastError == ALN_NOERROR;
+    m_nLastError = ALNAddMultiLayer(m_pALN, pParent, nParentMinMaxType, nLayers,
+        nMinMaxFanin, nLFNFanin, nFlags);
+    return m_nLastError == ALN_NOERROR;
 }
 
-BOOL CAln::AddTreeString(ALNNODE* pParent, const char* pszTreeString, 
-                         int& nParsed)
+BOOL CAln::AddTreeString(ALNNODE* pParent, const char* pszTreeString,
+    int& nParsed)
 {
-  m_nLastError = ALNAddTreeString(m_pALN, pParent, pszTreeString, &nParsed);
-  return m_nLastError == ALN_NOERROR;
+    m_nLastError = ALNAddTreeString(m_pALN, pParent, pszTreeString, &nParsed);
+    return m_nLastError == ALN_NOERROR;
 }
 
 BOOL CAln::SetGrowable(ALNNODE* pNode)
 {
-  m_nLastError = ALN_NOERROR;
-  return ALNSetGrowable(m_pALN, pNode);
+    m_nLastError = ALN_NOERROR;
+    return ALNSetGrowable(m_pALN, pNode);
 }
 
 BOOL CAln::Destroy()
 {
-  m_nLastError = ALN_NOERROR;
-  BOOL b = ALNDestroyALN(m_pALN);
-  if (b) m_pALN = NULL;
-  return b;
+    m_nLastError = ALN_NOERROR;
+    BOOL b = ALNDestroyALN(m_pALN);
+    if (b) m_pALN = NULL;
+    return b;
 }
 
 // private callback data struct
 struct CALLBACKDATA
 {
-  CAln* pALN;
-  void* pvData;
+    CAln* pALN;
+    void* pvData;
 };
 
 // training - uses internal ALNDATAINFO if pData == NULL
 BOOL CAln::Train(int nMaxEpochs, float fltMinRMSErr, float fltLearnRate,
-                 BOOL bJitter, int nNotifyMask /*= AN_NONE*/, 
-                 ALNDATAINFO* pData /*= NULL*/, void* pvData /*= NULL*/)
+    BOOL bJitter, int nNotifyMask /*= AN_NONE*/,
+    ALNDATAINFO* pData /*= NULL*/, void* pvData /*= NULL*/)
 {
-  if (pData == NULL)
-    pData = &m_datainfo;
+    if (pData == NULL)
+        pData = &m_datainfo;
 
-  CALLBACKDATA data;
-  data.pALN = this;
-  data.pvData = pvData;
+    CALLBACKDATA data;
+    data.pALN = this;
+    data.pvData = pvData;
 
-  ALNCALLBACKINFO callback;
-  callback.nNotifyMask = nNotifyMask;
-  callback.pvData = &data;
-  callback.pfnNotifyProc = ALNNotifyProc;
+    ALNCALLBACKINFO callback;
+    callback.nNotifyMask = nNotifyMask;
+    callback.pvData = &data;
+    callback.pfnNotifyProc = ALNNotifyProc;
 
-  m_nLastError = ALNTrain(m_pALN, pData, &callback, nMaxEpochs, fltMinRMSErr, fltLearnRate, bJitter);
+    m_nLastError = ALNTrain(m_pALN, pData, &callback, nMaxEpochs, fltMinRMSErr, fltLearnRate, bJitter);
 
     return (m_nLastError == ALN_NOERROR || m_nLastError == ALN_USERABORT);
 }
 
-float CAln::CalcRMSError(int nNotifyMask /*= AN_NONE*/, 
-                          ALNDATAINFO* pData /*= NULL*/, 
-                          void* pvData /*= NULL*/)
+float CAln::CalcRMSError(int nNotifyMask /*= AN_NONE*/,
+    ALNDATAINFO* pData /*= NULL*/,
+    void* pvData /*= NULL*/)
 {
-  if (pData == NULL)
-    pData = &m_datainfo;
+    if (pData == NULL)
+        pData = &m_datainfo;
 
-  CALLBACKDATA data;
-  data.pALN = this;
-  data.pvData = pvData;
+    CALLBACKDATA data;
+    data.pALN = this;
+    data.pvData = pvData;
 
-  ALNCALLBACKINFO callback;
-  callback.nNotifyMask = nNotifyMask;
-  callback.pvData = &data;
-  callback.pfnNotifyProc = ALNNotifyProc;
-  
-  float flt;
-  m_nLastError = ::ALNCalcRMSError(m_pALN, pData, &callback, &flt);
+    ALNCALLBACKINFO callback;
+    callback.nNotifyMask = nNotifyMask;
+    callback.pvData = &data;
+    callback.pfnNotifyProc = ALNNotifyProc;
 
-  if (m_nLastError != ALN_NOERROR)
-    flt = -1.0;
+    float flt;
+    m_nLastError = ::ALNCalcRMSError(m_pALN, pData, &callback, &flt);
 
-  return flt;
+    if (m_nLastError != ALN_NOERROR)
+        flt = -1.0;
+
+    return flt;
 }
 
 // eval
-BOOL CAln::Eval(float* afltResult, int* pnStart /*=NULL*/, 
-                int* pnEnd /*= NULL*/, int nNotifyMask /*= AN_NONE*/,
-                ALNDATAINFO* pData /*= NULL*/, void* pvData /*= NULL*/)
+BOOL CAln::Eval(float* afltResult, int* pnStart /*=NULL*/,
+    int* pnEnd /*= NULL*/, int nNotifyMask /*= AN_NONE*/,
+    ALNDATAINFO* pData /*= NULL*/, void* pvData /*= NULL*/)
 {
-  if (pData == NULL)
-    pData = &m_datainfo;
+    if (pData == NULL)
+        pData = &m_datainfo;
 
-  CALLBACKDATA data;
-  data.pALN = this;
-  data.pvData = pvData;
+    CALLBACKDATA data;
+    data.pALN = this;
+    data.pvData = pvData;
 
-  ALNCALLBACKINFO callback;
-  callback.nNotifyMask = nNotifyMask;
-  callback.pvData = &data;
-  callback.pfnNotifyProc = ALNNotifyProc;
+    ALNCALLBACKINFO callback;
+    callback.nNotifyMask = nNotifyMask;
+    callback.pvData = &data;
+    callback.pfnNotifyProc = ALNNotifyProc;
 
-  m_nLastError = ALNEval(m_pALN, pData, &callback, afltResult, pnStart, pnEnd);
+    m_nLastError = ALNEval(m_pALN, pData, &callback, afltResult, pnStart, pnEnd);
 
-  return m_nLastError == ALN_NOERROR;
+    return m_nLastError == ALN_NOERROR;
 }
 
 // quick eval
 float CAln::QuickEval(const float* afltX, ALNNODE** ppActiveLFN /*= NULL*/)
 {
-  m_nLastError = ALN_NOERROR;
-  return ALNQuickEval(m_pALN, afltX, ppActiveLFN);
+    m_nLastError = ALN_NOERROR;
+    return ALNQuickEval(m_pALN, afltX, ppActiveLFN);
 }
 
 // get variable monotonicicty, returns -1 on failure
 int CAln::VarMono(int nVar)
 {
-  int nMono;
-  m_nLastError = ALNVarMono(m_pALN, nVar, &nMono);
-  return nMono;
+    int nMono;
+    m_nLastError = ALNVarMono(m_pALN, nVar, &nMono);
+    return nMono;
 }
 
 // invert the aln to get an aln for a different output variable WWA
@@ -544,169 +544,169 @@ BOOL CAln::Invert(int nVar)
 // save ALN to disk file
 BOOL CAln::Write(const char* pszFileName)
 {
-  m_nLastError = ALNWrite(m_pALN, pszFileName);
-  return m_nLastError == ALN_NOERROR;
+    m_nLastError = ALNWrite(m_pALN, pszFileName);
+    return m_nLastError == ALN_NOERROR;
 }
 
 // read ALN from disk file... destroys any existing ALN
 BOOL CAln::Read(const char* pszFileName)
 {
-  Destroy();
-  ASSERT(m_pALN == NULL);
+    Destroy();
+    ASSERT(m_pALN == NULL);
 
-  m_nLastError = ALNRead(pszFileName, &m_pALN);
-  return m_nLastError == ALN_NOERROR;
+    m_nLastError = ALNRead(pszFileName, &m_pALN);
+    return m_nLastError == ALN_NOERROR;
 }
 
 // conversion to dtree
 DTREE* CAln::ConvertDtree(int nMaxDepth)
 {
-  DTREE* pDtree = NULL;
+    DTREE* pDtree = NULL;
     DTREE** ppDtree = &pDtree;
-  m_nLastError = ALNConvertDtree(m_pALN, nMaxDepth, ppDtree);
+    m_nLastError = ALNConvertDtree(m_pALN, nMaxDepth, ppDtree);
     pDtree = *ppDtree;
-  return pDtree;
+    return pDtree;
 }
 
 // confidence intervals
-BOOL CAln::CalcConfidence(ALNCONFIDENCE* pConfidence, 
-                          int nNotifyMask /*= AN_NONE*/, 
-                          ALNDATAINFO* pData /*= NULL*/, 
-                          void* pvData /*= NULL*/)
+BOOL CAln::CalcConfidence(ALNCONFIDENCE* pConfidence,
+    int nNotifyMask /*= AN_NONE*/,
+    ALNDATAINFO* pData /*= NULL*/,
+    void* pvData /*= NULL*/)
 {
-  if (pData == NULL)
-    pData = &m_datainfo;
+    if (pData == NULL)
+        pData = &m_datainfo;
 
-  CALLBACKDATA data;
-  data.pALN = this;
-  data.pvData = pvData;
+    CALLBACKDATA data;
+    data.pALN = this;
+    data.pvData = pvData;
 
-  ALNCALLBACKINFO callback;
-  callback.nNotifyMask = nNotifyMask;
-  callback.pvData = &data;
-  callback.pfnNotifyProc = ALNNotifyProc;
+    ALNCALLBACKINFO callback;
+    callback.nNotifyMask = nNotifyMask;
+    callback.pvData = &data;
+    callback.pfnNotifyProc = ALNNotifyProc;
 
-  m_nLastError = ALNCalcConfidence(m_pALN, pData, &callback, pConfidence);
+    m_nLastError = ALNCalcConfidence(m_pALN, pData, &callback, pConfidence);
 
-  return m_nLastError == ALN_NOERROR;
+    return m_nLastError == ALN_NOERROR;
 }
 
-float CAln::ConfidencePLimit(const ALNCONFIDENCE* pConfidence, 
-                              float fltSignificance)
+float CAln::ConfidencePLimit(const ALNCONFIDENCE* pConfidence,
+    float fltSignificance)
 {
-  float fltPLimit;
-  
-  if (ALNConfidencePLimit(pConfidence, fltSignificance, &fltPLimit) != ALN_NOERROR)
-    return -1.0;
-  
-  return fltPLimit;
+    float fltPLimit;
+
+    if (ALNConfidencePLimit(pConfidence, fltSignificance, &fltPLimit) != ALN_NOERROR)
+        return -1.0;
+
+    return fltPLimit;
 }
 
-float CAln::ConfidenceTLimit(const ALNCONFIDENCE* pConfidence, 
-                              float fltInterval)
+float CAln::ConfidenceTLimit(const ALNCONFIDENCE* pConfidence,
+    float fltInterval)
 {
-  float fltTLimit;
-  
-  if (ALNConfidenceTLimit(pConfidence, fltInterval, &fltTLimit) != ALN_NOERROR)
-    return -1.0;
-  
-  return fltTLimit;
+    float fltTLimit;
+
+    if (ALNConfidenceTLimit(pConfidence, fltInterval, &fltTLimit) != ALN_NOERROR)
+        return -1.0;
+
+    return fltTLimit;
 }
 
 // lfn analysis
 BOOL CAln::LFNAnalysis(void*& pvAnalysis,
-                       int& nLFNStats,
-                       int nNotifyMask /*= AN_NONE*/, 
-                       ALNDATAINFO* pData /*= NULL*/, void* pvData /*= NULL*/)
+    int& nLFNStats,
+    int nNotifyMask /*= AN_NONE*/,
+    ALNDATAINFO* pData /*= NULL*/, void* pvData /*= NULL*/)
 {
-  if (pData == NULL)
-    pData = &m_datainfo; // In new format
+    if (pData == NULL)
+        pData = &m_datainfo; // In new format
     CALLBACKDATA data;
-  data.pALN = this;
-  data.pvData = pvData;
+    data.pALN = this;
+    data.pvData = pvData;
 
-  ALNCALLBACKINFO callback;
-  callback.nNotifyMask = nNotifyMask;
-  callback.pvData = &data;
-  callback.pfnNotifyProc = ALNNotifyProc;
+    ALNCALLBACKINFO callback;
+    callback.nNotifyMask = nNotifyMask;
+    callback.pvData = &data;
+    callback.pfnNotifyProc = ALNNotifyProc;
 
-  m_nLastError = ALNLFNAnalysis(m_pALN, pData, &callback,
-                                pvAnalysis, nLFNStats);
+    m_nLastError = ALNLFNAnalysis(m_pALN, pData, &callback,
+        pvAnalysis, nLFNStats);
 
-  return m_nLastError == ALN_NOERROR;
+    return m_nLastError == ALN_NOERROR;
 }
 
 BOOL CAln::LFNFreeAnalysis(void* pvAnalysis)
 {
-  return ALNLFNFreeAnalysis(pvAnalysis) == ALN_NOERROR;
+    return ALNLFNFreeAnalysis(pvAnalysis) == ALN_NOERROR;
 }
 
-BOOL CAln::LFNStats(void* pvAnalysis, 
-                    int nLFNStat,
-                    LFNSTATS& LFNStats,
-                    int& nWeights,
-                    ALNNODE*& pLFN)
+BOOL CAln::LFNStats(void* pvAnalysis,
+    int nLFNStat,
+    LFNSTATS& LFNStats,
+    int& nWeights,
+    ALNNODE*& pLFN)
 {
-  return ALNLFNStats(pvAnalysis, nLFNStat, &LFNStats, 
-                     &nWeights, &pLFN) == ALN_NOERROR;
+    return ALNLFNStats(pvAnalysis, nLFNStat, &LFNStats,
+        &nWeights, &pLFN) == ALN_NOERROR;
 }
 
 BOOL CAln::LFNWeightStats(void* pvAnalysis,
-                          int nLFNStat,
-                          int nWeightStat,
-                          LFNWEIGHTSTATS& LFNWeightStats)
+    int nLFNStat,
+    int nWeightStat,
+    LFNWEIGHTSTATS& LFNWeightStats)
 {
-  return ALNLFNWeightStats(pvAnalysis, nLFNStat, nWeightStat, 
-                           &LFNWeightStats) == ALN_NOERROR;
+    return ALNLFNWeightStats(pvAnalysis, nLFNStat, nWeightStat,
+        &LFNWeightStats) == ALN_NOERROR;
 }
 
-int ALNAPI CAln::ALNNotifyProc(const ALN* pALN, int nCode, void* pParam, 
-                               void* pvData)
+int ALNAPI CAln::ALNNotifyProc(const ALN* pALN, int nCode, void* pParam,
+    void* pvData)
 {
-  CALLBACKDATA* pData = (CALLBACKDATA*)pvData;
-  CAln* pALNObj = pData->pALN;
-  
-  ASSERT(pALNObj != NULL && pALN == pALNObj->m_pALN);
+    CALLBACKDATA* pData = (CALLBACKDATA*)pvData;
+    CAln* pALNObj = pData->pALN;
 
-  BOOL bContinue = FALSE;
+    ASSERT(pALNObj != NULL && pALN == pALNObj->m_pALN);
 
-  switch (nCode)
+    BOOL bContinue = FALSE;
+
+    switch (nCode)
     {
-        case AN_TRAINSTART:
-            bContinue = pALNObj->OnTrainStart((TRAININFO*)pParam, pData->pvData);
-            break;
+    case AN_TRAINSTART:
+        bContinue = pALNObj->OnTrainStart((TRAININFO*)pParam, pData->pvData);
+        break;
 
-        case AN_TRAINEND:
-          bContinue = pALNObj->OnTrainEnd((TRAININFO*)pParam, pData->pvData);
-            break;
+    case AN_TRAINEND:
+        bContinue = pALNObj->OnTrainEnd((TRAININFO*)pParam, pData->pvData);
+        break;
 
-        case AN_EPOCHSTART:
-          bContinue = pALNObj->OnEpochStart((EPOCHINFO*)pParam, pData->pvData);
-            break;
+    case AN_EPOCHSTART:
+        bContinue = pALNObj->OnEpochStart((EPOCHINFO*)pParam, pData->pvData);
+        break;
 
-        case AN_EPOCHEND:
-      bContinue = pALNObj->OnEpochEnd((EPOCHINFO*)pParam, pData->pvData);
-            break;
+    case AN_EPOCHEND:
+        bContinue = pALNObj->OnEpochEnd((EPOCHINFO*)pParam, pData->pvData);
+        break;
 
-        case AN_ADAPTSTART:
-          bContinue = pALNObj->OnAdaptStart((ADAPTINFO*)pParam, pData->pvData);
-      break;
+    case AN_ADAPTSTART:
+        bContinue = pALNObj->OnAdaptStart((ADAPTINFO*)pParam, pData->pvData);
+        break;
 
-        case AN_ADAPTEND:
-          bContinue = pALNObj->OnAdaptEnd((ADAPTINFO*)pParam, pData->pvData);
-      break;
+    case AN_ADAPTEND:
+        bContinue = pALNObj->OnAdaptEnd((ADAPTINFO*)pParam, pData->pvData);
+        break;
 
     case AN_LFNADAPTSTART:
-      bContinue = pALNObj->OnLFNAdaptStart((LFNADAPTINFO*)pParam, pData->pvData);
-      break;
-    
+        bContinue = pALNObj->OnLFNAdaptStart((LFNADAPTINFO*)pParam, pData->pvData);
+        break;
+
     case AN_LFNADAPTEND:
-      bContinue = pALNObj->OnLFNAdaptEnd((LFNADAPTINFO*)pParam, pData->pvData);
-      break;
-    
+        bContinue = pALNObj->OnLFNAdaptEnd((LFNADAPTINFO*)pParam, pData->pvData);
+        break;
+
     case AN_VECTORINFO:
-      bContinue = pALNObj->OnVectorInfo((VECTORINFO*)pParam, pData->pvData);
-      break;
+        bContinue = pALNObj->OnVectorInfo((VECTORINFO*)pParam, pData->pvData);
+        break;
     }
 
     return bContinue;

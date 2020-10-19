@@ -42,32 +42,32 @@ static char THIS_FILE[] = __FILE__;
 //    node's fltDistance member for use by adaptive routines
 
 float ALNAPI AdaptEvalLFN(ALNNODE* pNode, ALN* pALN, const float* afltX,
-	ALNNODE** ppActiveLFN)
+    ALNNODE** ppActiveLFN)
 
 {
-  ASSERT(afltX != NULL);
-  ASSERT(pALN != NULL);
-  ASSERT(pNode != NULL);
-  ASSERT(ppActiveLFN != NULL);
-  ASSERT(NODE_ISLFN(pNode));
-  ASSERT(LFN_VARMAP(pNode) == NULL);      // var map not yet supported
-  ASSERT(LFN_VDIM(pNode) == pALN->nDim);  // no different sized vectors yet
+    ASSERT(afltX != NULL);
+    ASSERT(pALN != NULL);
+    ASSERT(pNode != NULL);
+    ASSERT(ppActiveLFN != NULL);
+    ASSERT(NODE_ISLFN(pNode));
+    ASSERT(LFN_VARMAP(pNode) == NULL);      // var map not yet supported
+    ASSERT(LFN_VDIM(pNode) == pALN->nDim);  // no different sized vectors yet
 
-  *ppActiveLFN = pNode;
+    *ppActiveLFN = pNode;
 
-  // set node eval flag
-  NODE_FLAGS(pNode) |= NF_EVAL;
+    // set node eval flag
+    NODE_FLAGS(pNode) |= NF_EVAL;
 
-  // calc difference: sample value minus LFN value  X - L
-  int nDim = pALN->nDim;
-  const float* afltW = LFN_W(pNode);
-  float fltA = *afltW++;                 // skip past bias weight       
-  for (int i = 0; i < nDim; i++)     
-  {
-    fltA += afltW[i] * afltX[i];
-  }
-  
-  NODE_DISTANCE(pNode) = fltA;
-  
-  return fltA;
+    // calc difference: sample value minus LFN value  X - L
+    int nDim = pALN->nDim;
+    const float* afltW = LFN_W(pNode);
+    float fltA = *afltW++;                 // skip past bias weight       
+    for (int i = 0; i < nDim; i++)
+    {
+        fltA += afltW[i] * afltX[i];
+    }
+
+    NODE_DISTANCE(pNode) = fltA;
+
+    return fltA;
 }

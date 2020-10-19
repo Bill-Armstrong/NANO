@@ -57,7 +57,7 @@ extern BOOL bStopTraining; // This becomes TRUE and stops training when pieces a
 void setSplitAlpha(ALNDATAINFO* pDataInfo);
 void splitControl(ALN* pALN, ALNDATAINFO* pDataInfo);
 void zeroSplitValues(ALN* pALN, ALNNODE* pNode);
-void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo);
+void splitUpdateValues(ALN* pALN, ALNDATAINFO* pDataInfo);
 void doSplits(ALN* pALN, ALNNODE* pNode, float fltLimit);
 int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode);
 extern float WeightDecay;
@@ -107,7 +107,7 @@ void setSplitAlpha(ALNDATAINFO* pDataInfo)
     // If fltMSEorF < 0, this routine is called once before any training.
     float fltLimit = pDataInfo->fltMSEorF;
     if (fltLimit >= 0) return;
-    if(-fltLimit == 50)
+    if (-fltLimit == 50)
     {
         for (int i = 0; i < 13; i++) // We are doing an F-test
         {
@@ -118,7 +118,7 @@ void setSplitAlpha(ALNDATAINFO* pDataInfo)
     {
         for (int i = 0; i < 13; i++) // We are doing an F-test
         {
-            afltF_Alpha[i] = (float)pow(afltFconstant75[i], (-fltLimit -50)/25.0);
+            afltF_Alpha[i] = (float)pow(afltFconstant75[i], (-fltLimit - 50) / 25.0);
         }
     }
 }
@@ -163,7 +163,7 @@ void zeroSplitValues(ALN* pALN, ALNNODE* pNode) // routine
 
 // Routines that get the training errors and noise variance values.
 
-void splitUpdateValues(ALN * pALN, ALNDATAINFO* pDataInfo) // routine
+void splitUpdateValues(ALN* pALN, ALNDATAINFO* pDataInfo) // routine
 {
     // Assign the square errors on the training set and the noise variance
     // sample values to the leaf nodes of the ALN.
@@ -279,13 +279,13 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
                 // It has to be divided by the Count of the parent on the way up
             }
         }
-    
+
         ALNNODE* pRightChild = MINMAX_RIGHT(pNode);
         ALNNODE* pLeftChild = MINMAX_LEFT(pNode);
         // Now get the left and right domain centroids of the children
         float* afltCL = (float*)malloc((nDim - 1) * sizeof(float));
         float* afltCR = (float*)malloc((nDim - 1) * sizeof(float));
-        float* afltH  = (float*)malloc((nDim - 1) * sizeof(float)); // This is a point on the hyperplane roughly dividing the points belonging to the two branches
+        float* afltH = (float*)malloc((nDim - 1) * sizeof(float)); // This is a point on the hyperplane roughly dividing the points belonging to the two branches
         if (NODE_ISMINMAX(pRightChild))
         {
             for (int i = 0; i < nDim - 1; i++)
@@ -301,7 +301,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
                 afltCR[i] = LFN_C(pRightChild)[i];
             }
         }
-        
+
         if (NODE_ISMINMAX(pLeftChild))
         {
             for (int i = 0; i < nDim - 1; i++)
@@ -317,7 +317,7 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
                 afltCL[i] = LFN_C(pLeftChild)[i];
             }
         }
-        
+
         //Now we use the left and right *domain* centroids of the children of this node to generate other needed items
         MINMAX_THRESHOLD(pNode) = 0;
         for (int i = 0; i < nDim - 1; i++)
@@ -409,13 +409,13 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
                     // This is a queston of speed, so we can test it without stopping sample presentation
                 }
             } // end of if LFN_CANSPLIT(pNode)
-        } 
+        }
     }
 }
 
 int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode)
 {
-    if (bClassify2  && bConvex)
+    if (bClassify2 && bConvex)
     {
         // This is for convex classification
         return ALNAddLFNs(pALN, pNode, GF_MIN, 2, NULL);
@@ -438,12 +438,12 @@ int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode)
             if (MINMAX_ISMAX(NODE_PARENT(pNode)))
             {
                 return ALNAddLFNs(pALN, pNode, GF_MAX, 2, NULL);
-                    // A max is convex down:  \/,  \_/ etc.
+                // A max is convex down:  \/,  \_/ etc.
             }
             else
             {
                 return ALNAddLFNs(pALN, pNode, GF_MIN, 2, NULL);
-                    // A min of several LFNs is like a dome.
+                // A min of several LFNs is like a dome.
             }
 
         }

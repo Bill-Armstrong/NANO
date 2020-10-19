@@ -27,42 +27,42 @@ SOFTWARE. */
 
 #ifndef __DTR_PRIV_H__
 #define __DTR_PRIV_H__
-          
-/*          
+
+/*
 /////////////////////////////////////////////////////////////////////
-// parser - returns DTE_NOERR on success                           
+// parser - returns DTE_NOERR on success
 // returns new DTREE in *ppDtree - use DestroyDtree to delete
 */
 int ParseDtreeFile(FILE* pFile, DTREE** ppDtree);
-  
-/*  
+
+/*
 /////////////////////////////////////////////////////////////////////
-// exporter - returns DTE_NOERR on success                           
+// exporter - returns DTE_NOERR on success
 // exports pDtree to a text file
 */
 int ExportDtreeFile(FILE* pFile, const char* pszFileName, DTREE* pDtree);
 
-/*          
+/*
 /////////////////////////////////////////////////////////////////////
-// binary file import - returns DTE_NOERR on success                           
+// binary file import - returns DTE_NOERR on success
 // returns new DTREE in *ppDtree - use DestroyDtree to delete
 */
 int ReadBinDtreeFile(FILE* pFile, DTREE** ppDtree);
-  
-/*  
+
+/*
 /////////////////////////////////////////////////////////////////////
-// binary file export - returns DTE_NOERR on success                           
+// binary file export - returns DTE_NOERR on success
 // exports pDtree to a binary file
 */
 int WriteBinDtreeFile(FILE* pFile, DTREE* pDtree);
 
-  
-/*                  
+
+/*
 /////////////////////////////////////////////////////////////////////
 // error code messages
 // returns new DTREE in *ppDtree - use DestroyDtree to delete
 */
 void GetErrMsg(int nErrno, char* pBuf, int nMaxBufLen);
 
-                  
+
 #endif  /* __DTR_PRIV_H__ */

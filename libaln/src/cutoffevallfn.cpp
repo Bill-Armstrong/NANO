@@ -42,29 +42,29 @@ long CountLeafevals;
 // LFN specific eval - returns distance to surface
 //  - returns distance of LFN from point
 
-float ALNAPI CutoffEvalLFN(const ALNNODE* pNode, const ALN* pALN, 
-                            const float* afltX, ALNNODE** ppActiveLFN)
+float ALNAPI CutoffEvalLFN(const ALNNODE* pNode, const ALN* pALN,
+    const float* afltX, ALNNODE** ppActiveLFN)
 {
-  ASSERT(afltX != NULL);
-  ASSERT(pALN != NULL);
-  ASSERT(pNode != NULL);
-  ASSERT(ppActiveLFN != NULL);
-  ASSERT(NODE_ISLFN(pNode));
+    ASSERT(afltX != NULL);
+    ASSERT(pALN != NULL);
+    ASSERT(pNode != NULL);
+    ASSERT(ppActiveLFN != NULL);
+    ASSERT(NODE_ISLFN(pNode));
 
-  ASSERT(LFN_VARMAP(pNode) == NULL);      // var map not yet supported
-  ASSERT(LFN_VDIM(pNode) == pALN->nDim);  // no different sized vectors yet
+    ASSERT(LFN_VARMAP(pNode) == NULL);      // var map not yet supported
+    ASSERT(LFN_VDIM(pNode) == pALN->nDim);  // no different sized vectors yet
 
-  *ppActiveLFN = (ALNNODE*)pNode;         // cast away the const...
+    *ppActiveLFN = (ALNNODE*)pNode;         // cast away the const...
 
-  // calc dist of point from line
-  int nDim = pALN->nDim;
-  const float* afltW = LFN_W(pNode);
-  float fltA = *afltW++;                 // skip past bias weight       
-  for (int i = 0; i < nDim; i++)     // Go to nDim - 1 instead, then use this for quickeval.
-  {
-    fltA += afltW[i] * afltX[i];
-  }
-  CountLeafevals++;
-  // NODE_DISTANCE(pNode) = fltA; optional?
-  return fltA;
+    // calc dist of point from line
+    int nDim = pALN->nDim;
+    const float* afltW = LFN_W(pNode);
+    float fltA = *afltW++;                 // skip past bias weight       
+    for (int i = 0; i < nDim; i++)     // Go to nDim - 1 instead, then use this for quickeval.
+    {
+        fltA += afltW[i] * afltX[i];
+    }
+    CountLeafevals++;
+    // NODE_DISTANCE(pNode) = fltA; optional?
+    return fltA;
 }

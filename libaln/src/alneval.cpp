@@ -38,44 +38,44 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 static int ALNAPI ValidateALNEvalInfo(const ALN* pALN,
-                                      ALNDATAINFO* pDataInfo,
-                                      const ALNCALLBACKINFO* pCallbackInfo,
-                                      float* afltResult,
-                                      int* pnStart, int* pnEnd);
+    ALNDATAINFO* pDataInfo,
+    const ALNCALLBACKINFO* pCallbackInfo,
+    float* afltResult,
+    int* pnStart, int* pnEnd);
 
 // evaluation of ALN on data
 
 ALNIMP int ALNAPI ALNEval(const ALN* pALN,
-                          ALNDATAINFO* pDataInfo,
-                          const ALNCALLBACKINFO* pCallbackInfo,
-                          float* afltResult,
-                          int* pnStart, int* pnEnd)
+    ALNDATAINFO* pDataInfo,
+    const ALNCALLBACKINFO* pCallbackInfo,
+    float* afltResult,
+    int* pnStart, int* pnEnd)
 {
-	int nReturn = ValidateALNEvalInfo(pALN, pDataInfo, pCallbackInfo,
-                                    afltResult, pnStart, pnEnd);
-  if (nReturn == ALN_NOERROR)
-  {
-    nReturn = EvalTree(pALN->pTree, pALN, pDataInfo, pCallbackInfo,
-                       afltResult, pnStart, pnEnd, FALSE);
-  }
-  
-	return nReturn;
+    int nReturn = ValidateALNEvalInfo(pALN, pDataInfo, pCallbackInfo,
+        afltResult, pnStart, pnEnd);
+    if (nReturn == ALN_NOERROR)
+    {
+        nReturn = EvalTree(pALN->pTree, pALN, pDataInfo, pCallbackInfo,
+            afltResult, pnStart, pnEnd, FALSE);
+    }
+
+    return nReturn;
 }
 
 
 // validate params
 static int ALNAPI ValidateALNEvalInfo(const ALN* pALN,
-                                      ALNDATAINFO* pDataInfo,
-                                      const ALNCALLBACKINFO* pCallbackInfo,
-                                      float* afltResult,
-                                      int* pnStart, int* pnEnd)
+    ALNDATAINFO* pDataInfo,
+    const ALNCALLBACKINFO* pCallbackInfo,
+    float* afltResult,
+    int* pnStart, int* pnEnd)
 {
-  int nReturn = ValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
-  if (nReturn != ALN_NOERROR)
-    return nReturn;
-	
-  if (afltResult == NULL)
-    return ALN_GENERIC;
+    int nReturn = ValidateALNDataInfo(pALN, pDataInfo, pCallbackInfo);
+    if (nReturn != ALN_NOERROR)
+        return nReturn;
 
-  return ALN_NOERROR;
+    if (afltResult == NULL)
+        return ALN_GENERIC;
+
+    return ALN_NOERROR;
 }

@@ -46,7 +46,7 @@ void ALNAPI CalcDataEndPoints(long& nStart, long& nEnd, const ALN* pALN,
   int nDim = pALN->nDim;
   const VARINFO* aVarInfo = pDataInfo->aVarInfo;
 
-  nStart = 0; 
+  nStart = 0;
   nEnd = 0;
   if (aVarInfo != NULL)
   {
@@ -60,7 +60,7 @@ void ALNAPI CalcDataEndPoints(long& nStart, long& nEnd, const ALN* pALN,
     }
 
     ASSERT(nStart + nEnd <= pDataInfo->nTRcurrSamples);
-    
+
     // adjust nEnd to reflect end point
     nEnd = pDataInfo->nTRcurrSamples - nEnd - 1;
   }

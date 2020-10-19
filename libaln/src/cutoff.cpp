@@ -39,46 +39,46 @@ static char THIS_FILE[] = __FILE__;
 
 BOOL ALNAPI Cutoff(float flt, const ALNNODE* pNode, CEvalCutoff& cutoff)
 {
-  if(MINMAX_ISMAX(pNode))  // if pNode is a MAX
-	{   
-    // cutoff if we're greater than or equal to existing min
-		if (cutoff.bMin && (flt >= cutoff.fltMin))
-		{ 
-			return TRUE;  // cutoff!
-		}
+    if (MINMAX_ISMAX(pNode))  // if pNode is a MAX
+    {
+        // cutoff if we're greater than or equal to existing min
+        if (cutoff.bMin && (flt >= cutoff.fltMin))
+        {
+            return TRUE;  // cutoff!
+        }
 
-		if (!cutoff.bMax)
-		{
-			cutoff.bMax = TRUE;
-			cutoff.fltMax = flt;
-		}
-		else if (flt > cutoff.fltMax)  // we set a higher lower bound on the value of the current MAX node
-		{
-			cutoff.fltMax = flt;
-		}
-	}
-	else  // pNode is a MIN
-	{
-		ASSERT(MINMAX_ISMIN(pNode));
+        if (!cutoff.bMax)
+        {
+            cutoff.bMax = TRUE;
+            cutoff.fltMax = flt;
+        }
+        else if (flt > cutoff.fltMax)  // we set a higher lower bound on the value of the current MAX node
+        {
+            cutoff.fltMax = flt;
+        }
+    }
+    else  // pNode is a MIN
+    {
+        ASSERT(MINMAX_ISMIN(pNode));
 
-		// cutoff if we're less than or equal to existing max
-		if (cutoff.bMax && (flt <= cutoff.fltMax))
-		{
-			return TRUE;
-		}
+        // cutoff if we're less than or equal to existing max
+        if (cutoff.bMax && (flt <= cutoff.fltMax))
+        {
+            return TRUE;
+        }
 
-		// no cutoff... set new min
+        // no cutoff... set new min
 
-		// assume min adjusted by node prior to evaluation:
-		if (!cutoff.bMin)
-		{
-			cutoff.bMin = TRUE;
-			cutoff.fltMin = flt;
-		}
-		else if (flt < cutoff.fltMin)  // we set a lower upper bound on the value of the current MIN node
-		{
-			cutoff.fltMin = flt;
-		}
-	}
-  return FALSE; // no cutoff
+        // assume min adjusted by node prior to evaluation:
+        if (!cutoff.bMin)
+        {
+            cutoff.bMin = TRUE;
+            cutoff.fltMin = flt;
+        }
+        else if (flt < cutoff.fltMin)  // we set a lower upper bound on the value of the current MIN node
+        {
+            cutoff.fltMin = flt;
+        }
+    }
+    return FALSE; // no cutoff
 }

@@ -42,22 +42,22 @@ static char THIS_FILE[] = __FILE__;
 // returns ALN_* error code, (ALN_NOERROR on success)
 ALNIMP int ALNAPI ALNVarMono(const ALN* pALN, int nVar, int* pnMono)
 {
-  // parameter variance
-  if (pALN == NULL)
-    return ALN_GENERIC;
+    // parameter variance
+    if (pALN == NULL)
+        return ALN_GENERIC;
 
-  if (nVar < 0 || nVar >= pALN->nDim)
-    return ALN_GENERIC;
+    if (nVar < 0 || nVar >= pALN->nDim)
+        return ALN_GENERIC;
 
-  if (pnMono == NULL)
-    return ALN_GENERIC;
+    if (pnMono == NULL)
+        return ALN_GENERIC;
 
-  *pnMono = CheckMonotonicity(pALN->pTree, pALN, nVar);
-  ASSERT(*pnMono == MONO_CONSTANT || *pnMono == MONO_FREE ||
-         *pnMono == MONO_STRONGINC || *pnMono == MONO_STRONGDEC ||
-         *pnMono == MONO_WEAKINC || *pnMono == MONO_WEAKDEC);
+    *pnMono = CheckMonotonicity(pALN->pTree, pALN, nVar);
+    ASSERT(*pnMono == MONO_CONSTANT || *pnMono == MONO_FREE ||
+        *pnMono == MONO_STRONGINC || *pnMono == MONO_STRONGDEC ||
+        *pnMono == MONO_WEAKINC || *pnMono == MONO_WEAKDEC);
 
-  return ALN_NOERROR;
+    return ALN_NOERROR;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,84 +65,84 @@ ALNIMP int ALNAPI ALNVarMono(const ALN* pALN, int nVar, int* pnMono)
 
 int ALNAPI CheckMonotonicity(const ALNNODE* pNode, const ALN* pALN, int nVar)
 {
-	ASSERT(pNode);
-	ASSERT(pALN);
-  ASSERT(nVar >= 0 && nVar < pALN->nDim);
+    ASSERT(pNode);
+    ASSERT(pALN);
+    ASSERT(nVar >= 0 && nVar < pALN->nDim);
 
-  // traverse tree and examine weights on variable
-  if (NODE_MINMAXTYPE(pNode) & NF_LFN)
-  {
-    // examine actual weight on var
-    float fltW = LFN_W(pNode)[nVar + 1];   // ...skip bias weight
-    if (fltW < 0)
+    // traverse tree and examine weights on variable
+    if (NODE_MINMAXTYPE(pNode) & NF_LFN)
     {
-      return MONO_STRONGDEC;
+        // examine actual weight on var
+        float fltW = LFN_W(pNode)[nVar + 1];   // ...skip bias weight
+        if (fltW < 0)
+        {
+            return MONO_STRONGDEC;
+        }
+        else if (fltW > 0)
+        {
+            return MONO_STRONGINC;
+        }
+        // else has zero weight so return MONO_NONE
+
+        return MONO_CONSTANT; // return monotonicity
     }
-    else if (fltW > 0)
+
+    ASSERT(NODE_MINMAXTYPE(pNode) & NF_MINMAX);
+
+    // monotonicity initially set to undefined
+    int nMono = -1;
+
+    int nChildren = MINMAX_NUMCHILDREN(pNode);
+    ALNNODE* const* apChildren = MINMAX_CHILDREN(pNode);
+    for (int i = 0; i < nChildren; i++)
     {
-      return MONO_STRONGINC;
+        const ALNNODE* pChild = apChildren[i];
+        ASSERT(pChild);
+
+        int nChildMono = CheckMonotonicity(pChild, pALN, nVar);
+
+        if (nChildMono == MONO_FREE)
+            return MONO_FREE;   // child is free, so we're free
+
+        else if (i == 0)
+            nMono = nChildMono; // first time through, so take on child mono
+
+        else if (nMono == nChildMono)
+            continue;           // no change
+
+          // move from const to weak if child is weak or strong                
+        else if (nMono == MONO_CONSTANT &&
+            (nChildMono == MONO_WEAKINC || nChildMono == MONO_STRONGINC))
+            nMono = MONO_WEAKINC;
+
+        else if (nMono == MONO_CONSTANT &&
+            (nChildMono == MONO_WEAKDEC || nChildMono == MONO_STRONGDEC))
+            nMono = MONO_WEAKDEC;
+
+        // remain weak if child is strong or constant
+        else if (nMono == MONO_WEAKINC &&
+            (nChildMono == MONO_STRONGINC || nChildMono == MONO_CONSTANT))
+            continue;
+
+        else if (nMono == MONO_WEAKDEC &&
+            (nChildMono == MONO_STRONGDEC || nChildMono == MONO_CONSTANT))
+            continue;
+
+        // move from strong to weak if we're strong and child is weak or constant
+        else if (nMono == MONO_STRONGINC &&
+            (nChildMono == MONO_WEAKINC || nChildMono == MONO_CONSTANT))
+            nMono = MONO_WEAKINC;
+
+        else if (nMono == MONO_STRONGDEC &&
+            (nChildMono == MONO_WEAKDEC || nChildMono == MONO_CONSTANT))
+            nMono = MONO_WEAKDEC;
+
+        // opposite child monotonicities      
+        else return MONO_FREE;
     }
-    // else has zero weight so return MONO_NONE
-  
-    return MONO_CONSTANT; // return monotonicity
-  }
-  
-  ASSERT(NODE_MINMAXTYPE(pNode) & NF_MINMAX);
 
-  // monotonicity initially set to undefined
-  int nMono = -1;
-
-  int nChildren = MINMAX_NUMCHILDREN(pNode);
-  ALNNODE*const* apChildren = MINMAX_CHILDREN(pNode);
-  for (int i = 0; i < nChildren; i++)
-  { 
-    const ALNNODE* pChild = apChildren[i];
-    ASSERT(pChild);
-
-    int nChildMono = CheckMonotonicity(pChild, pALN, nVar);
-                  
-    if (nChildMono == MONO_FREE)
-      return MONO_FREE;   // child is free, so we're free
-    
-    else if (i == 0)  
-      nMono = nChildMono; // first time through, so take on child mono
-
-    else if (nMono == nChildMono)
-      continue;           // no change
-
-    // move from const to weak if child is weak or strong                
-    else if (nMono == MONO_CONSTANT && 
-             (nChildMono == MONO_WEAKINC || nChildMono == MONO_STRONGINC))
-      nMono = MONO_WEAKINC;
-    
-    else if (nMono == MONO_CONSTANT && 
-             (nChildMono == MONO_WEAKDEC || nChildMono == MONO_STRONGDEC))
-      nMono = MONO_WEAKDEC;
-
-    // remain weak if child is strong or constant
-    else if (nMono == MONO_WEAKINC &&
-             (nChildMono == MONO_STRONGINC || nChildMono == MONO_CONSTANT))
-      continue;
-    
-    else if (nMono == MONO_WEAKDEC &&
-             (nChildMono == MONO_STRONGDEC || nChildMono == MONO_CONSTANT))
-      continue;
-          
-    // move from strong to weak if we're strong and child is weak or constant
-    else if (nMono == MONO_STRONGINC && 
-             (nChildMono == MONO_WEAKINC || nChildMono == MONO_CONSTANT))
-      nMono = MONO_WEAKINC;
-             
-    else if (nMono == MONO_STRONGDEC && 
-             (nChildMono == MONO_WEAKDEC || nChildMono == MONO_CONSTANT))
-      nMono = MONO_WEAKDEC;
-
-    // opposite child monotonicities      
-    else return MONO_FREE;
-  }
-
-  // no conflicting child monotonicities
-  ASSERT(nMono != -1);
-  return nMono;           
+    // no conflicting child monotonicities
+    ASSERT(nMono != -1);
+    return nMono;
 }
 

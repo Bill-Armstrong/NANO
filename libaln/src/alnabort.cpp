@@ -48,18 +48,18 @@ static ALNABORTPROC _pfnAbort = NULL;
 //  library, and simply call ALNAbort
 ALNIMP void ALNAPI ALNSetAbortProc(ALNABORTPROC pfnAbortProc)
 {
-	_pfnAbort = pfnAbortProc;
+    _pfnAbort = pfnAbortProc;
 }
 
 // ALN library abort... cleans up internal ALN library, then calls
 // abort procedure defined by call to ALNSetAbortProc()
 ALNIMP void __stdcall ALNAbort(void)
 {
-	// any ALN lib cleanup here
+    // any ALN lib cleanup here
 
-	if (!_pfnAbort || _pfnAbort == ALNAbort)
-		abort();
+    if (!_pfnAbort || _pfnAbort == ALNAbort)
+        abort();
 
-	else
-		(*_pfnAbort)();
+    else
+        (*_pfnAbort)();
 }

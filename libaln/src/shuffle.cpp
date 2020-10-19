@@ -41,21 +41,21 @@ static char THIS_FILE[] = __FILE__;
 
 void ALNAPI Shuffle(long nStart, long nEnd, long* anShuffle)
 {
-  ASSERT(anShuffle);
+    ASSERT(anShuffle);
 
-  if ((nEnd - nStart) > 1)
-  {
-  	for (int nSwap = nStart; nSwap <= nEnd; nSwap++)
-  	{
-  		// calc swap indexes
-  	  int a, b;
-  	  a = ALNRand() % (nEnd - nStart + 1);
-  	  do { b = ALNRand() % (nEnd - nStart + 1); } while (a == b);
+    if ((nEnd - nStart) > 1)
+    {
+        for (int nSwap = nStart; nSwap <= nEnd; nSwap++)
+        {
+            // calc swap indexes
+            int a, b;
+            a = ALNRand() % (nEnd - nStart + 1);
+            do { b = ALNRand() % (nEnd - nStart + 1); } while (a == b);
 
-  	  // swap indexes
-  		#define _SWAP(a, b) (a) = (a)^(b); (b) = (a)^(b); (a) = (a)^(b)
-  		_SWAP(anShuffle[a], anShuffle[b]);
-  		#undef _SWAP
-  	} // end shuffle    
-  }
+            // swap indexes
+#define _SWAP(a, b) (a) = (a)^(b); (b) = (a)^(b); (a) = (a)^(b)
+            _SWAP(anShuffle[a], anShuffle[b]);
+#undef _SWAP
+        } // end shuffle    
+    }
 }
