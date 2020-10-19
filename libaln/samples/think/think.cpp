@@ -39,7 +39,7 @@ void setSplitAlpha(ALNDATAINFO* pdata); // This works in the split routine to im
 float WeightDecay = 1.0F; //  This is a factor like 0.7599. It is used during classification into two classes when lower weights give better generalization.
 float WeightBound = FLT_MAX;
 float WeightBoundIncrease = 0.000003f; // increase every iteration, e.g. in 200 iterations it can go from 0.0 to 0.006, in 1800 from 0.0006 to .006
-int iterations = 950; // Initial iterations
+int iterations = 1900; // Initial iterations
 int SplitsAllowed = 75; // These are the two splits when the ALN is set up below, change to 4 if the two extra maxes are used.
 int SplitCount = 0;
 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 		// This assures that all ALN outputs are in the interval [-0.95, 0.95]
 		// A constant input to a minimum node means that only values less than or equal to that constant get through, e.g. at 0.95
 		// A constant input to a maximum node means that only values greater than or equal to that constant get through, e.g. at -0.95
-		// Set up pChildR to cut off the ALN values above 0.95 using the maximum		
+		// Set up pChildR to cut off the ALN values above 0.95 using the minimum		
 		for (int i = 0; i < nDim; i++)
 		{
 			LFN_W(pChildR)[i] = 0;
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
 		LFN_C(pChildR)[nDim - 1] = ConstLevel;
 		LFN_FLAGS(pChildR) |= NF_CONSTANT; // Don't allow the LFN to adapt
 		LFN_FLAGS(pChildR) &= ~LF_SPLIT; //Don't allow the new right leaf to split
-		// Set up the right grandchild pGChild to cut off the ALN values below -0.95 using the minimum
+		// Set up the right grandchild pGChild to cut off the ALN values below -0.95 using the maximum
 		for (int i = 0; i < nDim; i++)
 		{
 			LFN_W(pGChildR)[i] = 0;
