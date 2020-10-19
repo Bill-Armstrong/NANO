@@ -44,7 +44,7 @@ ALNIMP void ALNAPI DecayWeights(const ALNNODE* pNode, const ALN* pALN, float Wei
 		if (NODE_ISCONSTANT(pNode))return;
 		float* pC = LFN_C(pNode);
 		int nDimm1 = pALN->nDim -1; // The assumed output axis
-		if (fabs(pC[nDimm1]) < 0.75) return; // If the centroid is not near the constant level pieces, leave it alone
+		// if (fabs(pC[nDimm1]) < 0.75) return; // If the centroid is not near the constant level pieces, leave it alone
 		// Otherwise we move the centroid towards a place where the output value is 0.
 		// That should place it between the target class and some others.
 		// Then when we increase the slope of the piece by calling this routine with WeightDecay > 1.0, the rotation about the centroid
@@ -77,6 +77,6 @@ ALNIMP void ALNAPI DecayWeights(const ALNNODE* pNode, const ALN* pALN, float Wei
 		pW = LFN_W(pNode); // Get the unshifted weight vector
 		*pW = Wtemp;
 		//There is some inaccuracy if some weight changes hit the bound, the WeightDecay is assumed to be close to 1.0
-		std::cout << "\n  Output centroid value before DecayWeights = " << priorC << "and after = " << pC[nDimm1] << std::endl;
+		// std::cout << "\n  Output centroid value before DecayWeights = " << priorC << " and after = " << pC[nDimm1] << std::endl;
 	}
 }
