@@ -299,18 +299,17 @@ int main(int argc, char* argv[])
         {
             if (iteration == 1 || iteration % 5 == 0)
             {
-                std::cout << "\nIteration " << iteration << " (of " << iterations << ")   " << std::endl;
-                
                 if (iteration > 1)
                 {
                     auto finish_iteration = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<float> elapsed0 = finish_iteration - start_training;
                     std::chrono::duration<float> elapsed1 = finish_iteration - start_iteration;
 
-                    std::cout << " Duration (last 5 iterations) " << elapsed1.count() << " Elapsed time " << elapsed0.count() << " seconds" << std::endl;
+                    std::cout << "Duration (last 5 iterations) " << elapsed1.count() << " Elapsed time " << elapsed0.count() << " seconds" << std::endl;
 
                     start_iteration = std::chrono::high_resolution_clock::now();
                 }
+                std::cout << "\nIteration " << iteration << " (of " << iterations << ")   " << std::endl;
             }
             
             // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV  Training!
