@@ -64,7 +64,7 @@ void setSplitAlpha(ALNDATAINFO* pdata); // This works in the split routine to im
 float WeightDecay = 1.0F; //  This is a factor like 0.7599. It is used during classification into two classes when lower weights give better generalization.
 float WeightBound = FLT_MAX;
 float WeightBoundIncrease = 0.000003f; // increase every iteration, e.g. in 200 iterations it can go from 0.0 to 0.006, in 1800 from 0.0006 to .006
-int iterations = 1800; // Initial iterations
+int iterations = 400; // Initial iterations
 int SplitsAllowed = 75; // These are the two splits when the ALN is set up below, change to 4 if the two extra maxes are used.
 int SplitCount = 0;
 
