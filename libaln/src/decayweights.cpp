@@ -42,41 +42,57 @@ ALNIMP void ALNAPI DecayWeights(const ALNNODE* pNode, const ALN* pALN, float Wei
     {
         ASSERT(NODE_ISLFN(pNode));
         if (NODE_ISCONSTANT(pNode))return;
-        float* pC = LFN_C(pNode);
         int nDimm1 = pALN->nDim - 1; // The assumed output axis
-        // if (fabs(pC[nDimm1]) < 0.75) return; // If the centroid is not near the constant level pieces, leave it alone
+        // If the centroid is not near the constant level pieces, leave it alone
         // Otherwise we move the centroid towards a place where the output value is 0.
         // That should place it between the target class and some others.
         // Then when we increase the slope of the piece by calling this routine with WeightDecay > 1.0, the rotation about the centroid
         // should pull away from all samples both at the -1 and +1 levels.
-        float lambda = 1.0F; // lambda = 1.0 means the centroid goes all the way to level 0, if lambda < 1, we go part way.
-        float Cout_inc = 0;
-        float* pW = LFN_W(pNode);
-        pW++; // Shift by 1 to ignore the bias weight, we don't need the value.
-        float Wtemp, priorC;
-        priorC = pC[nDimm1];
-        float lambdaOvernDimm1 = lambda / (float)nDimm1;
-        for (int i = 0; i < nDimm1; i++) // change the weights in the domain axes, testing if bounds are breached
-        {
-            if (fabs(pW[i]) < 0.006) continue; // We wait until the sign of pW[i] is clear before increasing or decreasing the weight (i.e.  increasing the magnitude)
-            // This value may have to be changed later; it should be less than 1.0 / (minimum distance between current or anticipated classes)
-            Wtemp = pW[i];
-            //first we move the centroid towards the place where the ALN has value 0 in the direction i (just a fraction of it) 
-            pC[i] -= lambdaOvernDimm1 * pC[nDimm1] / pW[i];
-            // now we change the weight and bound it
-            pW[i] *= WeightDecay;
-            pW[i] = std::max(std::min(WeightBound, pW[i]), -WeightBound);
-            Cout_inc += pW[i] / Wtemp; // The increment will be WeightDecay if no weight has hit the bound
-        }
-        Wtemp = pC[nDimm1] *= lambdaOvernDimm1 * Cout_inc; // This is the average factor, and if no weight hit a bound then pW[0] becomes pW[0] * WeightDecay
-        // compress the weighted centroid info into W[0]
+        // We have to stop the turning if a weight bound is reached
+        float *pW, *pWkeep, priorOutC, newOutC, check;
+        pW = pWkeep = LFN_W(pNode);
+        pW++; // Shift by 1 to ignore the bias weight, unshifted is stored as pWkeep
+        // We allow rotations around the nDim -2-dimensional hyperplane where the LFN has value 0
+        // Assume pW[i] satisfies the weight bound before the call to this routine
+        float* pC = LFN_C(pNode);
+        priorOutC = pC[nDimm1]; // We want to move the output centroid to level 0 in the direction of maximum slope magnitude
+        // If the rotation hits a weight bound, that will rotate the LFN in an undesired directon, so we find
+        // the maximum factor by which we can change the weights without hitting a bound.
+        float maxDecay = WeightDecay;
+        float accu = 0;
         for (int i = 0; i < nDimm1; i++)
         {
-            Wtemp -= pW[i] * pC[i]; // here the pW pointer is still shifted up by one float pointer
+            accu += pW[i] * pW[i];
+            if (fabs(pW[i]) * maxDecay > WeightBound) maxDecay = WeightBound / fabs(pW[i]); 
+            // We shall never have to divide if the denominator is close to 0 as long as the bound is positive
         }
-        pW = LFN_W(pNode); // Get the unshifted weight vector
-        *pW = Wtemp;
-        //There is some inaccuracy if some weight changes hit the bound, the WeightDecay is assumed to be close to 1.0
-        // std::cout << "\n  Output centroid value before DecayWeights = " << priorC << " and after = " << pC[nDimm1] << std::endl;
+        if (accu < 0.000001F) return;  // If the piece is too flat, the centroid would be too far away from the current position 
+        // Note that this depends on the, perhaps unknown, distance between classes!
+
+        // Now we change the centroids and the weights in the domain axes(no need to test if bounds are breached)
+        float factor = pC[nDimm1] / accu;
+        newOutC = priorOutC; // We have the starting point for the new centroid and the increases:
+        for (int i = 0; i < nDimm1; i++)
+        {
+            // First we move the centroid partly towards the place where the ALN has value 0
+            // the amount moved in the direction i is proportional to pW[i]
+            pC[i] -= factor * pW[i];
+            newOutC -= factor * pW[i] * pW[i];
+            // now we change the weight (it must be within bounds)
+            pW[i] *= maxDecay;
+        }
+        pC[nDimm1] = newOutC; // update the output centroid.
+
+        // If all the domain weights and the *bias* value are all changed by the same factor
+        // the place where the LFN value is 0 does not change.
+        // Now we compress the weighted centroid info into afltW[0]
+        check = *pWkeep * maxDecay; // what we expect the new bias to be
+        *pWkeep = newOutC;
+        for (int i = 0; i < nDimm1; i++)
+        {
+            *pWkeep -= pW[i] * pC[i]; // here the pW pointer is still shifted up by one float pointer
+        }
+        if(fabs(priorOutC) > 0.1 && maxDecay > 1.1) std::cout << "\n  Output centroid value before DecayWeights = " <<
+            priorOutC << " and after = " << newOutC << " Is check at 0 ? -> " << *pWkeep - check <<std::endl;
     }
 }
