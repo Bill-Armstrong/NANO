@@ -41,7 +41,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 // Helper declarations relating to ALN tree growth
-void splitControl(ALN*, ALNDATAINFO*); // This does a test to see if a piece fits well or must be split.
+size_t splitControl(ALN*, ALNDATAINFO*); // This does a test to see if a piece fits well or must be split.
 extern BOOL bALNgrowable = TRUE; //If FALSE, no splitting happens, e.g. for linear regression.
 BOOL bStopTraining = FALSE; // This causes training to stop when all leaf nodes have stopped splitting. This means all linear regression resultss will not change.
 extern BOOL bDistanceOptimization; // This prevents considering leaf nodes so far away from the current input sample that they must be cut off in the max-min structure.
@@ -323,8 +323,8 @@ static int ALNAPI DoTrainALN(ALN* pALN,
             // Split candidate LFNs in a middle epoch in this call to ALNTrain.
             if (nEpoch == nMaxEpochs / 2)
             {
-                bStopTraining = TRUE;  // this will be set to FALSE by any leaf node needing further training after splitControl()
-                splitControl(pALN, pDataInfo);  // This leads to leaf nodes splitting
+                // bStopTraining will be set to FALSE if no leaf nodes were split after splitControl()
+                bStopTraining = 0 == splitControl(pALN, pDataInfo);  
                 bDistanceOptimization = TRUE;
             }
         } // end epoch loop

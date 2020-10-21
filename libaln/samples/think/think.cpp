@@ -45,16 +45,15 @@ SOFTWARE. */
 #include <chrono>  // for high_resolution_clock
 
 static char szInfo[] = "NANO (Noise-Attenuating Neuron Online) program\n"
-"Copyright (C)  2019 William W. Armstrong\n"
-"Licensed under LGPL\n\n";
+"Copyright (C)  2019 William W. Armstrong\n\n";
 // SET TARGET DIGIT HERE !!!!!
 float targetDigit = 3; //  Here we specify the digit to be recognized. The other digits are all in the second class
 
 BOOL bClassify2 = TRUE; // FALSE produces the usual function learning; TRUE is for two-class classification with a target class
 BOOL bConvex = FALSE;  // Used when bClassify2 is TRUE. If bConvex is TRUE, then we do convex classification, i.e. all but one split involves minima.
 extern long CountLeafevals; // Global to test optimization
-extern BOOL bStopTraining;
-// Switches for turning on/off optimizations
+
+                            // Switches for turning on/off optimizations
 BOOL bAlphaBeta = FALSE;
 BOOL bDistanceOptimization = FALSE;
 float fltTrainErr;
@@ -277,7 +276,6 @@ int main(int argc, char* argv[])
     */
 
     BOOL bJitter = FALSE;
-    bStopTraining = FALSE;
     bAlphaBeta = FALSE;
     bDistanceOptimization = FALSE;
     BOOL bFirstTime = TRUE;
@@ -294,20 +292,32 @@ int main(int argc, char* argv[])
     std::cout << std::endl << "Starting training " << std::endl;
     // Record start time
     auto start_training = std::chrono::high_resolution_clock::now();
+    auto start_iteration = std::chrono::high_resolution_clock::now();
     do
     {
         for (int iteration = 1; iteration <= iterations; iteration++)
         {
-            if (iteration == 1 || iteration % 5 == 0) std::cout << "\nIteration " << iteration << " (of " << iterations << " )   ";
-            flush(std::cout);
-            auto start_iteration = std::chrono::high_resolution_clock::now();
+            if (iteration == 1 || iteration % 5 == 0)
+            {
+                if (iteration > 1)
+                {
+                    auto finish_iteration = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<float> elapsed0 = finish_iteration - start_training;
+                    std::chrono::duration<float> elapsed1 = finish_iteration - start_iteration;
+
+                    std::cout << "Duration (last 5 iterations) " << elapsed1.count() << " Elapsed time " << elapsed0.count() << " seconds" << std::endl;
+
+                    start_iteration = std::chrono::high_resolution_clock::now();
+                }
+                std::cout << "\nIteration " << iteration << " (of " << iterations << ")   " << std::endl;
+            }
+            
             // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV  Training!
 
             //pTree = pALN->GetTree();
             if (!pALN->Train(nMaxEpochs, fltMinRMSE, fltLearnRate, bJitter, nNotifyMask))
             {
                 std::cout << " Training failed!" << std::endl;
-                flush(std::cout);
                 return 1;
             }
 
@@ -318,8 +328,11 @@ int main(int argc, char* argv[])
                 pALN->SetWeightMax(WeightBound, m, 0);
             }
             if (WeightBound < 0.05) WeightBound += WeightBoundIncrease; // After this, it's manual.
-            if (SplitsAllowed < nDim || iteration % 10 == 1) SplitsAllowed++;
-            std::cout << "/" << SplitsAllowed << " ";
+            if (SplitsAllowed < nDim || iteration % 10 == 1)
+            {
+                SplitsAllowed++;
+            }
+            std::cout << "/" << SplitsAllowed << " " << std::endl;
 
             if (bFirstTime && iteration == 290) // Optimization is not needed when there are few leaf nodes, e.g. < 256
             {
@@ -336,16 +349,13 @@ int main(int argc, char* argv[])
 
             //if (iteration > 200) bConvex = FALSE;
 
-
-            auto finish_iteration = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<float> elapsed0 = finish_iteration - start_training;
-            std::chrono::duration<float> elapsed1 = finish_iteration - start_iteration;
-            if (iteration == 1 || iteration % 5 == 0)
-            {
-                std::cout << " Duration " << elapsed1.count() << " Elapsed time " << elapsed0.count() << " seconds" << std::endl;
-                flush(std::cout);
-            }
         }
+
+        auto finish_iteration = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<float> elapsed0 = finish_iteration - start_training;
+        std::chrono::duration<float> elapsed1 = finish_iteration - start_iteration;
+        std::cout << " Duration (last iterations) " << elapsed1.count() << " Elapsed time " << elapsed0.count() << " seconds" << std::endl;
+
         std::cout << "RMSEorF = " << fltRMSEorF << " Weight bound = " << WeightBound << " Weight decay  = " << WeightDecay << endl;
 
         float entry;

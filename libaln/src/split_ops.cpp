@@ -40,6 +40,10 @@ static char THIS_FILE[] = __FILE__;
 #include ".\cmyaln.h"
 #include "aln.h"
 
+#include <tuple>
+#include <vector>
+#include <algorithm>
+
 #ifndef ASSERT
 
 #ifndef NDEBUG
@@ -53,12 +57,11 @@ static char THIS_FILE[] = __FILE__;
 // We use fltRespTotal in two ways and the following definition helps.
 #define NOISEVARIANCE fltRespTotal
 
-extern BOOL bStopTraining; // This becomes TRUE and stops training when pieces are no longer splitting.
 void setSplitAlpha(ALNDATAINFO* pDataInfo);
-void splitControl(ALN* pALN, ALNDATAINFO* pDataInfo);
+size_t splitControl(ALN* pALN, ALNDATAINFO* pDataInfo);
 void zeroSplitValues(ALN* pALN, ALNNODE* pNode);
 void splitUpdateValues(ALN* pALN, ALNDATAINFO* pDataInfo);
-void doSplits(ALN* pALN, ALNNODE* pNode, float fltLimit);
+void gatherSplitCandidates(ALN* pALN, ALNNODE* pNode, float fltLimit, std::vector<std::tuple<ALNNODE*, size_t>> & candidates);
 int ALNAPI SplitLFN(ALN* pALN, ALNNODE* pNode);
 extern float WeightDecay;
 extern float WeightBound;
@@ -123,9 +126,9 @@ void setSplitAlpha(ALNDATAINFO* pDataInfo)
     }
 }
 
-void splitControl(ALN* pALN, ALNDATAINFO* pDataInfo)  // routine
+size_t splitControl(ALN* pALN, ALNDATAINFO* pDataInfo)  // routine
 {
-    if (SplitCount >= SplitsAllowed) return; // 
+    if (SplitCount >= SplitsAllowed) return 0U; // 
     float fltLimit = pDataInfo->fltMSEorF;
     ASSERT(pALN);
     ASSERT(pALN->pTree);
@@ -133,9 +136,39 @@ void splitControl(ALN* pALN, ALNDATAINFO* pDataInfo)  // routine
     zeroSplitValues(pALN, pALN->pTree);
     // get square errors of pieces on training set and the noise variance estimates
     splitUpdateValues(pALN, pDataInfo);
-    // With the above statistics, doSplits recursively determines splits of eligible pieces.
-    doSplits(pALN, pALN->pTree, fltLimit);
+    
+    // With the above statistics, gatherSplitCandidates recursively determines eligible splits.
+    auto candidates = std::vector<std::tuple<ALNNODE*, size_t>>();
+    gatherSplitCandidates(pALN, pALN->pTree, fltLimit, candidates);
+
+    if (candidates.size() > SplitsAllowed - SplitCount)
+    {
+        // sort candidate in descending order of responsibility so that if we have a limited 
+        // number of splits, we split the pieces with the most responsibility first
+
+        std::sort(begin(candidates), end(candidates),
+            [](auto const& first, auto const& second)
+            {
+                auto const firstCount = std::get<1>(first);
+                auto const secondCount = std::get<1>(second);
+                return firstCount > secondCount; // strict weak ordering
+            });
+    }
+
+    // The piece doesn't fit and needs to split; then training must continue.
+    // We want to choose the same way of splitting, max or min, as the parent. This may need some experimentation
+    //if (fabs(LFN_SPLIT_T(pNode)) * Count * 20 < fltPieceSquareTrainError) LFN_SPLIT_T(pNode) = 0; MYTEST fix this!!!!!!!!!!!!!!!!!
+    size_t localSplitCount = 0U;
+    while (SplitCount < SplitsAllowed && localSplitCount < candidates.size())
+    {
+        auto pNode = std::get<0>(candidates[localSplitCount++]);
+        SplitLFN(pALN, pNode); 
+        SplitCount++;
+    }
+
     // Resetting the SPLIT components to zero by zeroSplitValues is done in alntrain.
+
+    return localSplitCount;
 }
 
 // Routines that set some fields to zero
@@ -237,7 +270,7 @@ void splitUpdateValues(ALN* pALN, ALNDATAINFO* pDataInfo) // routine
     free(afltX);
 } // END of splitUpdateValues
 
-void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
+void gatherSplitCandidates(ALN* pALN, ALNNODE* pNode, float fltMSEorF, std::vector<std::tuple<ALNNODE*, size_t>>& candidates) // routine
 {
     int nDim = pALN->nDim;
     int  CanSplitAbove = bClassify2 ? 1 : (int)(1.2F * (float)nDim + 1.0F);
@@ -260,8 +293,8 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
             MINMAX_SIGMA(pNode)[i] = 0; // zero the half-width of the subtree on the way down
         }
         // Now do the children
-        doSplits(pALN, MINMAX_LEFT(pNode), fltMSEorF); // N.B. left and right subtrees have centroids whose differences of components can be positive or negative
-        doSplits(pALN, MINMAX_RIGHT(pNode), fltMSEorF);// i.e. the subtrees have no particular order in the nDim -1 coordinates of the domain
+        gatherSplitCandidates(pALN, MINMAX_LEFT(pNode), fltMSEorF, candidates); // N.B. left and right subtrees have centroids whose differences of components can be positive or negative
+        gatherSplitCandidates(pALN, MINMAX_RIGHT(pNode), fltMSEorF, candidates);// i.e. the subtrees have no particular order in the nDim -1 coordinates of the domain
         // and pop back up here
         for (int i = 0; i < nDim - 1; i++)
         {
@@ -386,18 +419,9 @@ void doSplits(ALN* pALN, ALNNODE* pNode, float fltMSEorF) // routine
 
                     if (Count > 2) // A very easy to satisfy criterion for splitting any over-determined LFN // CHANGED for classification MYTEST was nDim
                     {
-                        // The piece doesn't fit and needs to split; then training must continue.
-                        // We want to choose the same way of splitting, max or min, as the parent. This may need some experimentation
-                        //if (fabs(LFN_SPLIT_T(pNode)) * Count * 20 < fltPieceSquareTrainError) LFN_SPLIT_T(pNode) = 0; MYTEST fix this!!!!!!!!!!!!!!!!!
-                        if (SplitCount < SplitsAllowed)
-                        {
-                            SplitLFN(pALN, pNode); // We split *every* leaf node that reaches this point.
-                            SplitCount++;
-                        }
-                        // We start an epoch with bStopTraining == TRUE, but if any leaf node might still split,
-                        bStopTraining = FALSE; //  we set it to FALSE and continue to another epoch of training.
+                        candidates.push_back(std::tie(pNode, Count));
                     }
-                    // else the piece doesn't have enough samples to split, but it doesn't fit well -- continue training
+                    // else the piece doesn't have enough samples to split, but it doesn't fit well
                 }
                 else
                 {
